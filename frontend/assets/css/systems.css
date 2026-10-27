@@ -1,0 +1,80 @@
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 30px;
+    color: #35358a;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.systems-header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.systems-header h1 {
+    font-size: 32px;
+}
+
+.systems-header p {
+    color: #666;
+}
+
+/* พื้นที่แสดงรายการระบบ */
+.systems-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+/* การ์ดระบบแต่ละรายการ */
+.system-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+
+    padding: 24px;
+    background: white;
+    border-radius: 14px;
+    border: 1px solid #e5e5e5;
+
+    color: #222;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+
+    transition: 0.2s ease;
+}
+
+.system-card:hover {
+    transform: translateY(-4px);
+    border-color: #35358a;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.system-card h3 {
+    margin: 0 0 8px;
+    font-size: 17px;
+}
+
+.system-card p {
+    margin: 0;
+    font-size: 13px;
+    color: #777;
+}
+
+.card-arrow {
+    color: #35358a;
+    font-size: 24px;
+}
+
+/* หน้าจอขนาดเล็ก */
+@media (max-width: 700px) {
+    .systems-list {
+        grid-template-columns: 1fr;
+    }
+}

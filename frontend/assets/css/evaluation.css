@@ -1,0 +1,136 @@
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 25px;
+    color: #35358a;
+    text-decoration: none;
+}
+
+.evaluation-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.evaluation-header p {
+    color: #666;
+}
+
+.form-section {
+    background: white;
+    border-radius: 15px;
+    padding: 28px;
+    margin-bottom: 20px;
+    border: 1px solid #e5e5e5;
+}
+
+.form-section h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    text-align: left;
+}
+
+label {
+    display: block;
+    margin-top: 18px;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    background: white;
+}
+
+input:focus,
+select:focus {
+    outline: 2px solid #6b70b8;
+}
+
+.input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.hint {
+    font-size: 14px;
+    color: #666;
+}
+
+.calculate-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 10px;
+    background: #35358a;
+    color: white;
+    font-size: 17px;
+    cursor: pointer;
+}
+
+.calculate-btn:hover {
+    background: #242463;
+}
+
+.result-box {
+    margin-top: 25px;
+    padding: 30px;
+    background: #eef0ff;
+    border-radius: 15px;
+    text-align: center;
+}
+
+.result-box[hidden] {
+    display: none;
+}
+
+#result-percentage {
+    display: block;
+    font-size: 42px;
+    color: #35358a;
+    margin: 15px 0;
+}
+
+@media (max-width: 700px) {
+    .input-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* กล่องเน้นย้ำหน่วยที่ใช้กรอก */
+.unit-warning {
+    background-color: #fff8df;
+    border: 2px solid #e7b84b;
+    border-left: 6px solid #d89a16;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-top: 18px;
+    margin-bottom: 24px;
+}
+
+.unit-warning-title {
+    color: #805500;
+    font-size: 17px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.unit-value {
+    font-size: 20px;
+    font-weight: bold;
+    color: #242424;
+    margin: 8px 0;
+}
+
+.unit-example {
+    color: #6b4b0b;
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 0;
+}

@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>แบบประเมินระบบ IT</title>
+
+    <link rel="stylesheet" href="../assets/css/common.css">
+    <link rel="stylesheet" href="../assets/css/evaluation.css">
+</head>
+<body>
+
+    <main class="container">
+
+        <a href="index.html" class="back-link">
+            ← กลับหน้าแรก
+        </a>
+
+        <header class="evaluation-header">
+            <h1>แบบประเมินระบบ IT</h1>
+            <p id="system-name">กำลังโหลดข้อมูลระบบ...</p>
+        </header>
+
+        <form id="evaluation-form">
+
+            <section class="form-section">
+                <h2>ข้อมูลผู้ประเมิน</h2>
+
+                <label for="evaluator-name">
+                    ชื่อผู้ประเมิน (ข้อมูลตัวอย่าง)
+                </label>
+                <input
+                    type="text"
+                    id="evaluator-name"
+                    placeholder="เช่น นิสิตตัวอย่าง"
+                    required
+                >
+
+                <label for="user-role">กลุ่มผู้ใช้งาน</label>
+                <select id="user-role" required>
+                    <option value="">-- เลือกกลุ่ม --</option>
+                    <option value="student">นิสิต</option>
+                    <option value="teacher">อาจารย์</option>
+                    <option value="staff">บุคลากรสายสนับสนุน</option>
+                </select>
+            </section>
+
+            <section class="form-section">
+                <h2>ข้อมูลก่อนและหลังใช้ระบบ</h2>
+
+                <label for="metric">
+                    ตัวชี้วัดที่ต้องการประเมิน
+                </label>
+
+                <select id="metric" required>
+                    <option value="time">ระยะเวลาดำเนินงาน</option>
+                    <option value="steps">จำนวนขั้นตอน</option>
+                    <option value="paper">จำนวนกระดาษที่ใช้</option>
+                    <option value="errors">จำนวนข้อผิดพลาด</option>
+                    <option value="success">อัตราความสำเร็จของงาน</option>
+                </select>
+
+                
+<div class="unit-warning">
+    <div class="unit-warning-title">
+        ⚠️ โปรดตรวจสอบหน่วยก่อนกรอกข้อมูล
+    </div>
+
+    <p id="metric-unit" class="unit-value"></p>
+
+    <p id="metric-example" class="unit-example"></p>
+</div>
+
+
+                <div class="input-grid">
+                    <div>
+                        <label for="before-value">
+                            ก่อนใช้ระบบ
+                        </label>
+                        <input
+                            type="number"
+                            id="before-value"
+                            min="0"
+                            step="any"
+                            placeholder="กรอกตัวเลข"
+                            required
+                        >
+                    </div>
+
+                    <div>
+                        <label for="after-value">
+                            หลังใช้ระบบ
+                        </label>
+                        <input
+                            type="number"
+                            id="after-value"
+                            min="0"
+                            step="any"
+                            placeholder="กรอกตัวเลข"
+                            required
+                        >
+                    </div>
+                </div>
+            </section>
+
+            <button type="submit" class="calculate-btn">
+                คำนวณผลการประเมิน
+            </button>
+
+        </form>
+
+        <section id="result-box" class="result-box" hidden>
+            <h2>ผลการประเมิน</h2>
+            <p id="result-description"></p>
+            <strong id="result-percentage"></strong>
+            <p id="result-message"></p>
+        </section>
+
+    </main>
+
+    <script src="../assets/js/systems-data.js"></script>
+    <script src="../assets/js/evaluation.js"></script>
+</body>
+</html>
