@@ -1,8 +1,12 @@
 
+* {
+    box-sizing: border-box;
+}
+
 .back-link {
     display: inline-block;
     margin-bottom: 25px;
-    color: #35358a;
+    color: #5146d9;
     text-decoration: none;
 }
 
@@ -12,125 +16,282 @@
 }
 
 .evaluation-header p {
-    color: #666;
+    color: #667085;
 }
 
-.form-section {
+.form-section,
+.question-card,
+.result-section {
     background: white;
-    border-radius: 15px;
-    padding: 28px;
-    margin-bottom: 20px;
-    border: 1px solid #e5e5e5;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.06);
 }
 
-.form-section h2 {
-    margin-top: 0;
-    margin-bottom: 25px;
-    text-align: left;
-}
-
-label {
+.form-section label {
     display: block;
-    margin-top: 18px;
-    margin-bottom: 8px;
-    font-weight: bold;
+    margin: 18px 0 8px;
+    font-weight: 600;
 }
 
-input,
-select {
+.form-section input,
+.form-section select {
     width: 100%;
-    padding: 13px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 16px;
-    background: white;
-}
-
-input:focus,
-select:focus {
-    outline: 2px solid #6b70b8;
-}
-
-.input-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-.hint {
-    font-size: 14px;
-    color: #666;
-}
-
-.calculate-btn {
-    display: block;
-    width: 100%;
-    padding: 16px;
-    border: none;
+    padding: 14px;
+    border: 1px solid #d5d8e1;
     border-radius: 10px;
-    background: #35358a;
-    color: white;
-    font-size: 17px;
+    font-size: 16px;
+}
+
+.primary-btn,
+.secondary-btn {
+    padding: 14px 22px;
+    border-radius: 12px;
+    font-size: 16px;
     cursor: pointer;
 }
 
-.calculate-btn:hover {
-    background: #242463;
+.primary-btn {
+    background: #5b50eb;
+    border: none;
+    color: white;
 }
 
-.result-box {
+.secondary-btn {
+    background: white;
+    border: 1px solid #cbd0dc;
+    color: #344054;
+}
+
+.primary-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+#start-btn {
     margin-top: 25px;
-    padding: 30px;
-    background: #eef0ff;
-    border-radius: 15px;
+    width: 100%;
+}
+
+.question-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    font-weight: bold;
+    color: #5b50eb;
+}
+
+.progress-track {
+    height: 9px;
+    background: #e6e8f0;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 25px;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #5b50eb;
+    transition: width 0.3s;
+}
+
+.question-card {
+    text-align: center;
+    padding: 45px 25px;
+}
+
+.question-caption {
+    color: #98a2b3;
+    font-weight: 600;
+}
+
+#question-text {
+    font-size: 25px;
+    line-height: 1.5;
+    margin: 25px 0;
+}
+
+/* ดาวให้คะแนน */
+.rating-stars {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 25px 0;
+}
+
+.rating-star {
+    background: transparent;
+    border: none;
+    color: #cbd5e1;
+    font-size: 50px;
+    cursor: pointer;
+    line-height: 1;
+    transition: transform 0.18s ease, color 0.18s ease;
+}
+
+/* เคอร์เซอร์ชี้แล้วดาวขยาย */
+.rating-star:hover {
+    transform: scale(1.18);
+}
+
+.rating-star:focus-visible {
+    outline: 2px solid #5b50eb;
+    border-radius: 8px;
+}
+
+.rating-star.active {
+    color: #ffb900;
+}
+
+.rating-label {
+    color: #5b50eb;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.skip-btn {
+    margin-top: 15px;
+    padding: 10px 14px;
+    background: #f2f4f7;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.question-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
+.result-section {
     text-align: center;
 }
 
-.result-box[hidden] {
-    display: none;
+.result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 25px 0;
 }
 
-#result-percentage {
-    display: block;
-    font-size: 42px;
-    color: #35358a;
-    margin: 15px 0;
+.result-card {
+    background: #f1f0ff;
+    border-radius: 15px;
+    padding: 20px;
 }
 
-@media (max-width: 700px) {
-    .input-grid {
-        grid-template-columns: 1fr;
+.result-card strong {
+    font-size: 32px;
+    color: #5146d9;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 600px) {
+    .rating-stars {
+        gap: 4px;
+    }
+
+    .rating-star {
+        font-size: 40px;
+    }
+
+    #question-text {
+        font-size: 20px;
     }
 }
 
-/* กล่องเน้นย้ำหน่วยที่ใช้กรอก */
-.unit-warning {
-    background-color: #fff8df;
-    border: 2px solid #e7b84b;
-    border-left: 6px solid #d89a16;
-    border-radius: 12px;
-    padding: 18px 20px;
-    margin-top: 18px;
-    margin-bottom: 24px;
-}
-
-.unit-warning-title {
-    color: #805500;
-    font-size: 17px;
-    font-weight: bold;
-    margin-bottom: 12px;
-}
-
-.unit-value {
+/* ป้ายแสดงช่วงการประเมิน */
+.phase-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 22px;
+    border-radius: 14px;
     font-size: 20px;
-    font-weight: bold;
-    color: #242424;
-    margin: 8px 0;
+    font-weight: 700;
+    border: 2px solid transparent;
 }
 
-.unit-example {
-    color: #6b4b0b;
+/* ก่อนใช้ระบบ */
+.phase-before {
+    background: #fff0d7;
+    color: #9a580c;
+    border-color: #f2c784;
+}
+
+/* หลังใช้ระบบ */
+.phase-after {
+    background: #e4f5ed;
+    color: #176b48;
+    border-color: #a4dec1;
+}
+
+.phase-description {
+    font-size: 15px;
+    color: #667085;
+    margin: 12px 0 22px;
+}
+
+/* กล่องคำอธิบายการข้ามข้อ */
+.skip-info {
+    margin: 30px auto 0;
+    padding: 20px;
+    max-width: 540px;
+    background: #f6f7fb;
+    border: 1px solid #e0e4ed;
+    border-radius: 16px;
+    text-align: center;
+}
+
+.skip-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 10px;
+}
+
+.skip-description {
     font-size: 14px;
-    line-height: 1.7;
+    color: #667085;
+    line-height: 1.8;
+}
+
+.skip-btn {
+    background: white;
+    border: 1px solid #a8b1c2;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #344054;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.skip-btn:hover {
+    background: #e9ecf5;
+    transform: translateY(-2px);
+}
+
+.skip-note {
+    font-size: 12px;
+    color: #667085;
     margin-bottom: 0;
+}
+
+/* รองรับหน้าจอมือถือ */
+@media (max-width: 600px) {
+    .phase-badge {
+        font-size: 15px;
+        padding: 10px 12px;
+    }
+
+    .question-top {
+        gap: 12px;
+        flex-wrap: wrap;
+    }
 }

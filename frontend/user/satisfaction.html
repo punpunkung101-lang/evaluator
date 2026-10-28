@@ -1,0 +1,84 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>ประเมินความพึงพอใจ | IT Evaluator</title>
+
+    <link rel="stylesheet" href="../assets/css/common.css">
+    <link rel="stylesheet" href="../assets/css/satisfaction.css">
+</head>
+<body>
+
+<main class="container">
+
+    <header class="page-header">
+        <h1>แบบประเมินความพึงพอใจ</h1>
+        <p id="system-name">ระบบ IT ที่เลือก</p>
+    </header>
+
+    <section class="satisfaction-card">
+        <div class="question-top">
+            <span>ความพึงพอใจหลังใช้ระบบ</span>
+            <span id="question-number">ข้อ 1/5</span>
+        </div>
+
+        <div class="progress-track">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+
+        <h2 id="question-text"></h2>
+
+        <div id="rating-stars" class="rating-stars"></div>
+
+        <p id="rating-label">กรุณาเลือกคะแนน</p>
+
+        <div class="question-actions">
+            <button id="prev-btn" type="button">
+                ← ย้อนกลับ
+            </button>
+
+            <button id="next-btn" type="button">
+                ข้อถัดไป →
+            </button>
+        </div>
+    </section>
+
+    <section id="feedback-section" class="feedback-section" hidden>
+        <h2>ข้อเสนอแนะเพิ่มเติม</h2>
+        <p>มีสิ่งใดที่คุณอยากให้ปรับปรุงหรือไม่?</p>
+
+        <textarea
+            id="feedback"
+            maxlength="250"
+            rows="5"
+            placeholder="พิมพ์ข้อเสนอแนะ (ไม่บังคับ)"
+        ></textarea>
+
+        <p id="char-count">0/250 ตัวอักษร</p>
+
+        <button id="submit-btn" type="button">
+            ดูสรุปผลการประเมิน
+        </button>
+    </section>
+
+    <section id="result-section" class="result-section" hidden>
+        <h2>สรุปความพึงพอใจ</h2>
+        <p>คะแนนเฉลี่ย</p>
+        <strong id="average-score"></strong>
+        <p id="result-message"></p>
+        <p class="mockup-note">
+            ข้อมูลนี้ยังไม่ได้บันทึกลงฐานข้อมูล
+        </p>
+    </section>
+
+</main>
+
+<script src="../assets/js/systems-data.js"></script>
+<script src="../assets/js/satisfaction.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,141 @@
+
+* {
+    box-sizing: border-box;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.page-header p {
+    color: #667085;
+}
+
+.satisfaction-card,
+.feedback-section,
+.result-section {
+    background: white;
+    border-radius: 20px;
+    padding: 35px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+    text-align: center;
+}
+
+.question-top {
+    display: flex;
+    justify-content: space-between;
+    color: #5b50eb;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.progress-track {
+    background: #e6e8f0;
+    height: 9px;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    width: 20%;
+    height: 100%;
+    background: #5b50eb;
+    transition: width 0.3s;
+}
+
+#question-text {
+    margin: 45px 0 25px;
+    line-height: 1.5;
+}
+
+.rating-stars {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 25px 0;
+}
+
+.rating-star {
+    background: none;
+    border: none;
+    font-size: 50px;
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: transform 0.18s, color 0.18s;
+}
+
+.rating-star:hover {
+    transform: scale(1.18);
+}
+
+.rating-star.active {
+    color: #ffb900;
+}
+
+#rating-label {
+    font-weight: bold;
+    color: #5b50eb;
+}
+
+.question-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 40px;
+}
+
+.question-actions button,
+#submit-btn {
+    padding: 13px 22px;
+    border: none;
+    border-radius: 12px;
+    background: #5b50eb;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.question-actions button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.feedback-section textarea {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #d0d5dd;
+    border-radius: 12px;
+    font-size: 16px;
+    resize: vertical;
+}
+
+#char-count {
+    text-align: right;
+    color: #667085;
+}
+
+#average-score {
+    display: block;
+    font-size: 40px;
+    color: #5b50eb;
+    margin: 20px 0;
+}
+
+.mockup-note {
+    color: #667085;
+    font-size: 13px;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 600px) {
+    .rating-star {
+        font-size: 38px;
+    }
+
+    .satisfaction-card {
+        padding: 20px;
+    }
+}

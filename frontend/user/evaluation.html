@@ -13,115 +13,142 @@
 </head>
 <body>
 
-    <main class="container">
+<main class="container">
 
-        <a href="index.html" class="back-link">
-            ← กลับหน้าแรก
-        </a>
+    <a href="index.html" class="back-link">
+        ← กลับหน้าแรก
+    </a>
 
-        <header class="evaluation-header">
-            <h1>แบบประเมินระบบ IT</h1>
-            <p id="system-name">กำลังโหลดข้อมูลระบบ...</p>
-        </header>
+    <header class="evaluation-header">
+        <h1>แบบประเมินระบบ IT</h1>
+        <p id="system-name">กำลังโหลดข้อมูลระบบ...</p>
+    </header>
 
-        <form id="evaluation-form">
+    <!-- ข้อมูลผู้ประเมิน -->
+    <section class="form-section" id="profile-section">
+        <h2>ข้อมูลผู้ประเมิน</h2>
 
-            <section class="form-section">
-                <h2>ข้อมูลผู้ประเมิน</h2>
+        <label for="evaluator-name">ชื่อผู้ประเมิน (ข้อมูลตัวอย่าง)</label>
+        <input
+            type="text"
+            id="evaluator-name"
+            placeholder="เช่น นิสิตตัวอย่าง"
+        >
 
-                <label for="evaluator-name">
-                    ชื่อผู้ประเมิน (ข้อมูลตัวอย่าง)
-                </label>
-                <input
-                    type="text"
-                    id="evaluator-name"
-                    placeholder="เช่น นิสิตตัวอย่าง"
-                    required
-                >
+        <label for="user-role">ประเภทผู้ใช้งาน</label>
+        <select id="user-role">
+            <option value="">-- เลือกประเภท --</option>
+            <option value="student">นิสิต</option>
+            <option value="teacher">อาจารย์</option>
+            <option value="staff">บุคลากรสายสนับสนุน</option>
+        </select>
 
-                <label for="user-role">กลุ่มผู้ใช้งาน</label>
-                <select id="user-role" required>
-                    <option value="">-- เลือกกลุ่ม --</option>
-                    <option value="student">นิสิต</option>
-                    <option value="teacher">อาจารย์</option>
-                    <option value="staff">บุคลากรสายสนับสนุน</option>
-                </select>
-            </section>
+        <button id="start-btn" class="primary-btn">
+            เริ่มทำแบบประเมิน
+        </button>
+    </section>
 
-            <section class="form-section">
-                <h2>ข้อมูลก่อนและหลังใช้ระบบ</h2>
+    <!-- แบบสอบถาม -->
+    <section id="question-section" class="question-section" hidden>
 
-                <label for="metric">
-                    ตัวชี้วัดที่ต้องการประเมิน
-                </label>
-
-                <select id="metric" required>
-                    <option value="time">ระยะเวลาดำเนินงาน</option>
-                    <option value="steps">จำนวนขั้นตอน</option>
-                    <option value="paper">จำนวนกระดาษที่ใช้</option>
-                    <option value="errors">จำนวนข้อผิดพลาด</option>
-                    <option value="success">อัตราความสำเร็จของงาน</option>
-                </select>
-
-                
-<div class="unit-warning">
-    <div class="unit-warning-title">
-        ⚠️ โปรดตรวจสอบหน่วยก่อนกรอกข้อมูล
+        
+<div class="question-top">
+    <div id="phase-badge" class="phase-badge phase-before">
+        <span id="phase-icon">◷</span>
+        <span id="phase-label">ช่วงที่ 1 — ก่อนใช้ระบบ IT</span>
     </div>
 
-    <p id="metric-unit" class="unit-value"></p>
-
-    <p id="metric-example" class="unit-example"></p>
+    <span id="question-count">ข้อ 1/10</span>
 </div>
 
+<p id="phase-description" class="phase-description">
+    ให้นึกถึงวิธีการทำงานเดิม ก่อนนำระบบ IT มาใช้
+</p>
 
-                <div class="input-grid">
-                    <div>
-                        <label for="before-value">
-                            ก่อนใช้ระบบ
-                        </label>
-                        <input
-                            type="number"
-                            id="before-value"
-                            min="0"
-                            step="any"
-                            placeholder="กรอกตัวเลข"
-                            required
-                        >
-                    </div>
 
-                    <div>
-                        <label for="after-value">
-                            หลังใช้ระบบ
-                        </label>
-                        <input
-                            type="number"
-                            id="after-value"
-                            min="0"
-                            step="any"
-                            placeholder="กรอกตัวเลข"
-                            required
-                        >
-                    </div>
-                </div>
-            </section>
+        <div class="progress-track">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
 
-            <button type="submit" class="calculate-btn">
-                คำนวณผลการประเมิน
+        <div class="question-card">
+            <p class="question-caption">ระดับความคิดเห็นของคุณ</p>
+
+            <h2 id="question-text"></h2>
+
+            <div id="rating-stars" class="rating-stars"></div>
+
+            <p id="rating-label" class="rating-label">
+                กรุณาเลือกคะแนน
+            </p>
+
+            
+<div class="skip-info">
+    <p class="skip-title">
+        ❔ ไม่แน่ใจว่าจะให้คะแนนอย่างไร?
+    </p>
+
+    <p class="skip-description">
+        หากคุณไม่เคยใช้วิธีทำงานเดิม
+        หรือไม่มีประสบการณ์เกี่ยวกับคำถามนี้
+        สามารถเลือกข้ามข้อนี้ได้
+    </p>
+
+    <button id="skip-btn" class="skip-btn" type="button">
+        ⏭ ไม่สามารถประเมินข้อนี้ได้ (กดเพื่อข้าม)
+    </button>
+
+    <p class="skip-note">
+        เมื่อกดปุ่มนี้ ระบบจะไม่นำคำถามข้อนี้ไปคิดคะแนน
+    </p>
+</div>
+
+        </div>
+
+        <div class="question-actions">
+            <button id="prev-btn" class="secondary-btn">
+                ← ย้อนกลับ
             </button>
 
-        </form>
+            <button id="next-btn" class="primary-btn">
+                ข้อถัดไป →
+            </button>
+        </div>
 
-        <section id="result-box" class="result-box" hidden>
-            <h2>ผลการประเมิน</h2>
-            <p id="result-description"></p>
-            <strong id="result-percentage"></strong>
-            <p id="result-message"></p>
-        </section>
+    </section>
 
-    </main>
+    <!-- สรุปผล -->
+    <section id="result-section" class="result-section" hidden>
+        <h2>สรุปผลการประเมิน</h2>
 
-    <script src="../assets/js/systems-data.js"></script>
-    <script src="../assets/js/evaluation.js"></script>
+        <div class="result-grid">
+            <div class="result-card">
+                <p>ก่อนใช้ระบบ</p>
+                <strong id="before-score">-</strong>
+            </div>
+
+            <div class="result-card">
+                <p>หลังใช้ระบบ</p>
+                <strong id="after-score">-</strong>
+            </div>
+        </div>
+
+        <h3 id="difference-score"></h3>
+        <p id="result-note"></p>
+
+        <button id="restart-btn" class="secondary-btn">
+            ทดลองประเมินใหม่
+        </button>
+        
+<button id="satisfaction-btn" class="primary-btn">
+    ประเมินความพึงพอใจต่อ →
+</button>
+
+    </section>
+
+</main>
+
+<script src="../assets/js/systems-data.js"></script>
+<script src="../assets/js/evaluation.js"></script>
+
 </body>
 </html>
