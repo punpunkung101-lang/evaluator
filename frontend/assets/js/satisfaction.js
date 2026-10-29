@@ -1,4 +1,5 @@
-﻿
+// IT Evaluator - Satisfaction Assessment Logic (Clean & Formal)
+
 // อ่านรหัสระบบจาก URL
 const params = new URLSearchParams(window.location.search);
 const systemId = params.get("system");
@@ -6,27 +7,33 @@ const systemId = params.get("system");
 // ค้นหาชื่อระบบ
 let selectedSystem = null;
 
-for (const category of categories) {
-    const found = category.systems.find(
-        system => system.id === systemId
-    );
+if (typeof categories !== "undefined") {
+    for (const category of categories) {
+        const found = category.systems.find(
+            system => system.id === systemId
+        );
 
-    if (found) {
-        selectedSystem = found;
-        break;
+        if (found) {
+            selectedSystem = found;
+            break;
+        }
     }
 }
 
-document.getElementById("system-name").textContent =
-    selectedSystem ? selectedSystem.name : "ไม่พบระบบ IT";
+const systemNameEl = document.getElementById("system-name");
+if (systemNameEl) {
+    systemNameEl.textContent = selectedSystem
+        ? `${selectedSystem.name} (${selectedSystem.id})`
+        : "ไม่พบระบบ IT";
+}
 
 // คำถามความพึงพอใจ 5 ข้อ
 const questions = [
-    "คุณพึงพอใจต่อความสะดวกในการใช้งานระบบเพียงใด?",
-    "คุณพึงพอใจต่อความรวดเร็วในการทำงานของระบบเพียงใด?",
-    "คุณพึงพอใจต่อความถูกต้องของข้อมูลและผลลัพธ์เพียงใด?",
-    "คุณพึงพอใจต่อความชัดเจนของหน้าจอและเมนูเพียงใด?",
-    "โดยรวมแล้ว คุณพึงพอใจต่อระบบ IT นี้เพียงใด?"
+    "ความสะดวกในการเข้าใช้งานและการดำเนินงานผ่านระบบ",
+    "ความรวดเร็วในการประมวลผลและการตอบสนองของระบบ",
+    "ความถูกต้องและความน่าเชื่อถือของข้อมูลและผลลัพธ์",
+    "ความชัดเจนของหน้าจอ เมนูคำสั่ง และคู่มือการใช้งาน",
+    "ความพึงพอใจต่อภาพรวมของการใช้งานระบบ IT นี้"
 ];
 
 const labels = [
@@ -38,6 +45,8 @@ const labels = [
     "มากที่สุด"
 ];
 
+const SVG_STAR = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
+
 let answers = Array(5).fill(null);
 let currentIndex = 0;
 
@@ -47,6 +56,7 @@ const ratingLabel = document.getElementById("rating-label");
 
 const prevBtn = document.getElementById("prev-btn");
 const nextBtn = document.getElementById("next-btn");
+const nextBtnText = document.getElementById("next-btn-text");
 
 function renderQuestion() {
     const score = answers[currentIndex];
@@ -54,21 +64,23 @@ function renderQuestion() {
     questionText.textContent = questions[currentIndex];
 
     document.getElementById("question-number").textContent =
-        `ข้อ ${currentIndex + 1}/5`;
+        `ข้อที่ ${currentIndex + 1} / ${questions.length}`;
 
     document.getElementById("progress-bar").style.width =
         `${((currentIndex + 1) / questions.length) * 100}%`;
 
     ratingLabel.textContent = score === null
-        ? "กรุณาเลือกคะแนน"
-        : `${score} ดาว — ${labels[score]}`;
+        ? "โปรดเลือกระดับความพึงพอใจ"
+        : `${score} คะแนน — ระดับ${labels[score]}`;
 
     prevBtn.disabled = currentIndex === 0;
     nextBtn.disabled = score === null;
 
-    nextBtn.textContent = currentIndex === 4
-        ? "ไปข้อเสนอแนะ →"
-        : "ข้อถัดไป →";
+    if (nextBtnText) {
+        nextBtnText.textContent = currentIndex === 4
+            ? "ไปยังข้อเสนอแนะเพิ่มเติม"
+            : "ข้อถัดไป";
+    }
 
     renderStars();
 }
@@ -83,8 +95,8 @@ function renderStars() {
 
         star.type = "button";
         star.className = "rating-star";
-        star.textContent = "★";
-        star.setAttribute("aria-label", `${value} ดาว`);
+        star.innerHTML = SVG_STAR;
+        star.setAttribute("aria-label", `ระดับคะแนน ${value} (${labels[value]})`);
 
         if (score !== null && value <= score) {
             star.classList.add("active");
@@ -109,7 +121,6 @@ function renderStars() {
 
 function paintStars(value) {
     const stars = ratingStars.querySelectorAll(".rating-star");
-
     stars.forEach((star, index) => {
         star.classList.toggle("active", index < value);
     });
@@ -137,29 +148,28 @@ const feedback = document.getElementById("feedback");
 
 feedback.addEventListener("input", () => {
     document.getElementById("char-count").textContent =
-        `${feedback.value.length}/250 ตัวอักษร`;
+        `${feedback.value.length} / 250 ตัวอักษร`;
 });
 
-// คำนวณคะแนนความพึงพอใจ
+// บันทึกและคำนวณคะแนนความพึงพอใจ
 document.getElementById("submit-btn").addEventListener("click", () => {
-    const total = answers.reduce((sum, score) => sum + score, 0);
+    const total = answers.reduce((sum, score) => sum + (score || 0), 0);
     const average = total / answers.length;
-    
-    // อ่านข้อมูล Before–After ที่เก็บไว้
-    const savedDraft = sessionStorage.getItem(
-        "itEvaluationDraft"
-    );
+
+    // อ่านข้อมูล Before–After ที่เก็บไว้ใน sessionStorage
+    const savedDraft = sessionStorage.getItem("itEvaluationDraft");
 
     if (!savedDraft) {
-        alert("ไม่พบข้อมูลการประเมินก่อนหน้า กรุณาเริ่มใหม่");
+        alert("ไม่พบข้อมูลการประเมินเบื้องต้น กรุณาเริ่มทำแบบประเมินใหม่อีกครั้ง");
+        window.location.href = "index.html";
         return;
     }
 
     const evaluationData = JSON.parse(savedDraft);
 
-    // ตรวจสอบว่าเป็นระบบ IT เดียวกัน
     if (evaluationData.systemId !== systemId) {
-        alert("ข้อมูลระบบ IT ไม่ตรงกัน กรุณาเริ่มใหม่");
+        alert("ข้อมูลรหัสระบบไม่สอดคล้องกัน กรุณาเริ่มทำแบบประเมินใหม่อีกครั้ง");
+        window.location.href = "index.html";
         return;
     }
 
@@ -168,17 +178,16 @@ document.getElementById("submit-btn").addEventListener("click", () => {
     evaluationData.satisfactionAverage = average;
     evaluationData.feedback = feedback.value.trim();
 
-    // เก็บข้อมูลการประเมินฉบับสมบูรณ์ชั่วคราว
+    // เก็บข้อมูลลงใน sessionStorage
     sessionStorage.setItem(
         "itEvaluationComplete",
         JSON.stringify(evaluationData)
     );
 
-    // บันทึกผ่าน EvaluationAPI เพื่อส่งต่อไปยัง Backend/Supabase หรือ Local Storage
+    // บันทึกผ่าน EvaluationAPI เพื่อส่งต่อไปยัง Backend/Supabase หรือ Local Storage ถาวร
     if (typeof EvaluationAPI !== "undefined") {
         EvaluationAPI.submitEvaluation(evaluationData);
     }
-
 
     document.getElementById("feedback-section").hidden = true;
     document.getElementById("result-section").hidden = false;
@@ -187,7 +196,7 @@ document.getElementById("submit-btn").addEventListener("click", () => {
         `${average.toFixed(2)} / 5`;
 
     document.getElementById("result-message").textContent =
-        "นี่คือคะแนนความพึงพอใจเฉลี่ยของคุณ";
+        "ระบบได้บันทึกผลการประเมินประสิทธิภาพและความพึงพอใจเรียบร้อยแล้ว";
 });
 
 // เริ่มแสดงคำถามข้อแรก

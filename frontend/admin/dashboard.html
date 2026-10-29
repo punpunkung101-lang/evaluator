@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IT Evaluator | Admin Dashboard</title>
+    <title>ระบบบริหารจัดการและสรุปผลการประเมิน IT | IT Evaluator Admin Dashboard</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,38 +23,46 @@
         <!-- ========== SIDEBAR ========== -->
         <aside class="sidebar">
             <div class="sidebar-brand">
-                <div class="brand-icon">📊</div>
-                <div>
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                </div>
+                <div class="brand-info">
                     <h2>IT Evaluator</h2>
-                    <p>Admin Panel</p>
+                    <p>ระบบบริหารจัดการข้อมูล</p>
                 </div>
             </div>
 
             <nav class="sidebar-nav">
-                <a href="#overview" class="nav-link active">9
-                    <span>🏠</span> แดชบอร์ด
+                <a href="#overview" class="nav-link active">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                    <span>ภาพรวมระบบ</span>
                 </a>
 
                 <a href="#evaluation" class="nav-link">
-                    <span>📋</span> ก่อน–หลังใช้ระบบ
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                    <span>เปรียบเทียบก่อน–หลัง</span>
                 </a>
 
                 <a href="#satisfaction" class="nav-link">
-                    <span>💜</span> ความพึงพอใจ
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm4.59-12.42L10 14.17l-2.59-2.58L6 13l4 4 8-8z"/></svg>
+                    <span>ระดับความพึงพอใจ</span>
                 </a>
 
                 <a href="#reports" class="nav-link">
-                    <span>📈</span> รายงานตามหมวดหมู่
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+                    <span>รายงานตามหมวดหมู่</span>
                 </a>
 
                 <a href="#systems" class="nav-link">
-                    <span>🖥️</span> ผลประเมินรายระบบ
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v10H4V6zm18-2H2v14h7v2H7v2h10v-2h-2v-2h7V4z"/></svg>
+                    <span>ผลประเมินรายระบบ</span>
                 </a>
             </nav>
 
             <div class="sidebar-footer">
                 <a href="login.html" id="logoutBtn">
-                    🚪 ออกจากระบบ
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                    <span>ออกจากระบบ</span>
                 </a>
             </div>
         </aside>
@@ -65,31 +73,34 @@
             <!-- HEADER -->
             <header class="dashboard-header">
                 <div>
-                    <h1>IT Evaluator Dashboard</h1>
-                    <p>ภาพรวมผลการประเมินประสิทธิภาพและผลกระทบจากการใช้ระบบ IT</p>
+                    <h1>ระบบรายงานผลการประเมินประสิทธิภาพระบบ IT</h1>
+                    <p>สรุปผลการวิเคราะห์ข้อมูลความพึงพอใจและประสิทธิผลการปฏิบัติงาน คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</p>
                 </div>
 
                 <div class="header-actions">
                     <span id="dataStatusBadge" class="data-badge">
-                        กำลังตรวจสอบข้อมูล...
+                        กำลังตรวจสอบการเชื่อมต่อข้อมูล...
                     </span>
 
-                    <select id="periodFilter" class="header-select">
-                        <option value="all">ทุกช่วงเวลา</option>
-                        <option value="month">เดือนนี้</option>
-                        <option value="year">ปีนี้</option>
+                    <select id="periodFilter" class="header-select" aria-label="กรองข้อมูลตามช่วงเวลา">
+                        <option value="all">ข้อมูลทุกช่วงเวลา</option>
+                        <option value="month">ข้อมูลประจำเดือนนี้</option>
+                        <option value="year">ข้อมูลประจำปีนี้</option>
                     </select>
 
-                    <button id="importJsonBtn" class="btn btn-secondary btn-sm" title="นำเข้าไฟล์ JSON จากผู้ประเมิน">
-                        📥 นำเข้า JSON
+                    <button id="importJsonBtn" class="btn btn-secondary btn-sm" type="button" title="นำเข้าไฟล์ JSON ผลการประเมิน">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                        นำเข้า JSON
                     </button>
 
-                    <button id="exportHtmlBtn" class="btn btn-secondary btn-sm" title="ส่งออกรายงานเป็นไฟล์ HTML">
-                        🌐 Export HTML
+                    <button id="exportHtmlBtn" class="btn btn-secondary btn-sm" type="button" title="ส่งออกรายงานในรูปแบบเอกสาร HTML">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/></svg>
+                        ส่งออก HTML
                     </button>
 
-                    <button id="exportPdfBtn" class="btn btn-primary btn-sm" title="ส่งออกรายงานเป็นไฟล์ PDF">
-                        📄 Export PDF
+                    <button id="exportPdfBtn" class="btn btn-primary btn-sm" type="button" title="ส่งออกรายงานในรูปแบบเอกสาร PDF">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
+                        ส่งออก PDF
                     </button>
                 </div>
             </header>
@@ -97,48 +108,56 @@
             <!-- ERROR OR EMPTY STATE BANNER -->
             <div id="stateBanner" class="state-banner" style="display: none;">
                 <span id="stateBannerMessage"></span>
-                <button id="dismissBannerBtn" class="btn btn-sm btn-secondary" style="margin-left: 12px;">ปิด</button>
+                <button id="dismissBannerBtn" class="btn btn-sm btn-secondary" style="margin-left: 12px;" type="button">ปิดข้อความ</button>
             </div>
 
-            <!-- ========== SUMMARY CARDS ========== -->
+            <!-- ========== SUMMARY METRIC CARDS ========== -->
             <section class="summary-grid">
 
                 <div class="stat-card">
-                    <div class="stat-icon purple">🖥️</div>
+                    <div class="stat-icon navy">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v10H4V6zm18-2H2v14h7v2H7v2h10v-2h-2v-2h7V4z"/></svg>
+                    </div>
                     <div class="stat-info">
-                        <h3>จำนวนระบบ IT</h3>
+                        <h3>ระบบสารสนเทศทั้งหมด</h3>
                         <h2 id="totalSystems">0</h2>
-                        <p>จาก 6 หมวดหมู่</p>
+                        <p>จาก 6 หมวดหมู่ภารกิจ</p>
                     </div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon blue">👥</div>
+                    <div class="stat-icon blue">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    </div>
                     <div class="stat-info">
-                        <h3>จำนวนผู้ประเมิน</h3>
+                        <h3>จำนวนผู้ร่วมประเมิน</h3>
                         <h2 id="totalUsers">0</h2>
-                        <p>นิสิต | อาจารย์ | บุคลากร</p>
+                        <p>นิสิต / อาจารย์ / บุคลากร</p>
                     </div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon green">📄</div>
+                    <div class="stat-icon emerald">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                    </div>
                     <div class="stat-info">
-                        <h3>จำนวนการประเมิน</h3>
+                        <h3>จำนวนชุดข้อมูลการประเมิน</h3>
                         <h2 id="totalEvaluations">0</h2>
-                        <p>บันทึกประเมินจริงทั้งหมด</p>
+                        <p>รายการที่จัดเก็บสมบูรณ์</p>
                     </div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon amber">⭐</div>
+                    <div class="stat-icon amber">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    </div>
                     <div class="stat-info">
-                        <h3>ความพึงพอใจเฉลี่ย</h3>
+                        <h3>คะแนนความพึงพอใจเฉลี่ยรวม</h3>
                         <h2>
                             <span id="averageSatisfaction">-</span>
                             <small id="maxSatLabel" style="display: none;">/ 5</small>
                         </h2>
-                        <p>คะแนนเฉลี่ยรวมทุกระบบ</p>
+                        <p>จากเกณฑ์คะแนนเต็ม 5</p>
                     </div>
                 </div>
 
@@ -147,20 +166,20 @@
             <!-- ========== MAIN CHARTS ========== -->
             <section class="dashboard-grid">
 
-                <!-- BEFORE / AFTER -->
+                <!-- BEFORE / AFTER COMPARISON -->
                 <div class="dashboard-card chart-large" id="evaluation">
                     <div class="card-header">
                         <div>
-                            <h3>คะแนนความคิดเห็นก่อน–หลังใช้ระบบ IT</h3>
-                            <p>เปรียบเทียบคะแนนเฉลี่ยคำถาม 10 ข้อ (เต็ม 5 คะแนน)</p>
+                            <h3>เปรียบเทียบผลการดำเนินงานก่อน–หลังการใช้ระบบ IT</h3>
+                            <p>คะแนนเฉลี่ยจำแนกตามเกณฑ์การประเมิน 10 ด้าน (เต็ม 5 คะแนน)</p>
                         </div>
                     </div>
 
                     <div class="chart-container" id="beforeAfterContainer">
                         <canvas id="beforeAfterChart"></canvas>
                         <div class="chart-empty-state" id="beforeAfterEmpty" style="display: none;">
-                            <span class="icon">📊</span>
-                            <span>ไม่มีข้อมูลการประเมินในช่วงเวลานี้</span>
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                            <span>ไม่มีข้อมูลการประเมินในช่วงเวลาที่กำหนด</span>
                         </div>
                     </div>
                 </div>
@@ -169,56 +188,62 @@
                 <div class="dashboard-card">
                     <div class="card-header">
                         <div>
-                            <h3>สถานะการประเมินระบบ</h3>
-                            <p>สัดส่วนระบบที่ได้รับการประเมิน</p>
+                            <h3>สัดส่วนระบบที่ได้รับการประเมิน</h3>
+                            <p>ความครอบคลุมของการประเมินระบบ</p>
                         </div>
                     </div>
 
                     <div class="chart-container" id="statusContainer">
                         <canvas id="evaluationStatusChart"></canvas>
                         <div class="chart-empty-state" id="statusEmpty" style="display: none;">
-                            <span class="icon">⭕</span>
-                            <span>ไม่มีข้อมูลการประเมิน</span>
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                            <span>ไม่มีข้อมูลสถานะการประเมิน</span>
                         </div>
                     </div>
 
                     <div class="chart-legend" id="statusLegend">
-                        <span>🟣 มีผลประเมิน</span>
-                        <span>⚪ ยังไม่มีผลประเมิน</span>
+                        <span class="legend-item"><span class="legend-indicator" style="background: #1e3a8a;"></span> มีผลการประเมิน</span>
+                        <span class="legend-item"><span class="legend-indicator" style="background: #e2e8f0;"></span> ยังไม่มีการประเมิน</span>
                     </div>
                 </div>
 
-                <!-- SATISFACTION EMOJI -->
+                <!-- SATISFACTION LEVEL BREAKDOWN -->
                 <div class="dashboard-card satisfaction-card" id="satisfaction">
                     <div class="card-header">
                         <div>
-                            <h3>ระดับความพึงพอใจ</h3>
-                            <p>จำแนกตามเกณฑ์คะแนน</p>
+                            <h3>ระดับความพึงพอใจของผู้ใช้</h3>
+                            <p>จำแนกตามเกณฑ์ระดับคะแนนมาตรฐาน</p>
                         </div>
                     </div>
 
                     <div class="emotion-list">
                         <div class="emotion-item">
-                            <div class="emotion-icon happy">😄</div>
+                            <div class="emotion-icon happy">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                            </div>
                             <div class="emotion-info">
                                 <h2 id="happyPercent">0%</h2>
-                                <p>พึงพอใจ (≥ 3.5)</p>
+                                <p>ระดับพึงพอใจสูง (3.50 – 5.00)</p>
                             </div>
                         </div>
 
                         <div class="emotion-item">
-                            <div class="emotion-icon neutral">😐</div>
+                            <div class="emotion-icon neutral">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg>
+                            </div>
                             <div class="emotion-info">
                                 <h2 id="neutralPercent">0%</h2>
-                                <p>ปานกลาง (2.5 - 3.4)</p>
+                                <p>ระดับปานกลาง (2.50 – 3.49)</p>
                             </div>
                         </div>
 
                         <div class="emotion-item">
-                            <div class="emotion-icon unhappy">☹️</div>
+                            <div class="emotion-icon unhappy">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                            </div>
                             <div class="emotion-info">
                                 <h2 id="unhappyPercent">0%</h2>
-                                <p>ไม่พึงพอใจ (&lt; 2.5)</p>
+                                <p>ควรปรับปรุงแก้ไข (&lt; 2.50)</p>
                             </div>
                         </div>
                     </div>
@@ -232,16 +257,16 @@
                 <div class="dashboard-card">
                     <div class="card-header">
                         <div>
-                            <h3>ผลประเมินตามหมวดหมู่</h3>
-                            <p>ความพึงพอใจเฉลี่ย 6 หมวดหมู่งาน</p>
+                            <h3>ผลการประเมินจำแนกตามหมวดหมู่งาน</h3>
+                            <p>คะแนนเฉลี่ยความพึงพอใจ 6 กลุ่มภารกิจ</p>
                         </div>
                     </div>
 
                     <div class="chart-container" id="categoryContainer">
                         <canvas id="categoryChart"></canvas>
                         <div class="chart-empty-state" id="categoryEmpty" style="display: none;">
-                            <span class="icon">📈</span>
-                            <span>ไม่มีข้อมูลตามหมวดหมู่</span>
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                            <span>ไม่มีข้อมูลจำแนกตามหมวดหมู่</span>
                         </div>
                     </div>
                 </div>
@@ -249,16 +274,16 @@
                 <div class="dashboard-card">
                     <div class="card-header">
                         <div>
-                            <h3>แนวโน้มคะแนนความพึงพอใจ</h3>
-                            <p>คะแนนเฉลี่ยย้อนหลังตามช่วงเวลา</p>
+                            <h3>แนวโน้มความพึงพอใจย้อนหลัง</h3>
+                            <p>การเปลี่ยนแปลงของคะแนนเฉลี่ยตามช่วงเวลา</p>
                         </div>
                     </div>
 
                     <div class="chart-container" id="trendContainer">
                         <canvas id="satisfactionTrendChart"></canvas>
                         <div class="chart-empty-state" id="trendEmpty" style="display: none;">
-                            <span class="icon">📉</span>
-                            <span>ไม่มีข้อมูลแนวโน้ม</span>
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+                            <span>ไม่มีข้อมูลแนวโน้มคะแนน</span>
                         </div>
                     </div>
                 </div>
@@ -270,20 +295,20 @@
 
                 <div class="card-header table-header">
                     <div>
-                        <h3>ผลการประเมินรายระบบ</h3>
-                        <p>รายละเอียดคะแนนระบบ IT จากผู้ประเมินจริง</p>
+                        <h3>ตารางสรุปผลการประเมินประสิทธิภาพรายระบบ</h3>
+                        <p>ข้อมูลสถิติที่คำนวณจากชุดข้อมูลการประเมินจริง</p>
                     </div>
 
                     <div class="table-actions">
-                        <select id="categoryFilter" class="filter-select">
-                            <option value="all">ทุกหมวดหมู่</option>
+                        <select id="categoryFilter" class="filter-select" aria-label="กรองตามหมวดหมู่">
+                            <option value="all">ทุกหมวดหมู่ภารกิจ</option>
                         </select>
 
-                        <select id="userTypeFilter" class="filter-select">
-                            <option value="all">ผู้ประเมินทั้งหมด</option>
+                        <select id="userTypeFilter" class="filter-select" aria-label="กรองตามกลุ่มผู้ใช้งาน">
+                            <option value="all">ผู้ประเมินทุกกลุ่ม</option>
                             <option value="student">นิสิต</option>
-                            <option value="teacher">อาจารย์</option>
-                            <option value="staff">บุคลากร</option>
+                            <option value="teacher">อาจารย์ / นักวิจัย</option>
+                            <option value="staff">บุคลากรสายสนับสนุน</option>
                         </select>
                     </div>
                 </div>
@@ -294,14 +319,14 @@
                             <tr>
                                 <th>ลำดับ</th>
                                 <th>รหัสระบบ</th>
-                                <th>ชื่อระบบ</th>
-                                <th>หมวดหมู่</th>
-                                <th>ผู้ประเมิน</th>
+                                <th>ชื่อระบบสารสนเทศ</th>
+                                <th>หมวดหมู่งาน</th>
+                                <th>จำนวนผู้ประเมิน</th>
                                 <th>ก่อนใช้ / 5</th>
                                 <th>หลังใช้ / 5</th>
-                                <th>ผลต่าง</th>
-                                <th>พึงพอใจ / 5</th>
-                                <th>รายละเอียด</th>
+                                <th>ส่วนต่างคะแนน</th>
+                                <th>ความพึงพอใจ / 5</th>
+                                <th>การดำเนินงาน</th>
                             </tr>
                         </thead>
                         <tbody id="systemsTableBody">
@@ -313,35 +338,35 @@
             </section>
 
             <footer class="dashboard-footer">
-                IT Evaluator © 2026 | คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร
+                ระบบประเมินประสิทธิภาพและประสิทธิผลของระบบ IT © 2026 | คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร
             </footer>
 
         </main>
     </div>
 
     <!-- MODAL: Import JSON Data -->
-    <div id="importModal" class="modal-overlay">
+    <div id="importModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal-card">
             <div class="modal-header">
-                <h3>นำเข้าข้อมูลผลการประเมิน (JSON Data)</h3>
-                <button class="modal-close" id="closeImportModal">&times;</button>
+                <h3 id="modalTitle">นำเข้าข้อมูลผลการประเมิน (JSON Dataset)</h3>
+                <button class="modal-close" id="closeImportModal" aria-label="ปิดหน้าต่าง">&times;</button>
             </div>
-            <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 12px;">
-                นำเข้าไฟล์ JSON ผลการประเมินระบบเพื่อรวมเข้ากับระบบ Dashboard
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 12px;">
+                เลือกหรือลากไฟล์ JSON บันทึกผลการประเมินเพื่อนำเข้าและประมวลผลบนแดชบอร์ด
             </p>
 
-            <div class="dropzone" id="fileDropzone">
-                <div style="font-size: 32px; margin-bottom: 8px;">📁</div>
-                <strong>คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวางที่นี่</strong>
-                <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">รองรับเฉพาะไฟล์ .json</p>
+            <div class="dropzone" id="fileDropzone" tabindex="0" role="button" aria-label="พื้นที่อัปโหลดไฟล์ JSON">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                <p><strong>คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวางที่นี่</strong></p>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">รองรับเฉพาะไฟล์เอกสารรูปแบบ .json ที่มีโครงสร้างตรงตามมาตรฐาน</p>
                 <input type="file" id="jsonFileInput" accept=".json" style="display: none;">
             </div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
-                <button id="clearDataBtn" class="btn btn-secondary btn-sm" style="color: var(--danger);">
-                    🗑️ ล้างข้อมูลนำเข้าทั้งหมด
+                <button id="clearDataBtn" class="btn btn-secondary btn-sm" style="color: var(--danger); border-color: var(--danger-border);" type="button">
+                    ล้างชุดข้อมูลนำเข้าทั้งหมด
                 </button>
-                <button id="closeModalBtn" class="btn btn-secondary btn-sm">ปิด</button>
+                <button id="closeModalBtn" class="btn btn-secondary btn-sm" type="button">ปิด</button>
             </div>
         </div>
     </div>

@@ -1,12 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบประเมินประสิทธิภาพระบบ IT | IT Evaluator</title>
 
-    <title>แบบประเมินระบบ IT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="../assets/css/common.css">
     <link rel="stylesheet" href="../assets/css/evaluation.css">
@@ -16,134 +17,141 @@
 <main class="container">
 
     <a href="index.html" class="back-link">
-        ← กลับหน้าแรก
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 11H7.14l5.43-5.43L11.15 4.15 2.86 12.43l8.29 8.28 1.42-1.42-5.43-5.43H19v-2.86z"/></svg>
+        กลับสู่หน้ารายการหมวดหมู่
     </a>
 
     <header class="evaluation-header">
-        <h1>แบบประเมินระบบ IT</h1>
-        <p id="system-name">กำลังโหลดข้อมูลระบบ...</p>
+        <h1>แบบประเมินประสิทธิภาพและประสิทธิผลระบบ IT</h1>
+        <div class="system-name-badge" id="system-badge">
+            <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v10H4V6zm18-2H2v14h7v2H7v2h10v-2h-2v-2h7V4z"/></svg>
+            <span id="system-name">กำลังตรวจสอบข้อมูลระบบ...</span>
+        </div>
     </header>
 
-    <!-- ข้อมูลผู้ประเมิน -->
-    <section class="form-section" id="profile-section">
+    <!-- ขั้นตอนที่ 1: ข้อมูลผู้ประเมิน -->
+    <section class="form-section profile-card" id="profile-section">
         <h2>ข้อมูลผู้ประเมิน</h2>
+        <p class="section-desc">โปรดระบุข้อมูลเบื้องต้นเพื่อใช้ประกอบการวิเคราะห์ทางสถิติของหน่วยงาน</p>
 
-        <label for="evaluator-name">ชื่อผู้ประเมิน (ข้อมูลตัวอย่าง)</label>
-        <input
-            type="text"
-            id="evaluator-name"
-            placeholder="เช่น นิสิตตัวอย่าง"
-        >
+        <div class="form-group">
+            <label class="form-label" for="evaluator-name">ชื่อ-นามสกุล หรือ รหัสผู้ใช้งาน</label>
+            <input
+                type="text"
+                id="evaluator-name"
+                class="form-control"
+                placeholder="กรอกชื่อ-นามสกุล หรือนามสมมุติ"
+                autocomplete="off"
+            >
+        </div>
 
-        <label for="user-role">ประเภทผู้ใช้งาน</label>
-        <select id="user-role">
-            <option value="">-- เลือกประเภท --</option>
-            <option value="student">นิสิต</option>
-            <option value="teacher">อาจารย์</option>
-            <option value="staff">บุคลากรสายสนับสนุน</option>
-        </select>
+        <div class="form-group">
+            <label class="form-label" for="user-role">ประเภทบุคลากร / ผู้ใช้งาน</label>
+            <select id="user-role" class="form-control">
+                <option value="">-- โปรดเลือกประเภทผู้ใช้งาน --</option>
+                <option value="student">นิสิต</option>
+                <option value="teacher">อาจารย์ / นักวิจัย</option>
+                <option value="staff">บุคลากรสายสนับสนุน</option>
+            </select>
+        </div>
 
-        <button id="start-btn" class="primary-btn">
-            เริ่มทำแบบประเมิน
+        <button id="start-btn" class="btn btn-primary" type="button">
+            เริ่มต้นการประเมิน
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42 5.43 5.43H5v2z"/></svg>
         </button>
     </section>
 
-    <!-- แบบสอบถาม -->
-    <section id="question-section" class="question-section" hidden>
+    <!-- ขั้นตอนที่ 2: ข้อคำถามประเมิน Before vs After -->
+    <section id="question-section" class="form-section" hidden>
 
-        
-<div class="question-top">
-    <div id="phase-badge" class="phase-badge phase-before">
-        <span id="phase-icon">◷</span>
-        <span id="phase-label">ช่วงที่ 1 — ก่อนใช้ระบบ IT</span>
-    </div>
+        <div class="question-top">
+            <div id="phase-badge" class="phase-badge phase-before">
+                <span id="phase-icon"></span>
+                <span id="phase-label">ช่วงที่ 1: ก่อนการนำระบบ IT มาใช้</span>
+            </div>
 
-    <span id="question-count">ข้อ 1/10</span>
-</div>
+            <span id="question-count" class="question-counter">ข้อที่ 1 / 10</span>
+        </div>
 
-<p id="phase-description" class="phase-description">
-    ให้นึกถึงวิธีการทำงานเดิม ก่อนนำระบบ IT มาใช้
-</p>
+        <div class="progress-track" aria-hidden="true">
+            <div id="progress-bar" class="progress-bar" style="width: 10%;"></div>
+        </div>
 
-
-        <div class="progress-track">
-            <div id="progress-bar" class="progress-bar"></div>
+        <div id="phase-description-box" class="phase-description-box">
+            <span id="phase-description">โปรดพิจารณาการปฏิบัติงานตามวิธีการทำงานเดิม ก่อนเริ่มนำระบบ IT เข้ามาใช้งาน</span>
         </div>
 
         <div class="question-card">
-            <p class="question-caption">ระดับความคิดเห็นของคุณ</p>
+            <p class="question-caption">เกณฑ์การประเมินประสิทธิภาพ</p>
+            <h2 id="question-text">ข้อคำถาม</h2>
 
-            <h2 id="question-text"></h2>
+            <div id="rating-stars" class="rating-stars" role="radiogroup" aria-label="ระดับความคิดเห็น"></div>
 
-            <div id="rating-stars" class="rating-stars"></div>
+            <p id="rating-label" class="rating-label">โปรดเลือกระดับความคิดเห็น</p>
 
-            <p id="rating-label" class="rating-label">
-                กรุณาเลือกคะแนน
-            </p>
+            <div class="skip-info">
+                <p class="skip-title">ไม่สามารถประเมินข้อนี้ได้?</p>
+                <p class="skip-description">
+                    หากท่านไม่เคยมีประสบการณ์ในขั้นตอนดังกล่าว หรือไม่ทราบข้อมูลเกี่ยวกับข้อคำถามนี้ สามารถกดปุ่มด้านล่างเพื่อข้ามข้อนี้ได้ โดยระบบจะไม่นำคำถามนี้ไปคำนวณถ่วงน้ำหนัก
+                </p>
 
-            
-<div class="skip-info">
-    <p class="skip-title">
-        ❔ ไม่แน่ใจว่าจะให้คะแนนอย่างไร?
-    </p>
-
-    <p class="skip-description">
-        หากคุณไม่เคยใช้วิธีทำงานเดิม
-        หรือไม่มีประสบการณ์เกี่ยวกับคำถามนี้
-        สามารถเลือกข้ามข้อนี้ได้
-    </p>
-
-    <button id="skip-btn" class="skip-btn" type="button">
-        ⏭ ไม่สามารถประเมินข้อนี้ได้ (กดเพื่อข้าม)
-    </button>
-
-    <p class="skip-note">
-        เมื่อกดปุ่มนี้ ระบบจะไม่นำคำถามข้อนี้ไปคิดคะแนน
-    </p>
-</div>
-
+                <button id="skip-btn" class="skip-btn" type="button">
+                    ข้ามคำถามข้อนี้ (ไม่มีข้อมูล / ไม่เคยปฏิบัติงาน)
+                </button>
+            </div>
         </div>
 
         <div class="question-actions">
-            <button id="prev-btn" class="secondary-btn">
-                ← ย้อนกลับ
+            <button id="prev-btn" class="btn btn-secondary" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 11H7.14l5.43-5.43L11.15 4.15 2.86 12.43l8.29 8.28 1.42-1.42-5.43-5.43H19v-2.86z"/></svg>
+                ย้อนกลับ
             </button>
 
-            <button id="next-btn" class="primary-btn">
-                ข้อถัดไป →
+            <button id="next-btn" class="btn btn-primary" type="button" disabled>
+                <span id="next-btn-text">ข้อถัดไป</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42 5.43 5.43H5v2z"/></svg>
             </button>
         </div>
 
     </section>
 
-    <!-- สรุปผล -->
+    <!-- ขั้นตอนที่ 3: ผลสรุปเปรียบเทียบ Before-After -->
     <section id="result-section" class="result-section" hidden>
-        <h2>สรุปผลการประเมิน</h2>
+        <h2>สรุปผลการเปรียบเทียบประสิทธิภาพ</h2>
+        <p class="result-sub">ผลต่างคะแนนเฉลี่ยระหว่างก่อนและหลังการนำระบบ IT มาใช้ในการปฏิบัติงาน</p>
 
         <div class="result-grid">
             <div class="result-card">
-                <p>ก่อนใช้ระบบ</p>
+                <p>คะแนนเฉลี่ยก่อนใช้ระบบ</p>
                 <strong id="before-score">-</strong>
             </div>
 
             <div class="result-card">
-                <p>หลังใช้ระบบ</p>
+                <p>คะแนนเฉลี่ยหลังใช้ระบบ</p>
                 <strong id="after-score">-</strong>
             </div>
         </div>
 
-        <h3 id="difference-score"></h3>
-        <p id="result-note"></p>
+        <div class="difference-banner">
+            <h3 id="difference-score">-</h3>
+            <p id="result-note">-</p>
+        </div>
 
-        <button id="restart-btn" class="secondary-btn">
-            ทดลองประเมินใหม่
-        </button>
-        
-<button id="satisfaction-btn" class="primary-btn">
-    ประเมินความพึงพอใจต่อ →
-</button>
+        <div class="result-actions">
+            <button id="restart-btn" class="btn btn-secondary" type="button">
+                ทำแบบประเมินใหม่อีกครั้ง
+            </button>
 
+            <button id="satisfaction-btn" class="btn btn-primary" type="button">
+                ดำเนินการประเมินความพึงพอใจต่อ
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42 5.43 5.43H5v2z"/></svg>
+            </button>
+        </div>
     </section>
+
+    <footer class="site-footer">
+        ระบบประเมินประสิทธิภาพ IT © 2026 | คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร
+    </footer>
 
 </main>
 

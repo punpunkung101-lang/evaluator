@@ -1,12 +1,13 @@
-﻿
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบประเมินความพึงพอใจการใช้งานระบบ IT | IT Evaluator</title>
 
-    <title>ประเมินความพึงพอใจ | IT Evaluator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="../assets/css/common.css">
     <link rel="stylesheet" href="../assets/css/satisfaction.css">
@@ -16,64 +17,83 @@
 <main class="container">
 
     <header class="page-header">
-        <h1>แบบประเมินความพึงพอใจ</h1>
-        <p id="system-name">ระบบ IT ที่เลือก</p>
+        <h1>แบบประเมินความพึงพอใจต่อระบบ IT</h1>
+        <div class="system-badge">
+            <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v10H4V6zm18-2H2v14h7v2H7v2h10v-2h-2v-2h7V4z"/></svg>
+            <span id="system-name">กำลังตรวจสอบข้อมูลระบบ...</span>
+        </div>
     </header>
 
+    <!-- คำถามวัดความพึงพอใจ 5 ข้อ -->
     <section class="satisfaction-card">
         <div class="question-top">
-            <span>ความพึงพอใจหลังใช้ระบบ</span>
-            <span id="question-number">ข้อ 1/5</span>
+            <span>ความพึงพอใจหลังการใช้งานระบบ</span>
+            <span id="question-number">ข้อที่ 1 / 5</span>
         </div>
 
-        <div class="progress-track">
-            <div id="progress-bar" class="progress-bar"></div>
+        <div class="progress-track" aria-hidden="true">
+            <div id="progress-bar" class="progress-bar" style="width: 20%;"></div>
         </div>
 
-        <h2 id="question-text"></h2>
+        <h2 id="question-text">ข้อคำถามความพึงพอใจ</h2>
 
-        <div id="rating-stars" class="rating-stars"></div>
+        <div id="rating-stars" class="rating-stars" role="radiogroup" aria-label="ระดับความพึงพอใจ"></div>
 
-        <p id="rating-label">กรุณาเลือกคะแนน</p>
+        <p id="rating-label">โปรดเลือกระดับความพึงพอใจ</p>
 
         <div class="question-actions">
-            <button id="prev-btn" type="button">
-                ← ย้อนกลับ
+            <button id="prev-btn" class="btn btn-secondary" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 11H7.14l5.43-5.43L11.15 4.15 2.86 12.43l8.29 8.28 1.42-1.42-5.43-5.43H19v-2.86z"/></svg>
+                ย้อนกลับ
             </button>
 
-            <button id="next-btn" type="button">
-                ข้อถัดไป →
+            <button id="next-btn" class="btn btn-primary" type="button" disabled>
+                <span id="next-btn-text">ข้อถัดไป</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42 5.43 5.43H5v2z"/></svg>
             </button>
         </div>
     </section>
 
+    <!-- ส่วนข้อเสนอแนะเพิ่มเติม -->
     <section id="feedback-section" class="feedback-section" hidden>
-        <h2>ข้อเสนอแนะเพิ่มเติม</h2>
-        <p>มีสิ่งใดที่คุณอยากให้ปรับปรุงหรือไม่?</p>
+        <h2>ข้อเสนอแนะเพื่อการพัฒนาระบบ</h2>
+        <p>ท่านมีข้อคิดเห็นหรือข้อเสนอแนะเพิ่มเติมเพื่อปรับปรุงระบบ IT นี้หรือไม่</p>
 
         <textarea
             id="feedback"
             maxlength="250"
             rows="5"
-            placeholder="พิมพ์ข้อเสนอแนะ (ไม่บังคับ)"
+            placeholder="พิมพ์ข้อเสนอแนะของท่านที่นี่ (ไม่บังคับระบุ)"
         ></textarea>
 
-        <p id="char-count">0/250 ตัวอักษร</p>
+        <p id="char-count" class="char-counter">0 / 250 ตัวอักษร</p>
 
-        <button id="submit-btn" type="button">
-            ดูสรุปผลการประเมิน
+        <button id="submit-btn" class="btn btn-primary" type="button">
+            บันทึกและส่งผลการประเมิน
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
         </button>
     </section>
 
+    <!-- ส่วนสรุปผลการประเมินความพึงพอใจ -->
     <section id="result-section" class="result-section" hidden>
-        <h2>สรุปความพึงพอใจ</h2>
-        <p>คะแนนเฉลี่ย</p>
-        <strong id="average-score"></strong>
-        <p id="result-message"></p>
-        <p class="mockup-note">
-            ข้อมูลนี้ยังไม่ได้บันทึกลงฐานข้อมูล
-        </p>
+        <h2>บันทึกผลการประเมินสำเร็จ</h2>
+        <p class="score-label">คะแนนความพึงพอใจเฉลี่ยของท่าน</p>
+        <strong id="average-score">-</strong>
+        <p id="result-message">ระบบได้บันทึกข้อมูลผลการประเมินประสิทธิภาพและระดับความพึงพอใจเรียบร้อยแล้ว</p>
+
+        <div class="status-callout">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            <span>ข้อมูลได้รับการจัดเก็บลงในระบบฐานข้อมูลเรียบร้อยแล้ว</span>
+        </div>
+
+        <a href="index.html" class="btn btn-primary">
+            กลับสู่หน้ารายการระบบ IT
+        </a>
     </section>
+
+    <footer class="site-footer">
+        ระบบประเมินประสิทธิภาพ IT © 2026 | คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร
+    </footer>
 
 </main>
 

@@ -1,141 +1,219 @@
-
-* {
-    box-sizing: border-box;
-}
+/* ==========================================================================
+   IT EVALUATOR - SATISFACTION ASSESSMENT STYLES
+   Faculty of Allied Health Sciences, Naresuan University
+   Corporate, Stepped & Accessible
+   ========================================================================== */
 
 .page-header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 28px;
 }
 
-.page-header p {
-    color: #667085;
+.system-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--primary-light);
+    color: var(--primary);
+    border: 1px solid var(--primary-border);
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    margin-top: 6px;
 }
 
 .satisfaction-card,
 .feedback-section,
 .result-section {
-    background: white;
-    border-radius: 20px;
-    padding: 35px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    padding: 36px 32px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
     text-align: center;
+    max-width: 680px;
+    margin: 0 auto 24px;
 }
 
 .question-top {
     display: flex;
     justify-content: space-between;
-    color: #5b50eb;
-    font-weight: bold;
-    margin-bottom: 15px;
-}
-
-.progress-track {
-    background: #e6e8f0;
-    height: 9px;
-    border-radius: 20px;
-    overflow: hidden;
-}
-
-.progress-bar {
-    width: 20%;
-    height: 100%;
-    background: #5b50eb;
-    transition: width 0.3s;
+    align-items: center;
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-bottom: 12px;
 }
 
 #question-text {
-    margin: 45px 0 25px;
+    margin: 36px 0 24px;
+    font-size: 1.3125rem;
+    font-weight: 600;
     line-height: 1.5;
+    color: var(--text-primary);
 }
 
+/* Vector Star Rating Group */
 .rating-stars {
     display: flex;
     justify-content: center;
     gap: 12px;
-    margin: 25px 0;
+    margin: 24px 0;
 }
 
 .rating-star {
     background: none;
     border: none;
-    font-size: 50px;
     color: #cbd5e1;
+    padding: 6px;
     cursor: pointer;
-    transition: transform 0.18s, color 0.18s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.rating-star svg {
+    width: 44px;
+    height: 44px;
+    fill: currentColor;
 }
 
 .rating-star:hover {
-    transform: scale(1.18);
+    transform: scale(1.1);
 }
 
 .rating-star.active {
-    color: #ffb900;
+    color: #eab308; /* Institutional Warm Gold */
+}
+
+.rating-star:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-focus);
 }
 
 #rating-label {
-    font-weight: bold;
-    color: #5b50eb;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--primary);
+    min-height: 26px;
 }
 
 .question-actions {
     display: flex;
     justify-content: space-between;
-    margin-top: 40px;
+    align-items: center;
+    margin-top: 36px;
+    gap: 16px;
 }
 
-.question-actions button,
-#submit-btn {
-    padding: 13px 22px;
-    border: none;
-    border-radius: 12px;
-    background: #5b50eb;
-    color: white;
-    cursor: pointer;
-    font-size: 16px;
+/* Feedback Section */
+.feedback-section h2 {
+    font-size: 1.25rem;
+    color: var(--text-primary);
+    margin-bottom: 6px;
 }
 
-.question-actions button:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
+.feedback-section p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
 }
 
 .feedback-section textarea {
     width: 100%;
-    padding: 15px;
-    border: 1px solid #d0d5dd;
-    border-radius: 12px;
-    font-size: 16px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.9375rem;
+    font-family: inherit;
     resize: vertical;
+    min-height: 120px;
+    color: var(--text-primary);
+    background-color: var(--bg-surface);
 }
 
-#char-count {
+.char-counter {
     text-align: right;
-    color: #667085;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 6px 0 20px;
+}
+
+#submit-btn {
+    width: 100%;
+    padding: 12px;
+}
+
+/* Result Final Section */
+.result-section h2 {
+    font-size: 1.375rem;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.result-section .score-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 16px;
 }
 
 #average-score {
     display: block;
-    font-size: 40px;
-    color: #5b50eb;
-    margin: 20px 0;
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1.2;
+    margin: 8px 0;
 }
 
-.mockup-note {
-    color: #667085;
-    font-size: 13px;
+#result-message {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
 }
 
-[hidden] {
-    display: none !important;
+.status-callout {
+    background-color: var(--success-bg);
+    border: 1px solid var(--success-border);
+    color: var(--success-text);
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.8125rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.status-callout svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    flex-shrink: 0;
 }
 
 @media (max-width: 600px) {
-    .rating-star {
-        font-size: 38px;
+    .satisfaction-card,
+    .feedback-section,
+    .result-section {
+        padding: 24px 16px;
     }
 
-    .satisfaction-card {
-        padding: 20px;
+    .rating-star svg {
+        width: 34px;
+        height: 34px;
+    }
+
+    #question-text {
+        font-size: 1.125rem;
+        margin: 24px 0 16px;
+    }
+
+    #average-score {
+        font-size: 2.25rem;
     }
 }

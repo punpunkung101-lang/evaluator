@@ -1,13 +1,15 @@
 /**
- * IT Evaluator - Admin Dashboard Logic
+ * IT Evaluator - Institutional Admin Dashboard Logic
+ * Faculty of Allied Health Sciences, Naresuan University
  * 
  * Features:
  * - Real User JSON Ingestion (via EvaluationAPI / Supabase / Backend / Browser Storage)
  * - Dynamic Aggregations & Calculations (Zero Mock Datasets)
  * - Clean Empty & Error State Handling
- * - Responsive Chart.js Visualizations (Scaled & Proportioned)
- * - Standalone HTML Export
+ * - Professional & Accessible Chart.js Visualizations (Navy Slate Palette)
+ * - Standalone Print-Ready HTML Export
  * - Multi-page Browser-Printable PDF Export with auto-pagination
+ * - 100% Zero-Emoji Architecture
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -39,18 +41,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         "ประสิทธิภาพโดยรวม"
     ];
 
-    // Theme color palette (Consistent with Clean Light UI)
-    const primaryColor = "#5b50eb";
-    const primaryLightColor = "#ecebfd";
-    const accentColor = "#0284c7";
-    const dangerColor = "#ef4444";
-    const successColor = "#10b981";
-    const textMuted = "#64748b";
-    const gridColor = "#f1f5f9";
+    // Institutional Academic Color Palette (Navy, Slate, Emerald, Gold)
+    const colorPrimary = "#1e3a8a";        // Corporate Deep Navy
+    const colorPrimaryLight = "#eff6ff";
+    const colorBefore = "#94a3b8";         // Neutral Slate (Before implementation)
+    const colorAfter = "#1e3a8a";          // Deep Navy (After implementation)
+    const colorAccent = "#0284c7";         // Professional Blue
+    const colorMuted = "#64748b";
+    const colorGrid = "#f1f5f9";
 
     if (typeof Chart !== "undefined") {
-        Chart.defaults.color = textMuted;
-        Chart.defaults.font.family = "Kanit, sans-serif";
+        Chart.defaults.color = colorMuted;
+        Chart.defaults.font.family = '"Kanit", sans-serif';
     }
 
     const charts = {};
@@ -81,29 +83,31 @@ document.addEventListener("DOMContentLoaded", async () => {
                         boxWidth: 12,
                         padding: 12,
                         color: "#334155",
-                        font: { size: 12 }
+                        font: { size: 12, family: '"Kanit", sans-serif' }
                     }
                 },
                 tooltip: {
-                    backgroundColor: "#1e293b",
-                    padding: 8,
-                    cornerRadius: 6
+                    backgroundColor: "#0f172a",
+                    padding: 10,
+                    cornerRadius: 6,
+                    titleFont: { family: '"Kanit", sans-serif', weight: "600" },
+                    bodyFont: { family: '"Kanit", sans-serif' }
                 }
             },
             scales: {
                 x: {
-                    ticks: { color: textMuted, font: { size: 11 } },
+                    ticks: { color: colorMuted, font: { size: 11, family: '"Kanit", sans-serif' } },
                     grid: { display: false }
                 },
                 y: {
                     min: 0,
                     max: max,
                     ticks: {
-                        color: textMuted,
+                        color: colorMuted,
                         stepSize: 1,
-                        font: { size: 11 }
+                        font: { size: 11, family: '"Kanit", sans-serif' }
                     },
-                    grid: { color: gridColor }
+                    grid: { color: colorGrid }
                 }
             }
         };
@@ -190,7 +194,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             activeDataSource = result.source;
         } else {
             rawEvaluations = [];
-            dataFetchError = result.error || "เกิดข้อผิดพลาดในการโหลดข้อมูล";
+            dataFetchError = result.error || "เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล";
             activeDataSource = "error";
         }
 
@@ -203,18 +207,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (activeDataSource === "error") {
             dataStatusBadge.className = "data-badge error";
-            dataStatusBadge.textContent = "เกิดข้อผิดพลาดในการเชื่อมต่อข้อมูล";
-            showStateBanner("error", dataFetchError || "ไม่สามารถเชื่อมต่อแหล่งข้อมูลได้");
+            dataStatusBadge.innerHTML = `
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล
+            `;
+            showStateBanner("error", dataFetchError || "ไม่สามารถเชื่อมต่อแหล่งข้อมูลภายนอกได้");
         } else if (rawEvaluations.length === 0) {
             dataStatusBadge.className = "data-badge";
-            dataStatusBadge.textContent = "ไม่มีข้อมูลประเมินในระบบ";
+            dataStatusBadge.innerHTML = `
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                ไม่มีข้อมูลการประเมินในระบบ
+            `;
             hideStateBanner();
         } else {
             dataStatusBadge.className = "data-badge live";
             const sourceLabel = activeDataSource === "supabase" ? "Supabase Cloud"
-                : activeDataSource === "backend" ? "Backend API"
-                : "ข้อมูลผู้ใช้จริง";
-            dataStatusBadge.textContent = `ข้อมูลจริง (${sourceLabel} : ${rawEvaluations.length} รายการ)`;
+                : activeDataSource === "backend" ? "Backend REST API"
+                : "ข้อมูลผู้ใช้จัดเก็บถาวร";
+            dataStatusBadge.innerHTML = `
+                <span class="status-indicator"></span>
+                <span>ชุดข้อมูลจริง (${sourceLabel}: ${rawEvaluations.length} รายการ)</span>
+            `;
             hideStateBanner();
         }
     }
@@ -257,7 +270,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const records = rawEvaluations.filter(record => {
             const matchSystem = visibleSystemIds.has(record.systemId);
             const matchRole = selectedRole === "all" || record.userRole === selectedRole;
-            
+
             let matchPeriod = true;
             if (selectedPeriod === "month") {
                 matchPeriod = getMonthKey(record.submittedAt) === currentMonth;
@@ -268,7 +281,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             return matchSystem && matchRole && matchPeriod;
         });
 
-        // 1. Summary Cards
+        // 1. Summary Metrics
         const uniqueEvaluators = new Set(
             records.map(r => r.evaluatorId || r.evaluatorName)
         );
@@ -293,10 +306,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (maxLabel) maxLabel.style.display = "none";
         }
 
-        // Toggle Empty Visuals for Charts
         const hasRecords = records.length > 0;
 
-        // 2. Before / After Chart
+        // 2. Before / After Comparison Chart
         const beforeAfterCanvas = document.getElementById("beforeAfterChart");
         const beforeAfterEmpty = document.getElementById("beforeAfterEmpty");
 
@@ -326,15 +338,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                     labels: questionNames,
                     datasets: [
                         {
-                            label: "ก่อนใช้ระบบ",
+                            label: "ก่อนนำระบบ IT มาใช้",
                             data: beforeScores,
-                            backgroundColor: "#f87171",
+                            backgroundColor: colorBefore,
                             borderRadius: 4
                         },
                         {
-                            label: "หลังใช้ระบบ",
+                            label: "หลังนำระบบ IT มาใช้",
                             data: afterScores,
-                            backgroundColor: primaryColor,
+                            backgroundColor: colorAfter,
                             borderRadius: 4
                         }
                     ]
@@ -365,10 +377,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             drawChart("evaluationStatusChart", {
                 type: "doughnut",
                 data: {
-                    labels: ["มีผลประเมิน", "ยังไม่มีผลประเมิน"],
+                    labels: ["มีผลการประเมิน", "ยังไม่มีการประเมิน"],
                     datasets: [{
                         data: [evaluatedCount, pendingCount],
-                        backgroundColor: [primaryColor, "#e2e8f0"],
+                        backgroundColor: [colorPrimary, "#e2e8f0"],
                         borderWidth: 0
                     }]
                 },
@@ -383,7 +395,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
         }
 
-        // 4. Satisfaction Breakdown (Emoji Percentages)
+        // 4. Satisfaction Breakdown
         if (!hasRecords || allSatisfactionScores.length === 0) {
             setText("happyPercent", "0%");
             setText("neutralPercent", "0%");
@@ -430,9 +442,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 data: {
                     labels: shownCategories.map(c => c.name),
                     datasets: [{
-                        label: "ความพึงพอใจเฉลี่ย / 5",
+                        label: "คะแนนเฉลี่ยความพึงพอใจ (เต็ม 5)",
                         data: catAverages,
-                        backgroundColor: accentColor,
+                        backgroundColor: colorAccent,
                         borderRadius: 4
                     }]
                 },
@@ -452,7 +464,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (trendCanvas) trendCanvas.style.display = "block";
             if (trendEmpty) trendEmpty.style.display = "none";
 
-            // Generate past 6 months
             const pastMonths = Array.from({ length: 6 }, (_, i) => {
                 const d = new Date(today.getFullYear(), today.getMonth() - (5 - i), 1);
                 return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0")].join("-");
@@ -474,21 +485,21 @@ document.addEventListener("DOMContentLoaded", async () => {
                         });
                     }),
                     datasets: [{
-                        label: "ความพึงพอใจเฉลี่ย / 5",
+                        label: "คะแนนเฉลี่ยความพึงพอใจ",
                         data: trendScores,
-                        borderColor: primaryColor,
-                        backgroundColor: "rgba(91, 80, 235, 0.1)",
+                        borderColor: colorPrimary,
+                        backgroundColor: "rgba(30, 58, 138, 0.08)",
                         tension: 0.3,
                         fill: true,
                         pointRadius: 4,
-                        pointBackgroundColor: primaryColor
+                        pointBackgroundColor: colorPrimary
                     }]
                 },
                 options: standardChartOptions(5)
             });
         }
 
-        // 7. System Table Rendering
+        // 7. System Table
         renderTable(visibleSystems, records);
     }
 
@@ -499,7 +510,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (visibleSystems.length === 0) {
             const row = document.createElement("tr");
             row.className = "table-empty-row";
-            row.innerHTML = `<td colspan="10">ไม่พบระบบ IT ตามหมวดหมู่ที่เลือก</td>`;
+            row.innerHTML = `<td colspan="10">ไม่พบระบบสารสนเทศตามหมวดหมู่ที่เลือก</td>`;
             tableBody.appendChild(row);
             return;
         }
@@ -507,7 +518,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         visibleSystems.forEach((system, index) => {
             const sysRecords = records.filter(r => r.systemId === system.id);
 
-            // Calculate before, after, satisfaction
             const beforeList = [];
             const afterList = [];
 
@@ -549,7 +559,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <td><strong>${formatScore(satAvg)}</strong></td>
                 <td>
                     <a href="evaluation-detail.html?system=${encodeURIComponent(system.id)}" class="detail-btn">
-                        ดูรายละเอียด
+                        รายละเอียด
                     </a>
                 </td>
             `;
@@ -557,7 +567,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Filter change listeners
+    // Filter Listeners
     [categoryFilter, roleFilter, periodFilter].forEach(el => {
         el?.addEventListener("change", updateDashboard);
     });
@@ -588,6 +598,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (fileDropzone && jsonFileInput) {
         fileDropzone.addEventListener("click", () => jsonFileInput.click());
+        fileDropzone.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                jsonFileInput.click();
+            }
+        });
 
         fileDropzone.addEventListener("dragover", e => {
             e.preventDefault();
@@ -613,7 +629,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function handleFileImport(file) {
         if (!file.name.endsWith(".json")) {
-            alert("กรุณาเลือกไฟล์ที่มีนามสกุล .json");
+            alert("กรุณาเลือกไฟล์ข้อมูลที่มีนามสกุล .json เท่านั้น");
             return;
         }
 
@@ -621,11 +637,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         reader.onload = e => {
             const result = EvaluationAPI.importEvaluationsJSON(e.target.result);
             if (result.success) {
-                alert(`นำเข้าข้อมูลเรียบร้อยแล้ว: เพิ่มใหม่ ${result.count} รายการ (รวมทั้งหมด ${result.total} รายการ)`);
+                alert(`นำเข้าชุดข้อมูลสำเร็จ: เพิ่มรายการใหม่ ${result.count} รายการ (รวมข้อมูลในระบบทั้งหมด ${result.total} รายการ)`);
                 closeModal();
                 loadData();
             } else {
-                alert(`เกิดข้อผิดพลาดในการนำเข้าไฟล์ JSON: ${result.error}`);
+                alert(`เกิดข้อผิดพลาดในการประมวลผลไฟล์ JSON: ${result.error}`);
             }
         };
         reader.readAsText(file);
@@ -633,9 +649,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (clearDataBtn) {
         clearDataBtn.addEventListener("click", () => {
-            if (confirm("คุณแน่ใจหรือไม่ว่าต้องการล้างข้อมูลการประเมินที่นำเข้าทั้งหมด?")) {
+            if (confirm("ท่านต้องการล้างชุดข้อมูลการประเมินที่นำเข้าทั้งหมดใช่หรือไม่?")) {
                 EvaluationAPI.clearLocalStorage();
-                alert("ล้างข้อมูลเรียบร้อยแล้ว");
+                alert("ล้างชุดข้อมูลเรียบร้อยแล้ว");
                 closeModal();
                 loadData();
             }
@@ -650,11 +666,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     const exportPdfBtn = document.getElementById("exportPdfBtn");
 
     /**
-     * Export to Standalone HTML
+     * Export Standalone Academic HTML Document
      */
     if (exportHtmlBtn) {
         exportHtmlBtn.addEventListener("click", () => {
-            const timestamp = new Date().toLocaleString("th-TH");
+            const timestamp = new Date().toLocaleString("th-TH", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
             const totalSys = document.getElementById("totalSystems")?.textContent || "0";
             const totalUsers = document.getElementById("totalUsers")?.textContent || "0";
             const totalEvals = document.getElementById("totalEvaluations")?.textContent || "0";
@@ -664,17 +686,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             const neutral = document.getElementById("neutralPercent")?.textContent || "0%";
             const unhappy = document.getElementById("unhappyPercent")?.textContent || "0%";
 
-            // Capture chart images as base64 data URLs
             const beforeAfterImg = charts["beforeAfterChart"]?.toBase64Image() || "";
             const categoryImg = charts["categoryChart"]?.toBase64Image() || "";
             const statusImg = charts["evaluationStatusChart"]?.toBase64Image() || "";
             const trendImg = charts["satisfactionTrendChart"]?.toBase64Image() || "";
 
-            // Clone table rows
             const tableRowsHtml = Array.from(tableBody.querySelectorAll("tr")).map(tr => {
                 const tds = Array.from(tr.querySelectorAll("td"));
                 if (tds.length < 9) return tr.outerHTML;
-                // Exclude last 'detail' action column in export for cleaner print
                 return `<tr>${tds.slice(0, 9).map(td => td.outerHTML).join("")}</tr>`;
             }).join("");
 
@@ -684,93 +703,93 @@ document.addEventListener("DOMContentLoaded", async () => {
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>IT Evaluator Report - ${timestamp}</title>
+    <title>รายงานผลการประเมินประสิทธิภาพระบบ IT - ${timestamp}</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Kanit', sans-serif; margin: 40px auto; max-width: 1100px; color: #1e293b; background: #ffffff; padding: 0 20px; }
-        .header { border-bottom: 2px solid #5b50eb; padding-bottom: 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .header h1 { margin: 0; font-size: 24px; color: #5b50eb; }
-        .header p { margin: 4px 0 0; color: #64748b; font-size: 13px; }
-        .badge { background: #ecfdf5; color: #065f46; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: bold; border: 1px solid #a7f3d0; }
-        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 30px; }
-        .stat-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; background: #f8fafc; }
-        .stat-card h3 { font-size: 13px; color: #64748b; margin: 0 0 6px; }
-        .stat-card h2 { font-size: 26px; color: #1e293b; margin: 0; font-weight: 700; }
-        .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 30px; }
-        .chart-box { border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; }
-        .chart-box h3 { margin: 0 0 12px; font-size: 15px; }
-        .chart-img { width: 100%; height: auto; max-height: 260px; object-fit: contain; }
-        .table-box { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-top: 24px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th { background: #f8fafc; padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; color: #64748b; }
+        body { font-family: 'Kanit', sans-serif; margin: 40px auto; max-width: 1080px; color: #0f172a; background: #ffffff; padding: 0 24px; line-height: 1.5; }
+        .header { border-bottom: 2px solid #1e3a8a; padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .header h1 { margin: 0; font-size: 22px; color: #1e3a8a; font-weight: 600; }
+        .header p { margin: 4px 0 0; color: #475569; font-size: 13px; }
+        .badge { background: #ecfdf5; color: #065f46; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; border: 1px solid #a7f3d0; }
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+        .stat-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: center; background: #f8fafc; }
+        .stat-card h3 { font-size: 12px; color: #64748b; margin: 0 0 6px; font-weight: 500; }
+        .stat-card h2 { font-size: 24px; color: #0f172a; margin: 0; font-weight: 700; }
+        .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px; }
+        .chart-box { border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+        .chart-box h3 { margin: 0 0 12px; font-size: 14px; color: #0f172a; font-weight: 600; }
+        .chart-img { width: 100%; height: auto; max-height: 240px; object-fit: contain; }
+        .table-box { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { background: #f8fafc; padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; color: #475569; font-weight: 600; }
         td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; }
-        .empty-state { text-align: center; padding: 40px; color: #64748b; border: 1px dashed #cbd5e1; border-radius: 12px; margin: 20px 0; }
-        .footer { margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 12px; color: #94a3b8; text-align: center; }
+        .empty-state { text-align: center; padding: 48px; color: #64748b; border: 1px dashed #cbd5e1; border-radius: 8px; margin: 24px 0; }
+        .footer { margin-top: 36px; border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 11px; color: #94a3b8; text-align: center; }
     </style>
 </head>
 <body>
     <div class="header">
         <div>
-            <h1>IT Evaluator | รายงานผลการประเมินประสิทธิภาพระบบ IT</h1>
-            <p>คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร | วันที่ส่งออกรายงาน: ${timestamp}</p>
+            <h1>รายงานผลการประเมินประสิทธิภาพและประสิทธิผลระบบ IT</h1>
+            <p>คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร | วันที่ออกรายงาน: ${timestamp}</p>
         </div>
         <div>
-            <span class="badge">${hasData ? "Live Real Data Report" : "No Evaluation Data"}</span>
+            <span class="badge">${hasData ? "ชุดข้อมูลการประเมินจริง (Live Report)" : "ไม่มีข้อมูลการประเมิน"}</span>
         </div>
     </div>
 
     ${!hasData ? `
     <div class="empty-state">
-        <h2>ไม่มีข้อมูลการประเมินในระบบ (No evaluation data available)</h2>
-        <p>ยังไม่มีผู้ใช้งานส่งแบบประเมินสำหรับระบบ IT ที่ระบุ</p>
+        <h2 style="font-size: 16px; margin-bottom: 8px; color: #0f172a;">ไม่พบข้อมูลการประเมินในระบบ (No evaluation records available)</h2>
+        <p>ยังไม่มีการบันทึกผลการประเมินสำหรับระบบสารสนเทศตามเงื่อนไขที่กำหนด</p>
     </div>
     ` : `
     <div class="summary-grid">
-        <div class="stat-card"><h3>จำนวนระบบ IT</h3><h2>${totalSys}</h2></div>
-        <div class="stat-card"><h3>จำนวนผู้ประเมิน</h3><h2>${totalUsers}</h2></div>
-        <div class="stat-card"><h3>จำนวนการประเมิน</h3><h2>${totalEvals}</h2></div>
-        <div class="stat-card"><h3>ความพึงพอใจเฉลี่ย</h3><h2>${avgSat} <small style="font-size:14px;color:#64748b;">/ 5</small></h2></div>
+        <div class="stat-card"><h3>ระบบสารสนเทศทั้งหมด</h3><h2>${totalSys}</h2></div>
+        <div class="stat-card"><h3>จำนวนผู้ร่วมประเมิน</h3><h2>${totalUsers}</h2></div>
+        <div class="stat-card"><h3>ชุดข้อมูลการประเมิน</h3><h2>${totalEvals}</h2></div>
+        <div class="stat-card"><h3>ความพึงพอใจเฉลี่ย</h3><h2>${avgSat} <small style="font-size:13px;color:#64748b;">/ 5</small></h2></div>
     </div>
 
     <div class="charts-grid">
         <div class="chart-box">
-            <h3>คะแนนความคิดเห็นก่อน–หลังใช้ระบบ IT</h3>
-            ${beforeAfterImg ? `<img src="${beforeAfterImg}" class="chart-img" alt="Before/After Chart">` : `<p>ไม่มีข้อมูลกราฟ</p>`}
+            <h3>เปรียบเทียบผลการดำเนินงานก่อน–หลังการใช้ระบบ IT</h3>
+            ${beforeAfterImg ? `<img src="${beforeAfterImg}" class="chart-img" alt="Before/After Comparison Chart">` : `<p style="font-size:12px;color:#64748b;">ไม่มีข้อมูลกราฟ</p>`}
         </div>
         <div class="chart-box">
-            <h3>ระดับความพึงพอใจ</h3>
-            <p style="margin: 12px 0;">😄 พึงพอใจ: <strong>${happy}</strong></p>
-            <p style="margin: 12px 0;">😐 ปานกลาง: <strong>${neutral}</strong></p>
-            <p style="margin: 12px 0;">☹️ ไม่พึงพอใจ: <strong>${unhappy}</strong></p>
-            ${statusImg ? `<img src="${statusImg}" class="chart-img" style="max-height: 140px; margin-top: 10px;" alt="Status Chart">` : ""}
+            <h3>ระดับความพึงพอใจของผู้ใช้งาน</h3>
+            <p style="margin: 10px 0; font-size: 13px;">ระดับพึงพอใจสูง (≥ 3.50): <strong>${happy}</strong></p>
+            <p style="margin: 10px 0; font-size: 13px;">ระดับปานกลาง (2.50 – 3.49): <strong>${neutral}</strong></p>
+            <p style="margin: 10px 0; font-size: 13px;">ควรปรับปรุงแก้ไข (&lt; 2.50): <strong>${unhappy}</strong></p>
+            ${statusImg ? `<img src="${statusImg}" class="chart-img" style="max-height: 130px; margin-top: 8px;" alt="Status Proportion Chart">` : ""}
         </div>
     </div>
 
     <div class="charts-grid">
         <div class="chart-box">
-            <h3>ผลประเมินตามหมวดหมู่</h3>
-            ${categoryImg ? `<img src="${categoryImg}" class="chart-img" alt="Category Chart">` : `<p>ไม่มีข้อมูลกราฟ</p>`}
+            <h3>ผลการประเมินจำแนกตามหมวดหมู่งาน</h3>
+            ${categoryImg ? `<img src="${categoryImg}" class="chart-img" alt="Category Average Chart">` : `<p style="font-size:12px;color:#64748b;">ไม่มีข้อมูลกราฟ</p>`}
         </div>
         <div class="chart-box">
-            <h3>แนวโน้มคะแนนความพึงพอใจ</h3>
-            ${trendImg ? `<img src="${trendImg}" class="chart-img" alt="Trend Chart">` : `<p>ไม่มีข้อมูลกราฟ</p>`}
+            <h3>แนวโน้มความพึงพอใจย้อนหลัง</h3>
+            ${trendImg ? `<img src="${trendImg}" class="chart-img" alt="Satisfaction Trend Chart">` : `<p style="font-size:12px;color:#64748b;">ไม่มีข้อมูลกราฟ</p>`}
         </div>
     </div>
 
-    <h3 style="margin-top: 30px;">ตารางผลการประเมินรายระบบ</h3>
+    <h3 style="margin-top: 24px; font-size: 14px; font-weight: 600;">ตารางสรุปผลการประเมินประสิทธิภาพรายระบบ</h3>
     <div class="table-box">
         <table>
             <thead>
                 <tr>
                     <th>ลำดับ</th>
                     <th>รหัสระบบ</th>
-                    <th>ชื่อระบบ</th>
-                    <th>หมวดหมู่</th>
-                    <th>ผู้ประเมิน</th>
+                    <th>ชื่อระบบสารสนเทศ</th>
+                    <th>หมวดหมู่งาน</th>
+                    <th>จำนวนผู้ประเมิน</th>
                     <th>ก่อนใช้ / 5</th>
                     <th>หลังใช้ / 5</th>
-                    <th>ผลต่าง</th>
-                    <th>พึงพอใจ / 5</th>
+                    <th>ส่วนต่างคะแนน</th>
+                    <th>ความพึงพอใจ / 5</th>
                 </tr>
             </thead>
             <tbody>
@@ -781,7 +800,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     `}
 
     <div class="footer">
-        IT Evaluator Report © 2026 | Faculty of Allied Health Sciences, Naresuan University
+        ระบบประเมินประสิทธิภาพ IT © 2026 | คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร (Faculty of Allied Health Sciences, Naresuan University)
     </div>
 </body>
 </html>`;
@@ -799,8 +818,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     /**
-     * Export to PDF
-     * Uses browser print to PDF mechanism with tailored print stylesheet & pagination rules
+     * Export to PDF via Browser Print
      */
     if (exportPdfBtn) {
         exportPdfBtn.addEventListener("click", () => {
@@ -809,7 +827,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // ==========================================
-    // 8. SIDEBAR NAVIGATION + ACTIVE LINK
+    // 8. SIDEBAR NAVIGATION
     // ==========================================
 
     const navLinks = document.querySelectorAll(".sidebar-nav .nav-link");
@@ -832,12 +850,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
             target.scrollIntoView({ behavior: "smooth", block: "start" });
-            target.classList.remove("section-highlight");
-            void target.offsetWidth;
-            target.classList.add("section-highlight");
         });
     });
 
-    // Initial load
+    // Initial Data Fetch
     await loadData();
 });

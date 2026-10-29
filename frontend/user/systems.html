@@ -1,12 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายการระบบเทคโนโลยีสารสนเทศ | IT Evaluator</title>
 
-    <title>รายการระบบ IT | IT Evaluator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="../assets/css/common.css">
     <link rel="stylesheet" href="../assets/css/systems.css">
@@ -14,20 +15,23 @@
 <body>
 
     <main class="container">
-
         <a href="index.html" class="back-link">
-            ← กลับหน้าแรก
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 11H7.14l5.43-5.43L11.15 4.15 2.86 12.43l8.29 8.28 1.42-1.42-5.43-5.43H19v-2.86z"/></svg>
+            กลับสู่หน้ารายการหมวดหมู่
         </a>
 
         <header class="systems-header">
-            <h1 id="category-title">กำลังโหลด...</h1>
-            <p>เลือกระบบ IT ที่ต้องการประเมิน</p>
+            <h1 id="category-title">กำลังเรียกข้อมูลหมวดหมู่...</h1>
+            <p>กรุณาเลือกระบบสารสนเทศที่ท่านเคยใช้งานเพื่อเริ่มทำแบบประเมิน</p>
         </header>
 
         <div id="systems-list" class="systems-list">
-            <!-- JavaScript จะสร้างรายการระบบที่นี่ -->
+            <!-- Rendered dynamically by systems.js -->
         </div>
 
+        <footer class="site-footer">
+            ระบบประเมินประสิทธิภาพ IT © 2026 | คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร
+        </footer>
     </main>
 
     <script src="../assets/js/systems-data.js"></script>
