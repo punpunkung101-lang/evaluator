@@ -1,4 +1,4 @@
-
+﻿
 // อ่านรหัสระบบจาก URL
 const params = new URLSearchParams(window.location.search);
 const systemId = params.get("system");
@@ -173,6 +173,11 @@ document.getElementById("submit-btn").addEventListener("click", () => {
         "itEvaluationComplete",
         JSON.stringify(evaluationData)
     );
+
+    // บันทึกผ่าน EvaluationAPI เพื่อส่งต่อไปยัง Backend/Supabase หรือ Local Storage
+    if (typeof EvaluationAPI !== "undefined") {
+        EvaluationAPI.submitEvaluation(evaluationData);
+    }
 
 
     document.getElementById("feedback-section").hidden = true;

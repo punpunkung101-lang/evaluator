@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -32,16 +31,12 @@
             </div>
 
             <nav class="sidebar-nav">
-                <a href="#overview" class="nav-link active">
+                <a href="#overview" class="nav-link active">9
                     <span>🏠</span> แดชบอร์ด
                 </a>
 
-                <a href="#systems" class="nav-link">
-                    <span>🖥️</span> ระบบ IT ทั้งหมด
-                </a>
-
                 <a href="#evaluation" class="nav-link">
-                    <span>📋</span> ผลประเมินรายระบบ
+                    <span>📋</span> ก่อน–หลังใช้ระบบ
                 </a>
 
                 <a href="#satisfaction" class="nav-link">
@@ -49,7 +44,11 @@
                 </a>
 
                 <a href="#reports" class="nav-link">
-                    <span>📊</span> รายงานและสถิติ
+                    <span>📈</span> รายงานตามหมวดหมู่
+                </a>
+
+                <a href="#systems" class="nav-link">
+                    <span>🖥️</span> ผลประเมินรายระบบ
                 </a>
             </nav>
 
@@ -67,30 +66,45 @@
             <header class="dashboard-header">
                 <div>
                     <h1>IT Evaluator Dashboard</h1>
-                    <p>
-                        ภาพรวมผลการประเมินประสิทธิภาพ
-                        และผลกระทบจากการใช้ระบบ IT
-                    </p>
+                    <p>ภาพรวมผลการประเมินประสิทธิภาพและผลกระทบจากการใช้ระบบ IT</p>
                 </div>
 
                 <div class="header-actions">
-                    <span class="mockup-label">
-                        ข้อมูลจำลอง
+                    <span id="dataStatusBadge" class="data-badge">
+                        กำลังตรวจสอบข้อมูล...
                     </span>
 
-                    <select id="periodFilter">
+                    <select id="periodFilter" class="header-select">
                         <option value="all">ทุกช่วงเวลา</option>
                         <option value="month">เดือนนี้</option>
                         <option value="year">ปีนี้</option>
                     </select>
+
+                    <button id="importJsonBtn" class="btn btn-secondary btn-sm" title="นำเข้าไฟล์ JSON จากผู้ประเมิน">
+                        📥 นำเข้า JSON
+                    </button>
+
+                    <button id="exportHtmlBtn" class="btn btn-secondary btn-sm" title="ส่งออกรายงานเป็นไฟล์ HTML">
+                        🌐 Export HTML
+                    </button>
+
+                    <button id="exportPdfBtn" class="btn btn-primary btn-sm" title="ส่งออกรายงานเป็นไฟล์ PDF">
+                        📄 Export PDF
+                    </button>
                 </div>
             </header>
+
+            <!-- ERROR OR EMPTY STATE BANNER -->
+            <div id="stateBanner" class="state-banner" style="display: none;">
+                <span id="stateBannerMessage"></span>
+                <button id="dismissBannerBtn" class="btn btn-sm btn-secondary" style="margin-left: 12px;">ปิด</button>
+            </div>
 
             <!-- ========== SUMMARY CARDS ========== -->
             <section class="summary-grid">
 
                 <div class="stat-card">
-                    <div class="stat-icon">🖥️</div>
+                    <div class="stat-icon purple">🖥️</div>
                     <div class="stat-info">
                         <h3>จำนวนระบบ IT</h3>
                         <h2 id="totalSystems">0</h2>
@@ -99,7 +113,7 @@
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon">👥</div>
+                    <div class="stat-icon blue">👥</div>
                     <div class="stat-info">
                         <h3>จำนวนผู้ประเมิน</h3>
                         <h2 id="totalUsers">0</h2>
@@ -108,23 +122,23 @@
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon">📄</div>
+                    <div class="stat-icon green">📄</div>
                     <div class="stat-info">
                         <h3>จำนวนการประเมิน</h3>
                         <h2 id="totalEvaluations">0</h2>
-                        <p>การประเมินทั้งหมด</p>
+                        <p>บันทึกประเมินจริงทั้งหมด</p>
                     </div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon">⭐</div>
+                    <div class="stat-icon amber">⭐</div>
                     <div class="stat-info">
                         <h3>ความพึงพอใจเฉลี่ย</h3>
                         <h2>
-                            <span id="averageSatisfaction">0.00</span>
-                            <small>/ 5</small>
+                            <span id="averageSatisfaction">-</span>
+                            <small id="maxSatLabel" style="display: none;">/ 5</small>
                         </h2>
-                        <p>คะแนนเฉลี่ยทุกระบบ</p>
+                        <p>คะแนนเฉลี่ยรวมทุกระบบ</p>
                     </div>
                 </div>
 
@@ -135,49 +149,60 @@
 
                 <!-- BEFORE / AFTER -->
                 <div class="dashboard-card chart-large" id="evaluation">
-                    
-<div class="card-header">
-    <h3>คะแนนความคิดเห็นก่อน–หลังใช้ระบบ IT</h3>
-    <p>เปรียบเทียบคะแนนเฉลี่ยทั้ง 10 คำถาม (เต็ม 5 คะแนน)</p>
-</div>
+                    <div class="card-header">
+                        <div>
+                            <h3>คะแนนความคิดเห็นก่อน–หลังใช้ระบบ IT</h3>
+                            <p>เปรียบเทียบคะแนนเฉลี่ยคำถาม 10 ข้อ (เต็ม 5 คะแนน)</p>
+                        </div>
+                    </div>
 
-
-                    <div class="chart-container">
+                    <div class="chart-container" id="beforeAfterContainer">
                         <canvas id="beforeAfterChart"></canvas>
+                        <div class="chart-empty-state" id="beforeAfterEmpty" style="display: none;">
+                            <span class="icon">📊</span>
+                            <span>ไม่มีข้อมูลการประเมินในช่วงเวลานี้</span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- EVALUATION STATUS -->
                 <div class="dashboard-card">
                     <div class="card-header">
-                        <h3>สถานะการประเมินระบบ</h3>
+                        <div>
+                            <h3>สถานะการประเมินระบบ</h3>
+                            <p>สัดส่วนระบบที่ได้รับการประเมิน</p>
+                        </div>
                     </div>
 
-                    <div class="chart-container">
+                    <div class="chart-container" id="statusContainer">
                         <canvas id="evaluationStatusChart"></canvas>
+                        <div class="chart-empty-state" id="statusEmpty" style="display: none;">
+                            <span class="icon">⭕</span>
+                            <span>ไม่มีข้อมูลการประเมิน</span>
+                        </div>
                     </div>
 
-                    <div class="chart-legend">
-                        <span>🔵 มีผลประเมิน</span>
+                    <div class="chart-legend" id="statusLegend">
+                        <span>🟣 มีผลประเมิน</span>
                         <span>⚪ ยังไม่มีผลประเมิน</span>
                     </div>
                 </div>
 
                 <!-- SATISFACTION EMOJI -->
-                <div class="dashboard-card satisfaction-card"
-                     id="satisfaction">
-
+                <div class="dashboard-card satisfaction-card" id="satisfaction">
                     <div class="card-header">
-                        <h3>ระดับความพึงพอใจ</h3>
+                        <div>
+                            <h3>ระดับความพึงพอใจ</h3>
+                            <p>จำแนกตามเกณฑ์คะแนน</p>
+                        </div>
                     </div>
 
                     <div class="emotion-list">
-
                         <div class="emotion-item">
                             <div class="emotion-icon happy">😄</div>
                             <div class="emotion-info">
                                 <h2 id="happyPercent">0%</h2>
-                                <p>พึงพอใจ (Positive)</p>
+                                <p>พึงพอใจ (≥ 3.5)</p>
                             </div>
                         </div>
 
@@ -185,7 +210,7 @@
                             <div class="emotion-icon neutral">😐</div>
                             <div class="emotion-info">
                                 <h2 id="neutralPercent">0%</h2>
-                                <p>ปานกลาง (Neutral)</p>
+                                <p>ปานกลาง (2.5 - 3.4)</p>
                             </div>
                         </div>
 
@@ -193,59 +218,68 @@
                             <div class="emotion-icon unhappy">☹️</div>
                             <div class="emotion-info">
                                 <h2 id="unhappyPercent">0%</h2>
-                                <p>ไม่พึงพอใจ (Negative)</p>
+                                <p>ไม่พึงพอใจ (&lt; 2.5)</p>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
             </section>
 
             <!-- ========== SECONDARY CHARTS ========== -->
-            <section class="dashboard-grid secondary-grid"
-                     id="reports">
+            <section class="dashboard-grid secondary-grid" id="reports">
 
                 <div class="dashboard-card">
                     <div class="card-header">
-                        <h3>ผลประเมินตามหมวดหมู่</h3>
-                        <p>คะแนนเฉลี่ย 6 หมวดหมู่</p>
+                        <div>
+                            <h3>ผลประเมินตามหมวดหมู่</h3>
+                            <p>ความพึงพอใจเฉลี่ย 6 หมวดหมู่งาน</p>
+                        </div>
                     </div>
 
-                    <div class="chart-container">
+                    <div class="chart-container" id="categoryContainer">
                         <canvas id="categoryChart"></canvas>
+                        <div class="chart-empty-state" id="categoryEmpty" style="display: none;">
+                            <span class="icon">📈</span>
+                            <span>ไม่มีข้อมูลตามหมวดหมู่</span>
+                        </div>
                     </div>
                 </div>
 
                 <div class="dashboard-card">
                     <div class="card-header">
-                        <h3>แนวโน้มคะแนนความพึงพอใจ</h3>
-                        <p>คะแนนเฉลี่ยรายเดือน</p>
+                        <div>
+                            <h3>แนวโน้มคะแนนความพึงพอใจ</h3>
+                            <p>คะแนนเฉลี่ยย้อนหลังตามช่วงเวลา</p>
+                        </div>
                     </div>
 
-                    <div class="chart-container">
+                    <div class="chart-container" id="trendContainer">
                         <canvas id="satisfactionTrendChart"></canvas>
+                        <div class="chart-empty-state" id="trendEmpty" style="display: none;">
+                            <span class="icon">📉</span>
+                            <span>ไม่มีข้อมูลแนวโน้ม</span>
+                        </div>
                     </div>
                 </div>
 
             </section>
 
             <!-- ========== SYSTEM TABLE ========== -->
-            <section class="dashboard-card systems-section"
-                     id="systems">
+            <section class="dashboard-card systems-section" id="systems">
 
                 <div class="card-header table-header">
                     <div>
                         <h3>ผลการประเมินรายระบบ</h3>
-                        <p>รายละเอียดระบบ IT ที่มีอยู่ในปัจจุบัน</p>
+                        <p>รายละเอียดคะแนนระบบ IT จากผู้ประเมินจริง</p>
                     </div>
 
                     <div class="table-actions">
-                        <select id="categoryFilter">
+                        <select id="categoryFilter" class="filter-select">
                             <option value="all">ทุกหมวดหมู่</option>
                         </select>
 
-                        <select id="userTypeFilter">
+                        <select id="userTypeFilter" class="filter-select">
                             <option value="all">ผู้ประเมินทั้งหมด</option>
                             <option value="student">นิสิต</option>
                             <option value="teacher">อาจารย์</option>
@@ -257,21 +291,21 @@
                 <div class="table-wrapper">
                     <table class="systems-table">
                         <thead>
-    <tr>
-        <th>ลำดับ</th>
-        <th>รหัสระบบ</th>
-        <th>ชื่อระบบ</th>
-        <th>หมวดหมู่</th>
-        <th>ผู้ประเมิน</th>
-        <th>ก่อนใช้ / 5</th>
-        <th>หลังใช้ / 5</th>
-        <th>พึงพอใจ / 5</th>
-        <th>รายละเอียด</th>
-    </tr>
-</thead>
-
+                            <tr>
+                                <th>ลำดับ</th>
+                                <th>รหัสระบบ</th>
+                                <th>ชื่อระบบ</th>
+                                <th>หมวดหมู่</th>
+                                <th>ผู้ประเมิน</th>
+                                <th>ก่อนใช้ / 5</th>
+                                <th>หลังใช้ / 5</th>
+                                <th>ผลต่าง</th>
+                                <th>พึงพอใจ / 5</th>
+                                <th>รายละเอียด</th>
+                            </tr>
+                        </thead>
                         <tbody id="systemsTableBody">
-                            <!-- JavaScript จะเพิ่มข้อมูลที่นี่ -->
+                            <!-- Ingested dynamically via dashboard.js -->
                         </tbody>
                     </table>
                 </div>
@@ -279,17 +313,42 @@
             </section>
 
             <footer class="dashboard-footer">
-                IT Evaluator © 2026
-                | Faculty of Allied Health Sciences
+                IT Evaluator © 2026 | คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร
             </footer>
 
         </main>
     </div>
 
-    <!-- ข้อมูลระบบ IT เดิม -->
-    <script src="../assets/js/systems-data.js"></script>
+    <!-- MODAL: Import JSON Data -->
+    <div id="importModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>นำเข้าข้อมูลผลการประเมิน (JSON Data)</h3>
+                <button class="modal-close" id="closeImportModal">&times;</button>
+            </div>
+            <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 12px;">
+                นำเข้าไฟล์ JSON ผลการประเมินระบบเพื่อรวมเข้ากับระบบ Dashboard
+            </p>
 
-    <!-- Dashboard JavaScript -->
+            <div class="dropzone" id="fileDropzone">
+                <div style="font-size: 32px; margin-bottom: 8px;">📁</div>
+                <strong>คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวางที่นี่</strong>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">รองรับเฉพาะไฟล์ .json</p>
+                <input type="file" id="jsonFileInput" accept=".json" style="display: none;">
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+                <button id="clearDataBtn" class="btn btn-secondary btn-sm" style="color: var(--danger);">
+                    🗑️ ล้างข้อมูลนำเข้าทั้งหมด
+                </button>
+                <button id="closeModalBtn" class="btn btn-secondary btn-sm">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Scripts -->
+    <script src="../assets/js/systems-data.js"></script>
+    <script src="../assets/js/api.js"></script>
     <script src="../assets/js/dashboard.js"></script>
 </body>
 </html>
