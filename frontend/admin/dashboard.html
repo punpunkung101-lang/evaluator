@@ -1,0 +1,295 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Evaluator | Admin Dashboard</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+
+    <!-- Chart.js สำหรับแสดงกราฟ -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="admin-layout">
+
+        <!-- ========== SIDEBAR ========== -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">📊</div>
+                <div>
+                    <h2>IT Evaluator</h2>
+                    <p>Admin Panel</p>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#overview" class="nav-link active">
+                    <span>🏠</span> แดชบอร์ด
+                </a>
+
+                <a href="#systems" class="nav-link">
+                    <span>🖥️</span> ระบบ IT ทั้งหมด
+                </a>
+
+                <a href="#evaluation" class="nav-link">
+                    <span>📋</span> ผลประเมินรายระบบ
+                </a>
+
+                <a href="#satisfaction" class="nav-link">
+                    <span>💜</span> ความพึงพอใจ
+                </a>
+
+                <a href="#reports" class="nav-link">
+                    <span>📊</span> รายงานและสถิติ
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="login.html" id="logoutBtn">
+                    🚪 ออกจากระบบ
+                </a>
+            </div>
+        </aside>
+
+        <!-- ========== MAIN CONTENT ========== -->
+        <main class="main-content" id="overview">
+
+            <!-- HEADER -->
+            <header class="dashboard-header">
+                <div>
+                    <h1>IT Evaluator Dashboard</h1>
+                    <p>
+                        ภาพรวมผลการประเมินประสิทธิภาพ
+                        และผลกระทบจากการใช้ระบบ IT
+                    </p>
+                </div>
+
+                <div class="header-actions">
+                    <span class="mockup-label">
+                        ข้อมูลจำลอง
+                    </span>
+
+                    <select id="periodFilter">
+                        <option value="all">ทุกช่วงเวลา</option>
+                        <option value="month">เดือนนี้</option>
+                        <option value="year">ปีนี้</option>
+                    </select>
+                </div>
+            </header>
+
+            <!-- ========== SUMMARY CARDS ========== -->
+            <section class="summary-grid">
+
+                <div class="stat-card">
+                    <div class="stat-icon">🖥️</div>
+                    <div class="stat-info">
+                        <h3>จำนวนระบบ IT</h3>
+                        <h2 id="totalSystems">0</h2>
+                        <p>จาก 6 หมวดหมู่</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-info">
+                        <h3>จำนวนผู้ประเมิน</h3>
+                        <h2 id="totalUsers">0</h2>
+                        <p>นิสิต | อาจารย์ | บุคลากร</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">📄</div>
+                    <div class="stat-info">
+                        <h3>จำนวนการประเมิน</h3>
+                        <h2 id="totalEvaluations">0</h2>
+                        <p>การประเมินทั้งหมด</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-info">
+                        <h3>ความพึงพอใจเฉลี่ย</h3>
+                        <h2>
+                            <span id="averageSatisfaction">0.00</span>
+                            <small>/ 5</small>
+                        </h2>
+                        <p>คะแนนเฉลี่ยทุกระบบ</p>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ========== MAIN CHARTS ========== -->
+            <section class="dashboard-grid">
+
+                <!-- BEFORE / AFTER -->
+                <div class="dashboard-card chart-large" id="evaluation">
+                    
+<div class="card-header">
+    <h3>คะแนนความคิดเห็นก่อน–หลังใช้ระบบ IT</h3>
+    <p>เปรียบเทียบคะแนนเฉลี่ยทั้ง 10 คำถาม (เต็ม 5 คะแนน)</p>
+</div>
+
+
+                    <div class="chart-container">
+                        <canvas id="beforeAfterChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- EVALUATION STATUS -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3>สถานะการประเมินระบบ</h3>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="evaluationStatusChart"></canvas>
+                    </div>
+
+                    <div class="chart-legend">
+                        <span>🔵 มีผลประเมิน</span>
+                        <span>⚪ ยังไม่มีผลประเมิน</span>
+                    </div>
+                </div>
+
+                <!-- SATISFACTION EMOJI -->
+                <div class="dashboard-card satisfaction-card"
+                     id="satisfaction">
+
+                    <div class="card-header">
+                        <h3>ระดับความพึงพอใจ</h3>
+                    </div>
+
+                    <div class="emotion-list">
+
+                        <div class="emotion-item">
+                            <div class="emotion-icon happy">😄</div>
+                            <div class="emotion-info">
+                                <h2 id="happyPercent">0%</h2>
+                                <p>พึงพอใจ (Positive)</p>
+                            </div>
+                        </div>
+
+                        <div class="emotion-item">
+                            <div class="emotion-icon neutral">😐</div>
+                            <div class="emotion-info">
+                                <h2 id="neutralPercent">0%</h2>
+                                <p>ปานกลาง (Neutral)</p>
+                            </div>
+                        </div>
+
+                        <div class="emotion-item">
+                            <div class="emotion-icon unhappy">☹️</div>
+                            <div class="emotion-info">
+                                <h2 id="unhappyPercent">0%</h2>
+                                <p>ไม่พึงพอใจ (Negative)</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ========== SECONDARY CHARTS ========== -->
+            <section class="dashboard-grid secondary-grid"
+                     id="reports">
+
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3>ผลประเมินตามหมวดหมู่</h3>
+                        <p>คะแนนเฉลี่ย 6 หมวดหมู่</p>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3>แนวโน้มคะแนนความพึงพอใจ</h3>
+                        <p>คะแนนเฉลี่ยรายเดือน</p>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="satisfactionTrendChart"></canvas>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ========== SYSTEM TABLE ========== -->
+            <section class="dashboard-card systems-section"
+                     id="systems">
+
+                <div class="card-header table-header">
+                    <div>
+                        <h3>ผลการประเมินรายระบบ</h3>
+                        <p>รายละเอียดระบบ IT ที่มีอยู่ในปัจจุบัน</p>
+                    </div>
+
+                    <div class="table-actions">
+                        <select id="categoryFilter">
+                            <option value="all">ทุกหมวดหมู่</option>
+                        </select>
+
+                        <select id="userTypeFilter">
+                            <option value="all">ผู้ประเมินทั้งหมด</option>
+                            <option value="student">นิสิต</option>
+                            <option value="teacher">อาจารย์</option>
+                            <option value="staff">บุคลากร</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="systems-table">
+                        <thead>
+    <tr>
+        <th>ลำดับ</th>
+        <th>รหัสระบบ</th>
+        <th>ชื่อระบบ</th>
+        <th>หมวดหมู่</th>
+        <th>ผู้ประเมิน</th>
+        <th>ก่อนใช้ / 5</th>
+        <th>หลังใช้ / 5</th>
+        <th>พึงพอใจ / 5</th>
+        <th>รายละเอียด</th>
+    </tr>
+</thead>
+
+                        <tbody id="systemsTableBody">
+                            <!-- JavaScript จะเพิ่มข้อมูลที่นี่ -->
+                        </tbody>
+                    </table>
+                </div>
+
+            </section>
+
+            <footer class="dashboard-footer">
+                IT Evaluator © 2026
+                | Faculty of Allied Health Sciences
+            </footer>
+
+        </main>
+    </div>
+
+    <!-- ข้อมูลระบบ IT เดิม -->
+    <script src="../assets/js/systems-data.js"></script>
+
+    <!-- Dashboard JavaScript -->
+    <script src="../assets/js/dashboard.js"></script>
+</body>
+</html>
