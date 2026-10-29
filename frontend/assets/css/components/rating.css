@@ -1,0 +1,53 @@
+/* ==========================================================================
+   IT EVALUATOR - STAR RATING COMPONENT
+   Faculty of Allied Health Sciences, Naresuan University
+   Shared Component for Evaluation & Satisfaction Surveys
+   ========================================================================== */
+
+.rating-stars {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 24px 0 16px;
+}
+
+.rating-star {
+    background: none;
+    border: none;
+    color: #cbd5e1;
+    padding: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.rating-star svg {
+    width: 44px;
+    height: 44px;
+    fill: currentColor;
+}
+
+.rating-star:hover {
+    transform: scale(1.1);
+}
+
+.rating-star.active {
+    color: #eab308; /* Institutional Warm Gold */
+}
+
+.rating-star:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-focus);
+}
+
+.rating-label {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--primary);
+    min-height: 24px;
+    margin-bottom: 24px;
+}

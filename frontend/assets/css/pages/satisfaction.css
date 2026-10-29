@@ -1,0 +1,133 @@
+/* ==========================================================================
+   IT EVALUATOR - SATISFACTION ASSESSMENT (PAGE STYLE)
+   Faculty of Allied Health Sciences, Naresuan University
+   User Satisfaction Survey, Feedback, & Completion Status
+   ========================================================================== */
+
+.satisfaction-card,
+.feedback-section,
+.result-section {
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    padding: 36px 32px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+    max-width: 680px;
+    margin: 0 auto 24px;
+}
+
+.question-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-bottom: 12px;
+}
+
+#question-text {
+    margin: 36px 0 24px;
+    font-size: 1.3125rem;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--text-primary);
+}
+
+.question-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 32px;
+}
+
+/* Feedback Section */
+.feedback-section h2 {
+    font-size: 1.25rem;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.feedback-section p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+#submit-btn {
+    width: 100%;
+    padding: 12px;
+}
+
+/* Result Completion Section */
+.result-section h2 {
+    color: var(--success);
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+}
+
+.score-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+#average-score {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    display: block;
+    margin-bottom: 12px;
+}
+
+#result-message {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin-bottom: 28px;
+    line-height: 1.6;
+}
+
+.status-callout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 20px;
+    background-color: var(--success-bg);
+    border: 1px solid var(--success-border);
+    border-radius: var(--radius-sm);
+    color: var(--success-text);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 28px;
+}
+
+.status-callout svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+/* Responsive Rules */
+@media (max-width: 640px) {
+    .satisfaction-card,
+    .feedback-section,
+    .result-section {
+        padding: 24px 18px;
+    }
+
+    #question-text {
+        font-size: 1.125rem;
+        margin: 24px 0 16px;
+    }
+
+    .question-actions {
+        flex-direction: column-reverse;
+    }
+
+    .question-actions .btn {
+        width: 100%;
+    }
+}

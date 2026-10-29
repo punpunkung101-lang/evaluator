@@ -1,0 +1,132 @@
+/* ==========================================================================
+   IT EVALUATOR - CARDS & MODALS COMPONENT
+   Faculty of Allied Health Sciences, Naresuan University
+   ========================================================================== */
+
+/* Institutional Card Surfaces */
+.card,
+.form-section {
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    padding: 32px;
+    margin-bottom: 24px;
+}
+
+/* System State Banner */
+.state-banner {
+    padding: 12px 18px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    border: 1px solid transparent;
+}
+
+.state-banner.error {
+    background: var(--danger-bg);
+    border-color: var(--danger-border);
+    color: var(--danger-text);
+}
+
+.state-banner.empty {
+    background: var(--bg-subtle);
+    border-color: var(--border);
+    color: var(--text-secondary);
+}
+
+/* Modal Dialogs (Used in Admin JSON Import) */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.25s ease;
+    padding: 20px;
+    backdrop-filter: blur(2px);
+}
+
+.modal-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(10px);
+    transition: transform 0.25s ease;
+}
+
+.modal-overlay.open .modal-card {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.modal-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+    background: var(--bg-subtle);
+}
+
+/* Dropzone Upload Component */
+.dropzone {
+    border: 2px dashed var(--border-strong);
+    border-radius: var(--radius-md);
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--bg-subtle);
+    transition: var(--transition);
+    outline: none;
+}
+
+.dropzone:hover,
+.dropzone.dragover,
+.dropzone:focus-visible {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.dropzone svg {
+    width: 36px;
+    height: 36px;
+    fill: var(--primary);
+    margin-bottom: 8px;
+}

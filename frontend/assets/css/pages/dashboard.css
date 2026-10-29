@@ -1,0 +1,460 @@
+/* ==========================================================================
+   IT EVALUATOR - INSTITUTIONAL ADMIN DASHBOARD (PAGE STYLE)
+   Faculty of Allied Health Sciences, Naresuan University
+   Metrics, Chart Containers, Data Tables, & Print Stylesheet
+   ========================================================================== */
+
+/* Summary Metrics Grid */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-icon svg {
+    width: 22px;
+    height: 22px;
+    fill: currentColor;
+}
+
+.stat-icon.navy { background: var(--primary-light); color: var(--primary); }
+.stat-icon.blue { background: var(--info-bg); color: var(--info); }
+.stat-icon.emerald { background: var(--success-bg); color: var(--success); }
+.stat-icon.amber { background: var(--warning-bg); color: var(--warning); }
+
+.stat-info h3 {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.stat-info h2 {
+    font-size: 1.625rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 2px 0;
+    line-height: 1.2;
+}
+
+.stat-info h2 small {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+.stat-info p {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Dashboard Cards & Layout Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.dashboard-grid.secondary-grid {
+    grid-template-columns: 1fr 1fr;
+}
+
+.dashboard-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.card-header h3 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.card-header p {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* Chart Container & Legends */
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 240px;
+    max-height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chart-large .chart-container {
+    height: 250px;
+    max-height: 250px;
+}
+
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 12px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.chart-legend .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.chart-legend .legend-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    display: inline-block;
+}
+
+.chart-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    text-align: center;
+    padding: 20px;
+    height: 100%;
+    width: 100%;
+}
+
+.chart-empty-state svg {
+    width: 28px;
+    height: 28px;
+    fill: var(--text-disabled);
+}
+
+/* Satisfaction Breakdown (Professional Status Cards) */
+.emotion-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+    flex: 1;
+}
+
+.emotion-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg-page);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.emotion-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+}
+
+.emotion-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+.emotion-icon.happy { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+.emotion-icon.neutral { background: var(--bg-subtle); color: var(--secondary); border: 1px solid var(--border); }
+.emotion-icon.unhappy { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
+
+.emotion-info h2 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.emotion-info p {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Data Table Section */
+.systems-section {
+    margin-bottom: 24px;
+}
+
+.table-header {
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.table-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.systems-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+    text-align: left;
+}
+
+.systems-table thead {
+    background: var(--bg-page);
+    border-bottom: 1px solid var(--border);
+}
+
+.systems-table th {
+    padding: 12px 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.systems-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.systems-table tbody tr:hover {
+    background: var(--bg-hover);
+}
+
+.systems-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.score-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.score-badge.positive {
+    background: var(--success-bg);
+    color: var(--success-text);
+}
+
+.score-badge.neutral {
+    background: var(--bg-subtle);
+    color: var(--text-secondary);
+}
+
+.score-badge.negative {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+}
+
+.detail-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.detail-btn:hover {
+    background: var(--primary-light);
+    border-color: var(--primary);
+}
+
+.table-empty-row td {
+    text-align: center;
+    padding: 48px 14px;
+    color: var(--text-muted);
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1200px) {
+    .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .dashboard-grid .chart-large {
+        grid-column: span 2;
+    }
+
+    .main-content {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid,
+    .dashboard-grid.secondary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-grid .chart-large {
+        grid-column: span 1;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .main-content {
+        padding: 16px;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Formal Print Stylesheet */
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 15mm;
+    }
+
+    .sidebar,
+    .header-actions,
+    .table-actions,
+    .detail-btn,
+    .modal-overlay,
+    #importJsonBtn,
+    #exportHtmlBtn,
+    #exportPdfBtn {
+        display: none !important;
+    }
+
+    body,
+    .main-content {
+        background: #ffffff !important;
+        padding: 0 !important;
+        color: #000000 !important;
+    }
+
+    .dashboard-header {
+        border-bottom: 2px solid #1e3a8a !important;
+        padding-bottom: 12px !important;
+        margin-bottom: 16px !important;
+    }
+
+    .summary-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 8px !important;
+        margin-bottom: 16px !important;
+        page-break-inside: avoid;
+    }
+
+    .stat-card {
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        padding: 10px !important;
+    }
+
+    .dashboard-grid,
+    .dashboard-grid.secondary-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 12px !important;
+        margin-bottom: 16px !important;
+    }
+
+    .dashboard-card {
+        box-shadow: none !important;
+        border: 1px solid #cbd5e1 !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .chart-container {
+        height: 180px !important;
+        max-height: 180px !important;
+    }
+
+    .table-wrapper {
+        border: 1px solid #cbd5e1 !important;
+        page-break-inside: auto;
+    }
+
+    .systems-table tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+
+    .systems-table th {
+        background-color: #f1f5f9 !important;
+        color: #000000 !important;
+    }
+}

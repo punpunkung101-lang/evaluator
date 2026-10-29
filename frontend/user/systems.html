@@ -9,8 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
+    <!-- CSS: Common Master Stylesheet & Page Styles -->
     <link rel="stylesheet" href="../assets/css/common.css">
-    <link rel="stylesheet" href="../assets/css/systems.css">
+    <link rel="stylesheet" href="../assets/css/pages/systems.css">
 </head>
 <body>
 
@@ -26,7 +27,7 @@
         </header>
 
         <div id="systems-list" class="systems-list">
-            <!-- Rendered dynamically by systems.js -->
+            <!-- Rendered dynamically by user/systems.js -->
         </div>
 
         <footer class="site-footer">
@@ -34,7 +35,8 @@
         </footer>
     </main>
 
-    <script src="../assets/js/systems-data.js"></script>
-    <script src="../assets/js/systems.js"></script>
+    <!-- JS: Shared Data & User Page Logic -->
+    <script src="../assets/js/shared/systems-data.js"></script>
+    <script src="../assets/js/user/systems.js"></script>
 </body>
 </html>

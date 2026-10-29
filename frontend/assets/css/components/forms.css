@@ -1,0 +1,75 @@
+/* ==========================================================================
+   IT EVALUATOR - FORMS & INPUT CONTROLS COMPONENT
+   Faculty of Allied Health Sciences, Naresuan University
+   ========================================================================== */
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.form-control,
+.form-section input,
+.form-section select,
+textarea {
+    width: 100%;
+    padding: 10px 14px;
+    font-family: inherit;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.form-control:focus,
+.form-section input:focus,
+.form-section select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-focus);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.5;
+}
+
+.header-select,
+.filter-select {
+    padding: 8px 12px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.header-select:focus,
+.filter-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-focus);
+}
+
+.char-counter {
+    text-align: right;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+    margin-bottom: 20px;
+}

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายละเอียดผลการประเมินรายระบบ | IT Evaluator Admin</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS: Modular Stylesheets -->
+    <link rel="stylesheet" href="../assets/css/common.css">
+    <link rel="stylesheet" href="../assets/css/layouts/admin-layout.css">
+    <link rel="stylesheet" href="../assets/css/pages/dashboard.css">
+</head>
+
+<body>
+    <div class="admin-layout">
+
+        <!-- ========== SIDEBAR ========== -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                </div>
+                <div class="brand-info">
+                    <h2>IT Evaluator</h2>
+                    <p>ระบบบริหารจัดการข้อมูล</p>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html#overview" class="nav-link">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                    <span>ภาพรวมระบบ</span>
+                </a>
+                <a href="dashboard.html#systems" class="nav-link active">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v10H4V6zm18-2H2v14h7v2H7v2h10v-2h-2v-2h7V4z"/></svg>
+                    <span>ผลประเมินรายระบบ</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="login.html" id="logoutBtn">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                    <span>ออกจากระบบ</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ========== MAIN CONTENT ========== -->
+        <main class="main-content">
+            <a href="dashboard.html" class="back-link">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 11H7.14l5.43-5.43L11.15 4.15 2.86 12.43l8.29 8.28 1.42-1.42-5.43-5.43H19v-2.86z"/></svg>
+                กลับสู่แดชบอร์ดหลัก
+            </a>
+
+            <header class="dashboard-header">
+                <div>
+                    <h1 id="detailSystemName">กำลังเรียกข้อมูลระบบ...</h1>
+                    <p id="detailSystemCategory">หมวดหมู่: - | รหัสระบบ: <span id="detailSystemId">-</span></p>
+                </div>
+            </header>
+
+            <!-- Metrics Grid -->
+            <div class="summary-grid" style="margin-bottom: 24px;">
+                <div class="stat-card">
+                    <div class="stat-icon navy">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3>จำนวนผู้ประเมินทั้งหมด</h3>
+                        <h2 id="evaluatorCount">0 <small>คน</small></h2>
+                        <p>จากแบบสำรวจในระบบ</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3>คะแนนเฉลี่ยก่อนใช้</h3>
+                        <h2 id="beforeAvgScore">-</h2>
+                        <p>คะแนนเต็ม 5.00</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon emerald">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3>คะแนนเฉลี่ยหลังใช้</h3>
+                        <h2 id="afterAvgScore">-</h2>
+                        <p>คะแนนเต็ม 5.00</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon amber">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3>ความพึงพอใจเฉลี่ย</h3>
+                        <h2 id="satisfactionAvgScore">-</h2>
+                        <p>คะแนนเต็ม 5.00</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedbacks Section -->
+            <div class="dashboard-card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <div>
+                        <h3>ข้อเสนอแนะเพื่อการพัฒนาระบบ</h3>
+                        <p>ความคิดเห็นจากผู้ใช้งานที่มีต่อระบบนี้</p>
+                    </div>
+                </div>
+                <div id="feedbackList" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- Rendered by script -->
+                </div>
+            </div>
+
+            <footer class="dashboard-footer">
+                ระบบประเมินประสิทธิภาพและประสิทธิผลของระบบ IT © 2026 | คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร
+            </footer>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/shared/systems-data.js"></script>
+    <script src="../assets/js/shared/api.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const params = new URLSearchParams(window.location.search);
+            const systemId = params.get("system");
+
+            const categoryList = typeof categories !== "undefined" ? categories : (window.categories || []);
+            let systemInfo = null;
+
+            for (const cat of categoryList) {
+                const found = (cat.systems || []).find(s => s.id === systemId);
+                if (found) {
+                    systemInfo = { ...found, categoryName: cat.name };
+                    break;
+                }
+            }
+
+            const nameEl = document.getElementById("detailSystemName");
+            const catEl = document.getElementById("detailSystemCategory");
+            const idEl = document.getElementById("detailSystemId");
+
+            if (systemInfo) {
+                if (nameEl) nameEl.textContent = systemInfo.name;
+                if (catEl) catEl.textContent = `หมวดหมู่: ${systemInfo.categoryName} | รหัสระบบ: ${systemInfo.id}`;
+                if (idEl) idEl.textContent = systemInfo.id;
+            } else {
+                if (nameEl) nameEl.textContent = "ไม่พบระบบ IT ที่ระบุ";
+            }
+
+            // Fetch records
+            let records = [];
+            if (typeof EvaluationAPI !== "undefined") {
+                const res = await EvaluationAPI.getEvaluations();
+                if (res.success && Array.isArray(res.data)) {
+                    records = res.data.filter(r => r.systemId === systemId);
+                }
+            }
+
+            const countEl = document.getElementById("evaluatorCount");
+            const beforeEl = document.getElementById("beforeAvgScore");
+            const afterEl = document.getElementById("afterAvgScore");
+            const satEl = document.getElementById("satisfactionAvgScore");
+            const feedbackEl = document.getElementById("feedbackList");
+
+            if (countEl) countEl.innerHTML = `${records.length} <small>คน</small>`;
+
+            if (records.length === 0) {
+                if (beforeEl) beforeEl.textContent = "-";
+                if (afterEl) afterEl.textContent = "-";
+                if (satEl) satEl.textContent = "-";
+                if (feedbackEl) {
+                    feedbackEl.innerHTML = `
+                        <div class="state-banner empty">ยังไม่มีข้อมูลการประเมินสำหรับระบบนี้</div>
+                    `;
+                }
+                return;
+            }
+
+            // Compute averages
+            const avg = arr => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(2) : "-";
+
+            const allBefore = records.flatMap(r => (r.beforeAnswers || []).filter(v => typeof v === "number"));
+            const allAfter = records.flatMap(r => (r.afterAnswers || []).filter(v => typeof v === "number"));
+            const allSat = records.map(r => r.satisfactionAverage).filter(v => typeof v === "number");
+
+            if (beforeEl) beforeEl.textContent = avg(allBefore);
+            if (afterEl) afterEl.textContent = avg(allAfter);
+            if (satEl) satEl.textContent = avg(allSat);
+
+            // Feedbacks
+            const feedbacks = records.map(r => r.feedback).filter(f => f && f.trim());
+            if (feedbacks.length === 0) {
+                if (feedbackEl) {
+                    feedbackEl.innerHTML = `
+                        <div class="state-banner empty">ไม่มีข้อเสนอแนะเพิ่มเติมสำหรับระบบนี้</div>
+                    `;
+                }
+            } else {
+                if (feedbackEl) {
+                    feedbackEl.innerHTML = feedbacks.map(f => `
+                        <div style="padding: 12px 16px; background: var(--bg-page); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.875rem; color: var(--text-primary); line-height: 1.5;">
+                            "${f}"
+                        </div>
+                    `).join("");
+                }
+            }
+        });
+    </script>
+</body>
+</html>

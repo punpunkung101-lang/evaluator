@@ -9,8 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
+    <!-- CSS: Common Master Stylesheet & Page Styles -->
     <link rel="stylesheet" href="../assets/css/common.css">
-    <link rel="stylesheet" href="../assets/css/gallery.css">
+    <link rel="stylesheet" href="../assets/css/pages/gallery.css">
 </head>
 <body>
 
@@ -24,7 +25,7 @@
         <h2 class="gallery-section-title">เลือกหมวดหมู่ระบบสารสนเทศที่ต้องการประเมิน</h2>
 
         <div class="gallery-wrap" id="gallery">
-            <!-- Rendered dynamically by gallery.js -->
+            <!-- Rendered dynamically by user/gallery.js -->
         </div>
 
         <footer class="site-footer">
@@ -32,7 +33,8 @@
         </footer>
     </main>
 
-    <script src="../assets/js/systems-data.js"></script>
-    <script src="../assets/js/gallery.js"></script>
+    <!-- JS: Shared Data & User Page Logic -->
+    <script src="../assets/js/shared/systems-data.js"></script>
+    <script src="../assets/js/user/gallery.js"></script>
 </body>
 </html>

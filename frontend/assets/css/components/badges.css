@@ -1,0 +1,140 @@
+/* ==========================================================================
+   IT EVALUATOR - BADGES & STATUS PILLS COMPONENT
+   Faculty of Allied Health Sciences, Naresuan University
+   ========================================================================== */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: var(--radius-full);
+    border: 1px solid transparent;
+    line-height: 1.2;
+}
+
+.badge svg {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+}
+
+.badge-info {
+    background-color: var(--primary-light);
+    color: var(--primary);
+    border-color: var(--primary-border);
+}
+
+.badge-success {
+    background-color: var(--success-bg);
+    color: var(--success-text);
+    border-color: var(--success-border);
+}
+
+.badge-warning {
+    background-color: var(--warning-bg);
+    color: var(--warning-text);
+    border-color: var(--warning-border);
+}
+
+.badge-neutral {
+    background-color: var(--bg-subtle);
+    color: var(--text-secondary);
+    border-color: var(--border);
+}
+
+/* System Identifier Badges (Used across Evaluation & Satisfaction) */
+.system-badge,
+.system-name-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--primary-light);
+    color: var(--primary);
+    border: 1px solid var(--primary-border);
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    margin-top: 6px;
+}
+
+.system-badge svg,
+.system-name-badge svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+/* Phase Stepped Badges (Used in Before-After Evaluation) */
+.phase-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+.phase-badge svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+.phase-before {
+    background: var(--warning-bg);
+    color: var(--warning-text);
+    border-color: var(--warning-border);
+}
+
+.phase-after {
+    background: var(--success-bg);
+    color: var(--success-text);
+    border-color: var(--success-border);
+}
+
+/* Data Status Badge (Used in Admin Dashboard) */
+.data-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+}
+
+.data-badge svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+.data-badge.live {
+    background: var(--success-bg);
+    border-color: var(--success-border);
+    color: var(--success-text);
+}
+
+.data-badge.live .status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+    display: inline-block;
+}
+
+.data-badge.error {
+    background: var(--danger-bg);
+    border-color: var(--danger-border);
+    color: var(--danger-text);
+}

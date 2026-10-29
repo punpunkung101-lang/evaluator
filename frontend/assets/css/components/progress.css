@@ -1,0 +1,18 @@
+/* ==========================================================================
+   IT EVALUATOR - PROGRESS TRACKER COMPONENT
+   Faculty of Allied Health Sciences, Naresuan University
+   ========================================================================== */
+
+.progress-track {
+    height: 6px;
+    background-color: var(--border);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin: 16px 0 24px;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: var(--primary);
+    transition: width 0.3s ease;
+}

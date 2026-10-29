@@ -1,0 +1,67 @@
+/* ==========================================================================
+   IT EVALUATOR - INSTITUTIONAL DESIGN TOKENS (BASE VARIABLES)
+   Faculty of Allied Health Sciences, Naresuan University
+   Corporate, Academic, Clean, Accessible
+   ========================================================================== */
+
+:root {
+    /* Brand & Institutional Color Palette */
+    --primary: #1e3a8a;          /* Deep Corporate Navy */
+    --primary-hover: #172554;    /* Dark Navy Hover */
+    --primary-light: #eff6ff;    /* Soft Ice Blue Accent */
+    --primary-border: #bfdbfe;   /* Border for Light Blue */
+    --primary-focus: rgba(30, 58, 138, 0.25);
+
+    --secondary: #475569;        /* Slate Neutral */
+    --secondary-hover: #334155;
+    --secondary-light: #f1f5f9;
+
+    --bg-page: #f8fafc;          /* Formal Light Gray Canvas */
+    --bg-surface: #ffffff;       /* Pure White Card Canvas */
+    --bg-subtle: #f1f5f9;        /* Muted Component Background */
+    --bg-sidebar: #ffffff;       /* Admin Sidebar Canvas */
+    --bg-hover: #f1f5f9;
+
+    --text-primary: #0f172a;     /* High Contrast Slate Charcoal */
+    --text-secondary: #475569;   /* Supporting Description Slate */
+    --text-muted: #64748b;       /* Minor Annotation Gray */
+    --text-disabled: #94a3b8;
+
+    --border: #e2e8f0;           /* Structured Interface Border */
+    --border-strong: #cbd5e1;
+    --border-focus: #1e3a8a;
+
+    --success: #059669;          /* Emerald Green (Positive) */
+    --success-bg: #ecfdf5;
+    --success-border: #a7f3d0;
+    --success-text: #065f46;
+
+    --warning: #d97706;          /* Amber */
+    --warning-bg: #fffbeb;
+    --warning-border: #fde68a;
+    --warning-text: #92400e;
+
+    --danger: #dc2626;           /* Crimson Red (Negative) */
+    --danger-bg: #fef2f2;
+    --danger-border: #fecaca;
+    --danger-text: #991b1b;
+    --danger-border-strong: #f87171;
+
+    --info: #0284c7;             /* Professional Sky Blue */
+    --info-bg: #f0f9ff;
+    --info-border: #bae6fd;
+    --info-text: #0369a1;
+
+    /* Geometry & Spacing */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-full: 9999px;
+
+    --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+    --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --font-sans: "Kanit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
