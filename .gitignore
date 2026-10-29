@@ -1,0 +1,41 @@
+
+# VS Code
+.vscode/
+
+# Environment variables / ข้อมูลลับ
+.env
+.env.*
+!.env.example
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.bak
+*.swp
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Dependencies
+node_modules/
+
+# Build files (C++)
+build/
+cmake-build-*/
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.lib
+
+# Python cache (เผื่อใช้งานภายหลัง)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
