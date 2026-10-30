@@ -23,6 +23,9 @@ body {
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Reserve space for fixed top-right toolbar */
+    padding-top: 0;
+    transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* Typography Hierarchy */

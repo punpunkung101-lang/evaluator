@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เข้าสู่ระบบบริหารจัดการ | IT Evaluator Admin</title>
+    <title data-i18n="login_page_title">เข้าสู่ระบบบริหารจัดการ | IT Evaluator Admin</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,14 +22,14 @@
                 <div class="login-brand-icon">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
                 </div>
-                <h1>IT Evaluator Admin</h1>
-                <p>ระบบบริหารจัดการและสรุปผลการประเมิน</p>
-                <p style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 4px;">คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</p>
+                <h1 data-i18n="login_system_title">IT Evaluator Admin</h1>
+                <p data-i18n="login_subtitle">ระบบบริหารจัดการและสรุปผลการประเมิน</p>
+                <p style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 4px;" data-i18n="institution">คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</p>
             </header>
 
             <form id="adminLoginForm">
                 <div class="form-group">
-                    <label class="form-label" for="adminEmail">ชื่อผู้ใช้ หรือ อีเมลหน่วยงาน</label>
+                    <label class="form-label" for="adminEmail" data-i18n="login_username_label">ชื่อผู้ใช้ หรือ อีเมลหน่วยงาน</label>
                     <input
                         type="text"
                         id="adminEmail"
@@ -41,7 +41,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="adminPassword">รหัสผ่าน</label>
+                    <label class="form-label" for="adminPassword" data-i18n="login_password_label">รหัสผ่าน</label>
                     <input
                         type="password"
                         id="adminPassword"
@@ -52,30 +52,31 @@
                     >
                 </div>
 
-                <div id="loginError" class="state-banner error" style="margin-top: 12px; margin-bottom: 0;" hidden>
+                <div id="loginError" class="state-banner error" style="margin-top: 12px; margin-bottom: 0;" hidden data-i18n="login_error_invalid">
                     ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง
                 </div>
 
                 <div class="login-actions">
                     <button type="submit" class="btn btn-primary">
-                        เข้าสู่ระบบ
+                        <span data-i18n="login_btn">เข้าสู่ระบบ</span>
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42 5.43 5.43H5v2z"/></svg>
                     </button>
 
                     <a href="../user/index.html" class="btn btn-secondary">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 11H7.14l5.43-5.43L11.15 4.15 2.86 12.43l8.29 8.28 1.42-1.42-5.43-5.43H19v-2.86z"/></svg>
-                        กลับสู่หน้าผู้ใช้งานทั่วไป
+                        <span data-i18n="back_to_user_portal">กลับสู่หน้าผู้ใช้งานทั่วไป</span>
                     </a>
                 </div>
             </form>
 
-            <div class="login-notice">
+            <div class="login-notice" data-i18n="login_notice">
                 สำหรับผู้ดูแลระบบและเจ้าหน้าที่สารสนเทศ คณะสหเวชศาสตร์
             </div>
         </div>
     </div>
 
     <!-- App Scripts -->
+    <script src="../assets/js/shared/theme-lang.js"></script>
     <script src="../assets/js/admin/login.js"></script>
 </body>
 </html>

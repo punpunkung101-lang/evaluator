@@ -22,29 +22,34 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const systemNameEl = document.getElementById("system-name");
-    if (systemNameEl) {
-        systemNameEl.textContent = selectedSystem
-            ? `${selectedSystem.name} (${selectedSystem.id})`
-            : "ไม่พบระบบ IT";
+    function updateSystemName() {
+        if (!systemNameEl) return;
+        if (selectedSystem) {
+            const sysName = window.getSystemName ? window.getSystemName(selectedSystem) : selectedSystem.name;
+            systemNameEl.textContent = `${sysName} (${selectedSystem.id})`;
+        } else {
+            systemNameEl.textContent = window.t ? window.t("system_not_found") : "ไม่พบระบบ IT";
+        }
+    }
+    updateSystemName();
+
+    function getQuestions() {
+        const defaultQuestions = [
+            "ความสะดวกในการเข้าใช้งานและการดำเนินงานผ่านระบบ",
+            "ความรวดเร็วในการประมวลผลและการตอบสนองของระบบ",
+            "ความถูกต้องและความน่าเชื่อถือของข้อมูลและผลลัพธ์",
+            "ความชัดเจนของหน้าจอ เมนูคำสั่ง และคู่มือการใช้งาน",
+            "ความพึงพอใจต่อภาพรวมของการใช้งานระบบ IT นี้"
+        ];
+        if (!window.t) return defaultQuestions;
+        return Array.from({ length: 5 }, (_, i) => window.t(`sat_q${i + 1}`));
     }
 
-    // คำถามความพึงพอใจ 5 ข้อ
-    const questions = [
-        "ความสะดวกในการเข้าใช้งานและการดำเนินงานผ่านระบบ",
-        "ความรวดเร็วในการประมวลผลและการตอบสนองของระบบ",
-        "ความถูกต้องและความน่าเชื่อถือของข้อมูลและผลลัพธ์",
-        "ความชัดเจนของหน้าจอ เมนูคำสั่ง และคู่มือการใช้งาน",
-        "ความพึงพอใจต่อภาพรวมของการใช้งานระบบ IT นี้"
-    ];
-
-    const labels = [
-        "",
-        "น้อยที่สุด",
-        "น้อย",
-        "ปานกลาง",
-        "มาก",
-        "มากที่สุด"
-    ];
+    function getRatingLabels() {
+        const defaultLabels = ["", "น้อยที่สุด", "น้อย", "ปานกลาง", "มาก", "มากที่สุด"];
+        if (!window.t) return defaultLabels;
+        return ["", window.t("sat_level_1"), window.t("sat_level_2"), window.t("sat_level_3"), window.t("sat_level_4"), window.t("sat_level_5")];
+    }
 
     const SVG_STAR = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
 
@@ -61,6 +66,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderQuestion() {
         const score = answers[currentIndex];
+        const questions = getQuestions();
+        const labels = getRatingLabels();
 
         if (questionText) {
             questionText.textContent = questions[currentIndex];
@@ -68,7 +75,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const questionNumber = document.getElementById("question-number");
         if (questionNumber) {
-            questionNumber.textContent = `ข้อที่ ${currentIndex + 1} / ${questions.length}`;
+            questionNumber.textContent = window.t
+                ? window.t("question_counter", { current: currentIndex + 1, total: questions.length })
+                : `ข้อที่ ${currentIndex + 1} / ${questions.length}`;
         }
 
         const progressBar = document.getElementById("progress-bar");
@@ -77,9 +86,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (ratingLabel) {
-            ratingLabel.textContent = score === null
-                ? "โปรดเลือกระดับความพึงพอใจ"
-                : `${score} คะแนน — ระดับ${labels[score]}`;
+            if (score === null) {
+                ratingLabel.textContent = window.t ? window.t("sat_prompt") : "โปรดเลือกระดับความพึงพอใจ";
+            } else {
+                ratingLabel.textContent = window.t
+                    ? window.t("sat_rating_label", { score, label: labels[score] })
+                    : `${score} คะแนน — ระดับ${labels[score]}`;
+            }
         }
 
         if (prevBtn) {
@@ -90,19 +103,22 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (nextBtnText) {
-            nextBtnText.textContent = currentIndex === 4
-                ? "ไปยังข้อเสนอแนะเพิ่มเติม"
-                : "ข้อถัดไป";
+            if (currentIndex === 4) {
+                nextBtnText.textContent = window.t ? window.t("btn_to_feedback") : "ไปยังข้อเสนอแนะเพิ่มเติม";
+            } else {
+                nextBtnText.textContent = window.t ? window.t("next") : "ข้อถัดไป";
+            }
         }
 
-        renderStars();
+        renderStars(labels);
     }
 
-    function renderStars() {
+    function renderStars(labels) {
         if (!ratingStars) return;
         ratingStars.innerHTML = "";
 
         const score = answers[currentIndex];
+        const ratingLevels = labels || getRatingLabels();
 
         for (let value = 1; value <= 5; value++) {
             const star = document.createElement("button");
@@ -110,7 +126,10 @@ document.addEventListener("DOMContentLoaded", () => {
             star.type = "button";
             star.className = "rating-star";
             star.innerHTML = SVG_STAR;
-            star.setAttribute("aria-label", `ระดับคะแนน ${value} (${labels[value]})`);
+            const ariaLabelText = window.t
+                ? window.t("sat_rating_label", { score: value, label: ratingLevels[value] })
+                : `ระดับคะแนน ${value} (${ratingLevels[value]})`;
+            star.setAttribute("aria-label", ariaLabelText);
 
             if (score !== null && value <= score) {
                 star.classList.add("active");
@@ -149,6 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (nextBtn) {
         nextBtn.addEventListener("click", () => {
+            const questions = getQuestions();
             if (currentIndex < questions.length - 1) {
                 currentIndex++;
                 renderQuestion();
@@ -165,10 +185,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const feedback = document.getElementById("feedback");
     const charCount = document.getElementById("char-count");
 
-    if (feedback && charCount) {
-        feedback.addEventListener("input", () => {
-            charCount.textContent = `${feedback.value.length} / 250 ตัวอักษร`;
-        });
+    function updateCharCount() {
+        if (feedback && charCount) {
+            const len = feedback.value.length;
+            charCount.textContent = window.t
+                ? window.t("char_counter", { count: len })
+                : `${len} / 250 ตัวอักษร`;
+        }
+    }
+
+    if (feedback) {
+        feedback.addEventListener("input", updateCharCount);
     }
 
     // บันทึกและคำนวณคะแนนความพึงพอใจ
@@ -182,7 +209,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const savedDraft = sessionStorage.getItem("itEvaluationDraft");
 
             if (!savedDraft) {
-                alert("ไม่พบข้อมูลการประเมินเบื้องต้น กรุณาเริ่มทำแบบประเมินใหม่อีกครั้ง");
+                alert(window.t ? window.t("alert_no_draft") : "ไม่พบข้อมูลการประเมินเบื้องต้น กรุณาเริ่มทำแบบประเมินใหม่อีกครั้ง");
                 window.location.href = "index.html";
                 return;
             }
@@ -190,7 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const evaluationData = JSON.parse(savedDraft);
 
             if (evaluationData.systemId !== systemId) {
-                alert("ข้อมูลรหัสระบบไม่สอดคล้องกัน กรุณาเริ่มทำแบบประเมินใหม่อีกครั้ง");
+                alert(window.t ? window.t("alert_id_mismatch") : "ข้อมูลรหัสระบบไม่สอดคล้องกัน กรุณาเริ่มทำแบบประเมินใหม่อีกครั้ง");
                 window.location.href = "index.html";
                 return;
             }
@@ -219,10 +246,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const resultMsg = document.getElementById("result-message");
             if (resultMsg) {
-                resultMsg.textContent = "ระบบได้บันทึกผลการประเมินประสิทธิภาพและความพึงพอใจเรียบร้อยแล้ว";
+                resultMsg.textContent = window.t ? window.t("sat_success_msg") : "ระบบได้บันทึกผลการประเมินประสิทธิภาพและความพึงพอใจเรียบร้อยแล้ว";
             }
         });
     }
+
+    // Dynamic Language Switch Listener
+    document.addEventListener("langchange", () => {
+        updateSystemName();
+        renderQuestion();
+        updateCharCount();
+    });
 
     // เริ่มแสดงคำถามข้อแรก
     renderQuestion();

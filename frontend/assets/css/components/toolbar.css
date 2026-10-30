@@ -1,0 +1,193 @@
+/* ==========================================================================
+   IT EVALUATOR - TOP-RIGHT TOOLBAR (Theme, Language, Login)
+   Shared across all User & Admin pages
+   ========================================================================== */
+
+/* ── Floating toolbar container ─────────────────────────────────────────── */
+.tl-toolbar {
+    position: fixed;
+    top: 12px;
+    right: 16px;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ── Base button ─────────────────────────────────────────────────────────── */
+.tl-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+    text-decoration: none;
+    box-shadow: var(--shadow-sm);
+}
+
+.tl-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+}
+
+.tl-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+/* ── Icon-only button (theme toggle) ─────────────────────────────────────── */
+.tl-icon-btn {
+    padding: 6px 8px;
+}
+
+/* ── Language button ─────────────────────────────────────────────────────── */
+.tl-lang-btn {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 6px 10px;
+}
+
+/* ── Login button ────────────────────────────────────────────────────────── */
+.tl-login-btn {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+}
+
+.tl-login-btn:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+    color: #ffffff;
+}
+
+/* ── User button (when logged in) ────────────────────────────────────────── */
+.tl-user-btn {
+    max-width: 200px;
+}
+
+.tl-user-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 120px;
+}
+
+.tl-caret {
+    width: 14px !important;
+    height: 14px !important;
+    transition: transform 0.2s ease;
+}
+
+.tl-user-btn[aria-expanded="true"] .tl-caret {
+    transform: rotate(180deg);
+}
+
+/* ── User dropdown ───────────────────────────────────────────────────────── */
+.tl-user-menu {
+    position: relative;
+}
+
+.tl-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 200px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    padding: 8px 0;
+    z-index: 10000;
+}
+
+.tl-dropdown-info {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 14px;
+}
+
+.tl-dropdown-role {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary);
+}
+
+.tl-dropdown-email {
+    font-size: 0.8125rem;
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-top: 2px;
+    word-break: break-all;
+}
+
+.tl-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 4px 0;
+}
+
+.tl-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 14px;
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+}
+
+.tl-dropdown-item svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+.tl-dropdown-item:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.tl-logout-btn:hover {
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+/* ── Responsive: shrink on very small screens ────────────────────────────── */
+@media (max-width: 480px) {
+    .tl-toolbar {
+        top: 8px;
+        right: 8px;
+        gap: 4px;
+    }
+
+    .tl-user-name {
+        display: none;
+    }
+
+    .tl-login-btn span {
+        display: none;
+    }
+}

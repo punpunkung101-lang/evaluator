@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แบบประเมินความพึงพอใจการใช้งานระบบ IT | IT Evaluator</title>
+    <title data-i18n="sat_page_title">แบบประเมินความพึงพอใจการใช้งานระบบ IT | IT Evaluator</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,17 +18,17 @@
 <main class="container">
 
     <header class="page-header">
-        <h1>แบบประเมินความพึงพอใจต่อระบบ IT</h1>
+        <h1 data-i18n="sat_header">แบบประเมินความพึงพอใจต่อระบบ IT</h1>
         <div class="system-badge">
             <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v10H4V6zm18-2H2v14h7v2H7v2h10v-2h-2v-2h7V4z"/></svg>
-            <span id="system-name">กำลังตรวจสอบข้อมูลระบบ...</span>
+            <span id="system-name" data-i18n="checking_system">กำลังตรวจสอบข้อมูลระบบ...</span>
         </div>
     </header>
 
     <!-- คำถามวัดความพึงพอใจ 5 ข้อ -->
     <section class="satisfaction-card">
         <div class="question-top">
-            <span>ความพึงพอใจหลังการใช้งานระบบ</span>
+            <span data-i18n="sat_subtitle">ความพึงพอใจหลังการใช้งานระบบ</span>
             <span id="question-number">ข้อที่ 1 / 5</span>
         </div>
 
@@ -40,12 +40,12 @@
 
         <div id="rating-stars" class="rating-stars" role="radiogroup" aria-label="ระดับความพึงพอใจ"></div>
 
-        <p id="rating-label">โปรดเลือกระดับความพึงพอใจ</p>
+        <p id="rating-label" data-i18n="sat_prompt">โปรดเลือกระดับความพึงพอใจ</p>
 
         <div class="question-actions">
             <button id="prev-btn" class="btn btn-secondary" type="button">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 11H7.14l5.43-5.43L11.15 4.15 2.86 12.43l8.29 8.28 1.42-1.42-5.43-5.43H19v-2.86z"/></svg>
-                ย้อนกลับ
+                <span data-i18n="previous">ย้อนกลับ</span>
             </button>
 
             <button id="next-btn" class="btn btn-primary" type="button" disabled>
@@ -57,42 +57,43 @@
 
     <!-- ส่วนข้อเสนอแนะเพิ่มเติม -->
     <section id="feedback-section" class="feedback-section" hidden>
-        <h2>ข้อเสนอแนะเพื่อการพัฒนาระบบ</h2>
-        <p>ท่านมีข้อคิดเห็นหรือข้อเสนอแนะเพิ่มเติมเพื่อปรับปรุงระบบ IT นี้หรือไม่</p>
+        <h2 data-i18n="feedback_title">ข้อเสนอแนะเพื่อการพัฒนาระบบ</h2>
+        <p data-i18n="feedback_desc">ท่านมีข้อคิดเห็นหรือข้อเสนอแนะเพิ่มเติมเพื่อปรับปรุงระบบ IT นี้หรือไม่</p>
 
         <textarea
             id="feedback"
             maxlength="250"
             rows="5"
+            data-i18n-placeholder="feedback_placeholder"
             placeholder="พิมพ์ข้อเสนอแนะของท่านที่นี่ (ไม่บังคับระบุ)"
         ></textarea>
 
         <p id="char-count" class="char-counter">0 / 250 ตัวอักษร</p>
 
         <button id="submit-btn" class="btn btn-primary" type="button">
-            บันทึกและส่งผลการประเมิน
+            <span data-i18n="btn_submit_eval">บันทึกและส่งผลการประเมิน</span>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
         </button>
     </section>
 
     <!-- ส่วนสรุปผลการประเมินความพึงพอใจ -->
     <section id="result-section" class="result-section" hidden>
-        <h2>บันทึกผลการประเมินสำเร็จ</h2>
-        <p class="score-label">คะแนนความพึงพอใจเฉลี่ยของท่าน</p>
+        <h2 data-i18n="sat_success_title">บันทึกผลการประเมินสำเร็จ</h2>
+        <p class="score-label" data-i18n="sat_score_label">คะแนนความพึงพอใจเฉลี่ยของท่าน</p>
         <strong id="average-score">-</strong>
-        <p id="result-message">ระบบได้บันทึกข้อมูลผลการประเมินประสิทธิภาพและระดับความพึงพอใจเรียบร้อยแล้ว</p>
+        <p id="result-message" data-i18n="sat_success_msg">ระบบได้บันทึกข้อมูลผลการประเมินประสิทธิภาพและระดับความพึงพอใจเรียบร้อยแล้ว</p>
 
         <div class="status-callout">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-            <span>ข้อมูลได้รับการจัดเก็บลงในระบบฐานข้อมูลเรียบร้อยแล้ว</span>
+            <span data-i18n="sat_callout">ข้อมูลได้รับการจัดเก็บลงในระบบฐานข้อมูลเรียบร้อยแล้ว</span>
         </div>
 
-        <a href="index.html" class="btn btn-primary">
+        <a href="index.html" class="btn btn-primary" data-i18n="back_to_systems">
             กลับสู่หน้ารายการระบบ IT
         </a>
     </section>
 
-    <footer class="site-footer">
+    <footer class="site-footer" data-i18n="footer_text">
         ระบบประเมินประสิทธิภาพ IT © 2026 | คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร
     </footer>
 
@@ -101,6 +102,7 @@
 <!-- JS: Shared Data, Shared API & User Page Logic -->
 <script src="../assets/js/shared/systems-data.js"></script>
 <script src="../assets/js/shared/api.js"></script>
+<script src="../assets/js/shared/theme-lang.js"></script>
 <script src="../assets/js/user/satisfaction.js"></script>
 
 </body>

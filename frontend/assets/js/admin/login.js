@@ -9,6 +9,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const passwordInput = document.getElementById("adminPassword");
     const loginError = document.getElementById("loginError");
 
+    let currentErrorKey = null;
+
+    function showError(key) {
+        if (!loginError) return;
+        currentErrorKey = key;
+        loginError.textContent = window.t ? window.t(key) : (key === "login_error_empty" ? "กรุณากรอกชื่อผู้ใช้และรหัสผ่านให้ครบถ้วน" : "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+        loginError.hidden = false;
+    }
+
     if (loginForm) {
         loginForm.addEventListener("submit", (e) => {
             e.preventDefault();
@@ -17,10 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const password = (passwordInput?.value || "").trim();
 
             if (!email || !password) {
-                if (loginError) {
-                    loginError.textContent = "กรุณากรอกชื่อผู้ใช้และรหัสผ่านให้ครบถ้วน";
-                    loginError.hidden = false;
-                }
+                showError("login_error_empty");
                 return;
             }
 
@@ -34,4 +40,10 @@ document.addEventListener("DOMContentLoaded", () => {
             window.location.href = "dashboard.html";
         });
     }
+
+    document.addEventListener("langchange", () => {
+        if (currentErrorKey && loginError && !loginError.hidden) {
+            loginError.textContent = window.t ? window.t(currentErrorKey) : loginError.textContent;
+        }
+    });
 });

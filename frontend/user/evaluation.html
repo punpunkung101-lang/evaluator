@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แบบประเมินประสิทธิภาพระบบ IT | IT Evaluator</title>
+    <title data-i18n="evaluation_page_title">แบบประเมินประสิทธิภาพระบบ IT | IT Evaluator</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,45 +19,46 @@
 
     <a href="index.html" class="back-link">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 11H7.14l5.43-5.43L11.15 4.15 2.86 12.43l8.29 8.28 1.42-1.42-5.43-5.43H19v-2.86z"/></svg>
-        กลับสู่หน้ารายการหมวดหมู่
+        <span data-i18n="back_to_categories">กลับสู่หน้ารายการหมวดหมู่</span>
     </a>
 
     <header class="evaluation-header">
-        <h1>แบบประเมินประสิทธิภาพและประสิทธิผลระบบ IT</h1>
+        <h1 data-i18n="evaluation_header">แบบประเมินประสิทธิภาพและประสิทธิผลระบบ IT</h1>
         <div class="system-name-badge" id="system-badge">
             <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v10H4V6zm18-2H2v14h7v2H7v2h10v-2h-2v-2h7V4z"/></svg>
-            <span id="system-name">กำลังตรวจสอบข้อมูลระบบ...</span>
+            <span id="system-name" data-i18n="checking_system">กำลังตรวจสอบข้อมูลระบบ...</span>
         </div>
     </header>
 
     <!-- ขั้นตอนที่ 1: ข้อมูลผู้ประเมิน -->
     <section class="form-section profile-card" id="profile-section">
-        <h2>ข้อมูลผู้ประเมิน</h2>
-        <p class="section-desc">โปรดระบุข้อมูลเบื้องต้นเพื่อใช้ประกอบการวิเคราะห์ทางสถิติของหน่วยงาน</p>
+        <h2 data-i18n="evaluator_profile_title">ข้อมูลผู้ประเมิน</h2>
+        <p class="section-desc" data-i18n="evaluator_profile_desc">โปรดระบุข้อมูลเบื้องต้นเพื่อใช้ประกอบการวิเคราะห์ทางสถิติของหน่วยงาน</p>
 
         <div class="form-group">
-            <label class="form-label" for="evaluator-name">ชื่อ-นามสกุล หรือ รหัสผู้ใช้งาน</label>
+            <label class="form-label" for="evaluator-name" data-i18n="evaluator_name_label">ชื่อ-นามสกุล หรือ รหัสผู้ใช้งาน</label>
             <input
                 type="text"
                 id="evaluator-name"
                 class="form-control"
+                data-i18n-placeholder="evaluator_name_placeholder"
                 placeholder="กรอกชื่อ-นามสกุล หรือนามสมมุติ"
                 autocomplete="off"
             >
         </div>
 
         <div class="form-group">
-            <label class="form-label" for="user-role">ประเภทบุคลากร / ผู้ใช้งาน</label>
+            <label class="form-label" for="user-role" data-i18n="evaluator_role_label">ประเภทบุคลากร / ผู้ใช้งาน</label>
             <select id="user-role" class="form-control">
-                <option value="">-- โปรดเลือกประเภทผู้ใช้งาน --</option>
-                <option value="student">นิสิต</option>
-                <option value="teacher">อาจารย์ / นักวิจัย</option>
-                <option value="staff">บุคลากรสายสนับสนุน</option>
+                <option value="" data-i18n="role_select_prompt">-- โปรดเลือกประเภทผู้ใช้งาน --</option>
+                <option value="student" data-i18n="role_student">นิสิต</option>
+                <option value="teacher" data-i18n="role_teacher">อาจารย์ / นักวิจัย</option>
+                <option value="staff" data-i18n="role_staff">บุคลากรสายสนับสนุน</option>
             </select>
         </div>
 
         <button id="start-btn" class="btn btn-primary" type="button">
-            เริ่มต้นการประเมิน
+            <span data-i18n="evaluator_start_btn">เริ่มต้นการประเมิน</span>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42 5.43 5.43H5v2z"/></svg>
         </button>
     </section>
@@ -83,20 +84,20 @@
         </div>
 
         <div class="question-card">
-            <p class="question-caption">เกณฑ์การประเมินประสิทธิภาพ</p>
+            <p class="question-caption" data-i18n="question_caption">เกณฑ์การประเมินประสิทธิภาพ</p>
             <h2 id="question-text">ข้อคำถาม</h2>
 
             <div id="rating-stars" class="rating-stars" role="radiogroup" aria-label="ระดับความคิดเห็น"></div>
 
-            <p id="rating-label" class="rating-label">โปรดเลือกระดับความคิดเห็น</p>
+            <p id="rating-label" class="rating-label" data-i18n="rating_prompt">โปรดเลือกระดับความคิดเห็น</p>
 
             <div class="skip-info">
-                <p class="skip-title">ไม่สามารถประเมินข้อนี้ได้?</p>
-                <p class="skip-description">
+                <p class="skip-title" data-i18n="skip_title">ไม่สามารถประเมินข้อนี้ได้?</p>
+                <p class="skip-description" data-i18n="skip_desc">
                     หากท่านไม่เคยมีประสบการณ์ในขั้นตอนดังกล่าว หรือไม่ทราบข้อมูลเกี่ยวกับข้อคำถามนี้ สามารถกดปุ่มด้านล่างเพื่อข้ามข้อนี้ได้ โดยระบบจะไม่นำคำถามนี้ไปคำนวณถ่วงน้ำหนัก
                 </p>
 
-                <button id="skip-btn" class="skip-btn" type="button">
+                <button id="skip-btn" class="skip-btn" type="button" data-i18n="skip_btn">
                     ข้ามคำถามข้อนี้ (ไม่มีข้อมูล / ไม่เคยปฏิบัติงาน)
                 </button>
             </div>
@@ -105,7 +106,7 @@
         <div class="question-actions">
             <button id="prev-btn" class="btn btn-secondary" type="button">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 11H7.14l5.43-5.43L11.15 4.15 2.86 12.43l8.29 8.28 1.42-1.42-5.43-5.43H19v-2.86z"/></svg>
-                ย้อนกลับ
+                <span data-i18n="previous">ย้อนกลับ</span>
             </button>
 
             <button id="next-btn" class="btn btn-primary" type="button" disabled>
@@ -118,17 +119,17 @@
 
     <!-- ขั้นตอนที่ 3: ผลสรุปเปรียบเทียบ Before-After -->
     <section id="result-section" class="result-section" hidden>
-        <h2>สรุปผลการเปรียบเทียบประสิทธิภาพ</h2>
-        <p class="result-sub">ผลต่างคะแนนเฉลี่ยระหว่างก่อนและหลังการนำระบบ IT มาใช้ในการปฏิบัติงาน</p>
+        <h2 data-i18n="result_title">สรุปผลการเปรียบเทียบประสิทธิภาพ</h2>
+        <p class="result-sub" data-i18n="result_subtitle">ผลต่างคะแนนเฉลี่ยระหว่างก่อนและหลังการนำระบบ IT มาใช้ในการปฏิบัติงาน</p>
 
         <div class="result-grid">
             <div class="result-card">
-                <p>คะแนนเฉลี่ยก่อนใช้ระบบ</p>
+                <p data-i18n="score_before_system">คะแนนเฉลี่ยก่อนใช้ระบบ</p>
                 <strong id="before-score">-</strong>
             </div>
 
             <div class="result-card">
-                <p>คะแนนเฉลี่ยหลังใช้ระบบ</p>
+                <p data-i18n="score_after_system">คะแนนเฉลี่ยหลังใช้ระบบ</p>
                 <strong id="after-score">-</strong>
             </div>
         </div>
@@ -139,18 +140,18 @@
         </div>
 
         <div class="result-actions">
-            <button id="restart-btn" class="btn btn-secondary" type="button">
+            <button id="restart-btn" class="btn btn-secondary" type="button" data-i18n="btn_restart">
                 ทำแบบประเมินใหม่อีกครั้ง
             </button>
 
             <button id="satisfaction-btn" class="btn btn-primary" type="button">
-                ดำเนินการประเมินความพึงพอใจต่อ
+                <span data-i18n="btn_to_satisfaction">ดำเนินการประเมินความพึงพอใจต่อ</span>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42 5.43 5.43H5v2z"/></svg>
             </button>
         </div>
     </section>
 
-    <footer class="site-footer">
+    <footer class="site-footer" data-i18n="footer_text">
         ระบบประเมินประสิทธิภาพ IT © 2026 | คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร
     </footer>
 
@@ -158,6 +159,7 @@
 
 <!-- JS: Shared Data & User Page Logic -->
 <script src="../assets/js/shared/systems-data.js"></script>
+<script src="../assets/js/shared/theme-lang.js"></script>
 <script src="../assets/js/user/evaluation.js"></script>
 
 </body>
