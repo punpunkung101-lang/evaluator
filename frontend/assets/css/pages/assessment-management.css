@@ -1,0 +1,502 @@
+/* ==========================================================================
+   IT EVALUATOR - ASSESSMENT MANAGEMENT SECTION STYLES
+   Faculty of Allied Health Sciences, Naresuan University
+   Hierarchy: Main Category -> Assessment Topic (System) -> Questions
+   ========================================================================== */
+
+.assessment-mgmt-section {
+    margin-bottom: 24px;
+    border-top: 3px solid var(--primary);
+    background: var(--bg-surface);
+}
+
+.mgmt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+}
+
+.mgmt-title-group h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mgmt-title-group p {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin-top: 3px;
+}
+
+.mgmt-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Hierarchy Stepper / Breadcrumb */
+.hierarchy-stepper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--bg-body);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 20px;
+    font-size: 0.8125rem;
+    flex-wrap: wrap;
+}
+
+.hierarchy-step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.hierarchy-step.active {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.hierarchy-step .step-num {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.hierarchy-step.active .step-num {
+    background: var(--primary);
+    color: #ffffff;
+}
+
+.hierarchy-separator {
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+/* Category Selection Grid */
+.category-select-wrapper {
+    margin-bottom: 22px;
+}
+
+.category-select-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.category-pills {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+}
+
+.category-pill {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: inherit;
+    color: var(--text-primary);
+}
+
+.category-pill:hover {
+    border-color: var(--border-strong);
+    background: var(--bg-hover);
+}
+
+.category-pill.active {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 600;
+    box-shadow: 0 0 0 1px var(--primary);
+}
+
+.category-pill .cat-name {
+    font-size: 0.84rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 8px;
+}
+
+.category-pill .cat-count {
+    font-size: 0.72rem;
+    background: rgba(148, 163, 184, 0.2);
+    color: inherit;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+.category-pill.active .cat-count {
+    background: var(--primary);
+    color: #ffffff;
+}
+
+/* Panel Header */
+.mgmt-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.mgmt-panel-header h4 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mgmt-panel-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Management Tables */
+.mgmt-table-wrapper {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+}
+
+.mgmt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+    text-align: left;
+}
+
+.mgmt-table thead th {
+    background: var(--bg-body);
+    padding: 10px 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.mgmt-table tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+
+.mgmt-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.mgmt-table tbody tr:hover {
+    background: var(--bg-hover);
+}
+
+/* Badges */
+.mgmt-code-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--bg-body);
+    border: 1px solid var(--border);
+    font-family: monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.mgmt-q-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.mgmt-type-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.mgmt-type-badge.efficiency {
+    background: var(--info-bg);
+    color: var(--info);
+}
+
+.mgmt-type-badge.satisfaction {
+    background: var(--success-bg);
+    color: var(--success);
+}
+
+.mgmt-type-badge.custom {
+    background: var(--warning-bg);
+    color: var(--warning);
+}
+
+/* Action Buttons inside Table */
+.mgmt-actions-cell {
+    white-space: nowrap;
+    text-align: right;
+}
+
+.mgmt-btn-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-icon-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 9px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    background: transparent;
+}
+
+.btn-icon-text svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+.btn-icon-text.primary {
+    background: var(--primary);
+    color: #ffffff;
+}
+.btn-icon-text.primary:hover {
+    background: var(--primary-dark, #172554);
+}
+
+.btn-icon-text.secondary {
+    background: var(--bg-body);
+    border-color: var(--border);
+    color: var(--text-secondary);
+}
+.btn-icon-text.secondary:hover {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+}
+
+.btn-icon-text.danger {
+    background: transparent;
+    border-color: var(--danger-border);
+    color: var(--danger);
+}
+.btn-icon-text.danger:hover {
+    background: var(--danger-bg);
+}
+
+/* Empty State */
+.mgmt-empty {
+    padding: 36px 20px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.mgmt-empty svg {
+    width: 36px;
+    height: 36px;
+    fill: currentColor;
+    margin-bottom: 8px;
+    opacity: 0.5;
+}
+
+.mgmt-empty p {
+    font-size: 0.84rem;
+    margin-bottom: 12px;
+}
+
+/* Breadcrumb in Questions view */
+.questions-context-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    background: var(--bg-body);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.topic-context-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.84rem;
+}
+
+.topic-context-info strong {
+    color: var(--text-primary);
+}
+
+/* Form Styles for Modals */
+.mgmt-form-group {
+    margin-bottom: 14px;
+}
+
+.mgmt-form-group label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+
+.mgmt-form-group label .required {
+    color: var(--danger);
+    margin-left: 2px;
+}
+
+.mgmt-form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-size: 0.84rem;
+    font-family: inherit;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.mgmt-form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.mgmt-form-control[readonly] {
+    background: var(--bg-body);
+    color: var(--text-muted);
+    cursor: not-allowed;
+}
+
+textarea.mgmt-form-control {
+    min-height: 70px;
+    resize: vertical;
+}
+
+.mgmt-form-hint {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+/* Delete Confirm Icon Box */
+.delete-confirm-box {
+    text-align: center;
+    padding: 8px 0 16px;
+}
+
+.delete-confirm-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--danger-bg);
+    color: var(--danger);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.delete-confirm-icon svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+}
+
+.delete-confirm-box h4 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.delete-confirm-box p {
+    font-size: 0.84rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* Dark Theme Adjustments */
+[data-theme="dark"] .category-pill.active {
+    background: rgba(30, 58, 138, 0.35);
+}
+
+[data-theme="dark"] .mgmt-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .mgmt-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .category-pills {
+        grid-template-columns: 1fr;
+    }
+    .mgmt-panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .questions-context-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

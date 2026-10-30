@@ -18,15 +18,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 1. DATA SOURCES & SYSTEMS DEFINITION
     // ==========================================
 
-    const categoryList = typeof categories !== "undefined" ? categories : [];
+    function getCurrentSystems() {
+        const catList = typeof categories !== "undefined" ? categories : [];
+        return catList.flatMap(category =>
+            (category.systems || []).map(system => ({
+                ...system,
+                categoryId: String(category.id),
+                categoryName: category.name
+            }))
+        );
+    }
 
-    const systems = categoryList.flatMap(category =>
-        (category.systems || []).map(system => ({
-            ...system,
-            categoryId: String(category.id),
-            categoryName: category.name
-        }))
-    );
+    let systems = getCurrentSystems();
 
     const questionNames = [
         "ความรวดเร็ว",
@@ -855,4 +858,38 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Initial Data Fetch
     await loadData();
+
+    // Listen for Assessment Catalog updates (Add/Rename/Delete topics)
+    document.addEventListener("assessmentcatalogchange", () => {
+        systems = getCurrentSystems();
+
+        // Refresh category dropdown in Systems table
+        if (categoryFilter) {
+            const currentSelected = categoryFilter.value;
+            categoryFilter.innerHTML = `<option value="all">${window.t ? window.t("filter_all_categories") : "ทุกหมวดหมู่ภารกิจ"}</option>`;
+            const catList = typeof categories !== "undefined" ? categories : [];
+            catList.forEach(category => {
+                const option = document.createElement("option");
+                option.value = String(category.id);
+                option.textContent = category.name;
+                categoryFilter.appendChild(option);
+            });
+            categoryFilter.value = currentSelected;
+        }
+
+        updateDashboard();
+    });
+
+    // Initial Hash Scroll (e.g. #assessment-management)
+    if (window.location.hash) {
+        const hashLink = document.querySelector(`.sidebar-nav .nav-link[href="${window.location.hash}"]`);
+        const hashTarget = document.querySelector(window.location.hash);
+        if (hashLink && hashTarget) {
+            navLinks.forEach(item => item.classList.remove("active"));
+            hashLink.classList.add("active");
+            setTimeout(() => {
+                hashTarget.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 200);
+        }
+    }
 });

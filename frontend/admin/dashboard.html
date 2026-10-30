@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="../assets/css/common.css">
     <link rel="stylesheet" href="../assets/css/layouts/admin-layout.css">
     <link rel="stylesheet" href="../assets/css/pages/dashboard.css">
+    <link rel="stylesheet" href="../assets/css/pages/assessment-management.css">
 
     <!-- Chart.js สำหรับแสดงกราฟ -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -37,7 +38,12 @@
             <nav class="sidebar-nav">
                 <a href="#overview" class="nav-link active">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-                    <span>ภาพรวมระบบ</span>
+                    <span data-i18n="nav_overview">ภาพรวมระบบ</span>
+                </a>
+
+                <a href="#assessment-management" class="nav-link">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                    <span data-i18n="nav_assessment_mgmt">การจัดการแบบประเมิน</span>
                 </a>
 
                 <a href="#evaluation" class="nav-link">
@@ -163,6 +169,118 @@
                     </div>
                 </div>
 
+            </section>
+
+            <!-- ========== ASSESSMENT MANAGEMENT SECTION (Near Overview) ========== -->
+            <section class="dashboard-card assessment-mgmt-section" id="assessment-management">
+                <div class="mgmt-header">
+                    <div class="mgmt-title-group">
+                        <h3>
+                            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: var(--primary);" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                            <span data-i18n="mgmt_title">การจัดการหัวข้อและแบบประเมิน</span>
+                        </h3>
+                        <p data-i18n="mgmt_subtitle">จัดการหัวข้อการประเมิน (ระบบ IT) และข้อคำถามภายใต้แต่ละหมวดหมู่หลัก</p>
+                    </div>
+                    <div class="mgmt-header-actions">
+                        <button id="mgmtResetDefaultsBtn" class="btn btn-secondary btn-sm" type="button" title="คืนค่าข้อมูลหัวข้อและคำถามเริ่มต้น">
+                            <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;" aria-hidden="true"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                            <span data-i18n="mgmt_btn_reset">คืนค่าเริ่มต้น</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hierarchy Stepper (Level 1 -> Level 2 -> Level 3) -->
+                <div id="mgmtHierarchyStepper" class="hierarchy-stepper">
+                    <!-- Dynamic via assessment-management.js -->
+                </div>
+
+                <!-- Level 1: Category Selector -->
+                <div class="category-select-wrapper">
+                    <div class="category-select-label">
+                        <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: currentColor;" aria-hidden="true"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                        <span data-i18n="mgmt_select_cat">เลือกหมวดหมู่หลัก:</span>
+                    </div>
+                    <div id="mgmtCategoryPills" class="category-pills">
+                        <!-- Dynamic via assessment-management.js -->
+                    </div>
+                </div>
+
+                <!-- Level 2: Assessment Topics Panel -->
+                <div id="mgmtTopicsPanel">
+                    <div class="mgmt-panel-header">
+                        <h4 id="mgmtSelectedCatTitle">หัวข้อการประเมินในหมวดหมู่</h4>
+                        <div class="mgmt-panel-actions">
+                            <button id="mgmtAddTopicBtn" class="btn btn-primary btn-sm" type="button">
+                                <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                                <span data-i18n="mgmt_btn_add_topic">เพิ่มหัวข้อการประเมิน</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mgmt-table-wrapper">
+                        <table class="mgmt-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px; text-align: center;">#</th>
+                                    <th style="width: 120px;" data-i18n="mgmt_th_code">รหัส</th>
+                                    <th data-i18n="mgmt_th_name">ชื่อหัวข้อการประเมิน</th>
+                                    <th style="width: 160px;" data-i18n="mgmt_th_q_count">จำนวนข้อคำถาม</th>
+                                    <th class="mgmt-actions-cell" style="width: 280px;" data-i18n="mgmt_th_actions">การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mgmtTopicsTableBody">
+                                <!-- Ingested dynamically via assessment-management.js -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="mgmtTopicsEmpty" class="mgmt-empty" style="display: none;">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                        <p data-i18n="mgmt_empty_topics">ไม่พบหัวข้อการประเมินในหมวดหมู่นี้ กดปุ่ม "เพิ่มหัวข้อการประเมิน" เพื่อสร้างใหม่</p>
+                    </div>
+                </div>
+
+                <!-- Level 3: Questions Panel (Drill-down into Topic) -->
+                <div id="mgmtQuestionsPanel" style="display: none;">
+                    <div class="questions-context-bar">
+                        <div class="topic-context-info" id="mgmtTopicContextInfo">
+                            <!-- Populated dynamically -->
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span id="mgmtTopicQuestionsCountBadge" class="mgmt-q-badge">-</span>
+                            <button id="mgmtBackToTopicsBtn" class="btn btn-secondary btn-sm" type="button">
+                                <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                                <span data-i18n="mgmt_btn_back">ย้อนกลับรายการหัวข้อ</span>
+                            </button>
+                            <button id="mgmtAddQuestionBtn" class="btn btn-primary btn-sm" type="button">
+                                <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                                <span data-i18n="mgmt_btn_add_q">เพิ่มข้อคำถาม</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mgmt-table-wrapper">
+                        <table class="mgmt-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 60px; text-align: center;" data-i18n="mgmt_th_q_no">ข้อที่</th>
+                                    <th data-i18n="mgmt_th_q_text">ข้อความคำถาม</th>
+                                    <th style="width: 170px;" data-i18n="mgmt_th_q_type">กลุ่มเกณฑ์</th>
+                                    <th style="width: 140px;" data-i18n="mgmt_th_q_scale">รูปแบบการให้คะแนน</th>
+                                    <th class="mgmt-actions-cell" style="width: 160px;" data-i18n="mgmt_th_actions">การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mgmtQuestionsTableBody">
+                                <!-- Ingested dynamically via assessment-management.js -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="mgmtQuestionsEmpty" class="mgmt-empty" style="display: none;">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                        <p data-i18n="mgmt_empty_questions">ยังไม่มีข้อคำถามในหัวข้อนี้ กดปุ่ม "เพิ่มข้อคำถาม" เพื่อเพิ่มข้อใหม่</p>
+                    </div>
+                </div>
             </section>
 
             <!-- ========== MAIN CHARTS ========== -->
@@ -373,10 +491,108 @@
         </div>
     </div>
 
+    <!-- MODAL: Add / Rename Topic -->
+    <div id="mgmtTopicModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="mgmtTopicModalTitle">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="mgmtTopicModalTitle" data-i18n="mgmt_modal_add_topic_title">เพิ่มหัวข้อการประเมินใหม่</h3>
+                <button class="modal-close" id="closeTopicModal" aria-label="ปิด">&times;</button>
+            </div>
+            <div style="margin-bottom: 14px;">
+                <span class="mgmt-code-badge" id="mgmtTopicModalCatBadge">-</span>
+            </div>
+            <div class="mgmt-form-group">
+                <label for="mgmtTopicCodeInput" data-i18n="mgmt_field_code">รหัสหัวข้อ / รหัสระบบ (เช่น SYS022)</label>
+                <input type="text" id="mgmtTopicCodeInput" class="mgmt-form-control" placeholder="SYS022">
+            </div>
+            <div class="mgmt-form-group">
+                <label for="mgmtTopicNameThInput">
+                    <span data-i18n="mgmt_field_name_th">ชื่อหัวข้อการประเมิน (ภาษาไทย)</span>
+                    <span class="required">*</span>
+                </label>
+                <input type="text" id="mgmtTopicNameThInput" class="mgmt-form-control" placeholder="เช่น ระบบลาออนไลน์">
+            </div>
+            <div class="mgmt-form-group">
+                <label for="mgmtTopicNameEnInput" data-i18n="mgmt_field_name_en">ชื่อหัวข้อการประเมิน (English)</label>
+                <input type="text" id="mgmtTopicNameEnInput" class="mgmt-form-control" placeholder="e.g. Online Leave System">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+                <button id="cancelTopicModalBtn" class="btn btn-secondary btn-sm" type="button" data-i18n="cancel">ยกเลิก</button>
+                <button id="saveTopicBtn" class="btn btn-primary btn-sm" type="button" data-i18n="btn_save">บันทึกข้อมูล</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Add / Edit Question -->
+    <div id="mgmtQuestionModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="mgmtQuestionModalTitle">
+        <div class="modal-card" style="max-width: 580px;">
+            <div class="modal-header">
+                <h3 id="mgmtQuestionModalTitle" data-i18n="mgmt_modal_add_q_title">เพิ่มข้อคำถามใหม่</h3>
+                <button class="modal-close" id="closeQuestionModal" aria-label="ปิด">&times;</button>
+            </div>
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 12px;">
+                <div class="mgmt-form-group">
+                    <label for="mgmtQuestionOrderInput" data-i18n="mgmt_field_q_no">ลำดับข้อที่</label>
+                    <input type="number" id="mgmtQuestionOrderInput" class="mgmt-form-control" min="1" value="1">
+                </div>
+                <div class="mgmt-form-group">
+                    <label for="mgmtQuestionTypeSelect" data-i18n="mgmt_field_q_type">ประเภทเกณฑ์การประเมิน</label>
+                    <select id="mgmtQuestionTypeSelect" class="mgmt-form-control">
+                        <option value="efficiency" data-i18n="mgmt_type_efficiency">เกณฑ์การประเมินประสิทธิภาพ (10 ด้าน)</option>
+                        <option value="satisfaction" data-i18n="mgmt_type_satisfaction">เกณฑ์วัดความพึงพอใจ (5 ด้าน)</option>
+                        <option value="custom" data-i18n="mgmt_type_custom">เกณฑ์เพิ่มเติม / กำหนดเอง</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mgmt-form-group">
+                <label for="mgmtQuestionTextThInput">
+                    <span data-i18n="mgmt_field_q_text_th">ข้อความคำถาม (ภาษาไทย)</span>
+                    <span class="required">*</span>
+                </label>
+                <textarea id="mgmtQuestionTextThInput" class="mgmt-form-control" placeholder="เช่น สามารถดำเนินงานให้เสร็จได้อย่างรวดเร็ว"></textarea>
+            </div>
+            <div class="mgmt-form-group">
+                <label for="mgmtQuestionTextEnInput" data-i18n="mgmt_field_q_text_en">ข้อความคำถาม (English)</label>
+                <textarea id="mgmtQuestionTextEnInput" class="mgmt-form-control" placeholder="e.g. Speed of work completion"></textarea>
+            </div>
+            <div class="mgmt-form-group">
+                <label for="mgmtQuestionScaleSelect" data-i18n="mgmt_field_scale">รูปแบบระดับคะแนน</label>
+                <select id="mgmtQuestionScaleSelect" class="mgmt-form-control">
+                    <option value="likert5" data-i18n="mgmt_scale_likert5">สเกล 5 ระดับ (1 = น้อยที่สุด, 5 = มากที่สุด)</option>
+                </select>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+                <button id="cancelQuestionModalBtn" class="btn btn-secondary btn-sm" type="button" data-i18n="cancel">ยกเลิก</button>
+                <button id="saveQuestionBtn" class="btn btn-primary btn-sm" type="button" data-i18n="btn_save">บันทึกข้อมูล</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Confirm Delete -->
+    <div id="mgmtDeleteModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="mgmtDeleteModalTitle">
+        <div class="modal-card" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3 id="mgmtDeleteModalTitle" data-i18n="mgmt_confirm_delete_topic_title">ยืนยันการลบ</h3>
+                <button class="modal-close" id="closeDeleteModal" aria-label="ปิด">&times;</button>
+            </div>
+            <div class="delete-confirm-box">
+                <div class="delete-confirm-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                </div>
+                <p id="mgmtDeleteModalMessage" style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;"></p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button id="cancelDeleteModalBtn" class="btn btn-secondary btn-sm" type="button" data-i18n="cancel">ยกเลิก</button>
+                <button id="confirmDeleteBtn" class="btn btn-primary btn-sm" style="background: var(--danger); border-color: var(--danger-border);" type="button" data-i18n="btn_confirm_delete">ยืนยันการลบ</button>
+            </div>
+        </div>
+    </div>
+
     <!-- App Scripts: Shared Data, Shared API & Admin Dashboard Logic -->
     <script src="../assets/js/shared/systems-data.js"></script>
     <script src="../assets/js/shared/api.js"></script>
     <script src="../assets/js/shared/theme-lang.js"></script>
     <script src="../assets/js/admin/dashboard.js"></script>
+    <script src="../assets/js/admin/assessment-management.js"></script>
 </body>
 </html>
