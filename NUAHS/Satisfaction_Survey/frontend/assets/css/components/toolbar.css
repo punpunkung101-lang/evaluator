@@ -1,0 +1,70 @@
+/* ==========================================================================
+   IT EVALUATOR - TOP-RIGHT TOOLBAR (Theme, Language, Login)
+   Shared across all User & Admin pages
+   ========================================================================== */
+
+/* ── Floating toolbar container ─────────────────────────────────────────── */
+.tl-toolbar {
+    position: fixed;
+    top: 12px;
+    right: 16px;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ── Base button ─────────────────────────────────────────────────────────── */
+.tl-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+    text-decoration: none;
+    box-shadow: var(--shadow-sm);
+}
+
+.tl-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+}
+
+.tl-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+/* ── Icon-only button (theme toggle) ─────────────────────────────────────── */
+.tl-icon-btn {
+    padding: 6px 8px;
+}
+
+/* ── Language button ─────────────────────────────────────────────────────── */
+.tl-lang-btn {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 6px 10px;
+}
+
+/* ── Responsive: shrink on very small screens ────────────────────────────── */
+@media (max-width: 480px) {
+    .tl-toolbar {
+        top: 8px;
+        right: 8px;
+        gap: 4px;
+    }
+}

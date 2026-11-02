@@ -1,6 +1,6 @@
 
-# VS Code
-.vscode/
+# Editor settings (all projects)
+**/.vscode/
 
 # Environment variables / ข้อมูลลับ
 .env
@@ -24,8 +24,10 @@ desktop.ini
 node_modules/
 
 # Build files (C++)
-build/
-cmake-build-*/
+**/build/
+**/cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
 *.o
 *.obj
 *.exe

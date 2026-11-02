@@ -1,4 +1,0 @@
-/* IT Evaluator - Backward Compatibility Shim for dashboard.css */
-@import "./common.css";
-@import "./layouts/admin-layout.css";
-@import "./pages/dashboard.css";
