@@ -209,15 +209,61 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =====================================
-    // 7. ฟังก์ชันแสดงดาว
+    // 6.5 Advance helper with double-click guard
+    // =====================================
+
+    let _isAdvancing = false;
+    let _lastSelectionTime = 0;
+    let _starWasSelectedBeforeGesture = false;
+
+    function advanceToNext() {
+        if (_isAdvancing) return;
+        const currentAnswer = answers[phase][questionIndex];
+        // Must have an answered rating (1-5) or skipped (null)
+        if (currentAnswer === undefined) return;
+        if (nextBtn && nextBtn.disabled) return;
+        _isAdvancing = true;
+
+        const currentQuestions = getQuestions();
+        if (questionIndex < currentQuestions.length - 1) {
+            questionIndex++;
+            renderQuestion();
+        } else if (phase === "before") {
+            phase = "after";
+            questionIndex = 0;
+            renderQuestion();
+        } else {
+            showResult();
+        }
+        setTimeout(() => {
+            _isAdvancing = false;
+        }, 350);
+    }
+
+    // =====================================
+    // 7. ฟังก์ชันแสดงดาว (Star Rating with Double-Click)
     // =====================================
 
     function renderStars(currentLabels) {
         if (!ratingStars) return;
-        ratingStars.innerHTML = "";
 
         const labels = currentLabels || getRatingLabels();
         const currentAnswer = answers[phase][questionIndex];
+        const existingStars = ratingStars.querySelectorAll(".rating-star");
+
+        if (existingStars.length === 5) {
+            existingStars.forEach((star, idx) => {
+                const score = idx + 1;
+                const ariaLabelText = window.t
+                    ? window.t("rating_point_label", { score, label: labels[score] })
+                    : `ระดับความคิดเห็น ${score} (${labels[score]})`;
+                star.setAttribute("aria-label", ariaLabelText);
+                star.classList.toggle("active", typeof currentAnswer === "number" && score <= currentAnswer);
+            });
+            return;
+        }
+
+        ratingStars.innerHTML = "";
 
         for (let i = 1; i <= 5; i++) {
             const star = document.createElement("button");
@@ -234,9 +280,36 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             star.addEventListener("mouseenter", () => paintStars(i));
-            star.addEventListener("click", () => {
-                answers[phase][questionIndex] = i;
-                renderQuestion();
+
+            star.addEventListener("click", (e) => {
+                const prevAnswer = answers[phase][questionIndex];
+                const wasAlreadySelected = (typeof prevAnswer === "number" && prevAnswer === i);
+
+                if (e.detail <= 1) {
+                    _starWasSelectedBeforeGesture = wasAlreadySelected;
+                }
+
+                if (!wasAlreadySelected) {
+                    answers[phase][questionIndex] = i;
+                    _lastSelectionTime = Date.now();
+                    renderQuestion();
+                } else {
+                    if (e.detail === 2 && (_starWasSelectedBeforeGesture || Date.now() - _lastSelectionTime >= 300)) {
+                        advanceToNext();
+                    }
+                }
+            });
+
+            star.addEventListener("dblclick", (e) => {
+                e.preventDefault();
+                const cur = answers[phase][questionIndex];
+                if (typeof cur !== "number" || cur !== i) {
+                    return;
+                }
+                if (!_starWasSelectedBeforeGesture && Date.now() - _lastSelectionTime < 300) {
+                    return;
+                }
+                advanceToNext();
             });
 
             ratingStars.appendChild(star);
@@ -273,17 +346,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (nextBtn) {
         nextBtn.addEventListener("click", () => {
-            const currentQuestions = getQuestions();
-            if (questionIndex < currentQuestions.length - 1) {
-                questionIndex++;
-                renderQuestion();
-            } else if (phase === "before") {
-                phase = "after";
-                questionIndex = 0;
-                renderQuestion();
-            } else {
-                showResult();
-            }
+            advanceToNext();
         });
     }
 

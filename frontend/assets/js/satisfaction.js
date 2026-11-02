@@ -113,12 +113,53 @@ document.addEventListener("DOMContentLoaded", () => {
         renderStars(labels);
     }
 
+    // Advance helper with double-click guard
+    let _isAdvancing = false;
+    let _lastSelectionTime = 0;
+    let _starWasSelectedBeforeGesture = false;
+
+    function advanceToNext() {
+        if (_isAdvancing) return;
+        const score = answers[currentIndex];
+        if (typeof score !== "number") return;
+        if (nextBtn && nextBtn.disabled) return;
+        _isAdvancing = true;
+
+        const questions = getQuestions();
+        if (currentIndex < questions.length - 1) {
+            currentIndex++;
+            renderQuestion();
+        } else {
+            const card = document.querySelector(".satisfaction-card");
+            if (card) card.hidden = true;
+            const feedbackSection = document.getElementById("feedback-section");
+            if (feedbackSection) feedbackSection.hidden = false;
+        }
+        setTimeout(() => {
+            _isAdvancing = false;
+        }, 350);
+    }
+
     function renderStars(labels) {
         if (!ratingStars) return;
-        ratingStars.innerHTML = "";
 
         const score = answers[currentIndex];
         const ratingLevels = labels || getRatingLabels();
+        const existingStars = ratingStars.querySelectorAll(".rating-star");
+
+        if (existingStars.length === 5) {
+            existingStars.forEach((star, idx) => {
+                const value = idx + 1;
+                const ariaLabelText = window.t
+                    ? window.t("sat_rating_label", { score: value, label: ratingLevels[value] })
+                    : `ระดับคะแนน ${value} (${ratingLevels[value]})`;
+                star.setAttribute("aria-label", ariaLabelText);
+                star.classList.toggle("active", typeof score === "number" && value <= score);
+            });
+            return;
+        }
+
+        ratingStars.innerHTML = "";
 
         for (let value = 1; value <= 5; value++) {
             const star = document.createElement("button");
@@ -136,9 +177,36 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             star.addEventListener("mouseenter", () => paintStars(value));
-            star.addEventListener("click", () => {
-                answers[currentIndex] = value;
-                renderQuestion();
+
+            star.addEventListener("click", (e) => {
+                const prevScore = answers[currentIndex];
+                const wasAlreadySelected = (typeof prevScore === "number" && prevScore === value);
+
+                if (e.detail <= 1) {
+                    _starWasSelectedBeforeGesture = wasAlreadySelected;
+                }
+
+                if (!wasAlreadySelected) {
+                    answers[currentIndex] = value;
+                    _lastSelectionTime = Date.now();
+                    renderQuestion();
+                } else {
+                    if (e.detail === 2 && (_starWasSelectedBeforeGesture || Date.now() - _lastSelectionTime >= 300)) {
+                        advanceToNext();
+                    }
+                }
+            });
+
+            star.addEventListener("dblclick", (e) => {
+                e.preventDefault();
+                const cur = answers[currentIndex];
+                if (typeof cur !== "number" || cur !== value) {
+                    return;
+                }
+                if (!_starWasSelectedBeforeGesture && Date.now() - _lastSelectionTime < 300) {
+                    return;
+                }
+                advanceToNext();
             });
 
             ratingStars.appendChild(star);
@@ -168,16 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (nextBtn) {
         nextBtn.addEventListener("click", () => {
-            const questions = getQuestions();
-            if (currentIndex < questions.length - 1) {
-                currentIndex++;
-                renderQuestion();
-            } else {
-                const card = document.querySelector(".satisfaction-card");
-                if (card) card.hidden = true;
-                const feedbackSection = document.getElementById("feedback-section");
-                if (feedbackSection) feedbackSection.hidden = false;
-            }
+            advanceToNext();
         });
     }
 
