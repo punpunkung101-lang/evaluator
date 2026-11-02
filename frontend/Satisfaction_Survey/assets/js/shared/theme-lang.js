@@ -967,7 +967,6 @@
         getLang,
         saveLang,
         applyLang,
-        getAdminUser,
         i18n,
         t,
         getCategoryName,

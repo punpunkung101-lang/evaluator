@@ -16,6 +16,8 @@
     <link rel="stylesheet" href="../assets/css/pages/dashboard.css">
     <link rel="stylesheet" href="../assets/css/pages/assessment-management.css">
 
+    <link rel="stylesheet" href="../../Effectiveness_Of_It/main/assets/css/admin-results.css">
+
     <!-- Chart.js สำหรับแสดงกราฟ -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -36,6 +38,7 @@
             </div>
 
             <nav class="sidebar-nav">
+                <a href="#quantitative-results" class="nav-link"><span>ประสิทธิภาพและประสิทธิผล</span></a>
                 <a href="#overview" class="nav-link active">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                     <span data-i18n="nav_overview">ภาพรวมระบบ</span>
@@ -76,7 +79,7 @@
             <!-- HEADER -->
             <header class="dashboard-header">
                 <div>
-                    <h1>ระบบรายงานผลการประเมินประสิทธิภาพระบบ IT</h1>
+                    <h1>Dashboard ประสิทธิภาพและประสิทธิผลระบบ IT</h1>
                     <p>สรุปผลการวิเคราะห์ข้อมูลความพึงพอใจและประสิทธิผลการปฏิบัติงาน คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</p>
                 </div>
 
@@ -107,6 +110,10 @@
                     </button>
                 </div>
             </header>
+
+            <section id="quantitative-results" aria-label="ผลประเมินประสิทธิภาพและประสิทธิผล"></section>
+
+            <div class="qd-legacy-heading"><h2>คะแนนความคิดเห็นและความพึงพอใจเดิม</h2><p>ข้อมูลส่วนนี้แยกจากผลเชิงปริมาณด้านบน ปุ่มนำเข้าและส่งออก HTML เดิมใช้กับรายงานส่วนนี้</p></div>
 
             <!-- ERROR OR EMPTY STATE BANNER -->
             <div id="stateBanner" class="state-banner" style="display: none;">
@@ -548,7 +555,9 @@
     <!-- App Scripts: Shared Data, Shared API & Admin Dashboard Logic -->
     <script src="../assets/js/shared/systems-data.js"></script>
     <script src="../assets/js/shared/api.js"></script>
-    <script src="../assets/js/shared/theme-lang.js"></script>
+    <script src="../assets/js/shared/theme-lang.js?v=20261103"></script>
+    <script src="../../Effectiveness_Of_It/main/assets/js/quantitative-data.js"></script>
+    <script src="../../Effectiveness_Of_It/main/assets/js/admin-results.js"></script>
     <script src="../assets/js/admin/dashboard.js"></script>
     <script src="../assets/js/admin/assessment-management.js"></script>
 </body>
