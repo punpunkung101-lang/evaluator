@@ -18,8 +18,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 1. DATA SOURCES & SYSTEMS DEFINITION
     // ==========================================
 
+    function getCurrentCategories() {
+        return typeof categories !== "undefined" ? categories : [];
+    }
+
     function getCurrentSystems() {
-        const catList = typeof categories !== "undefined" ? categories : [];
+        const catList = getCurrentCategories();
         return catList.flatMap(category =>
             (category.systems || []).map(system => ({
                 ...system,
@@ -136,8 +140,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const tableBody = document.getElementById("systemsTableBody");
 
     // Populate category dropdown
-    if (categoryFilter && categoryList.length > 0) {
-        categoryList.forEach(category => {
+    if (categoryFilter) {
+        getCurrentCategories().forEach(category => {
             const option = document.createElement("option");
             option.value = String(category.id);
             option.textContent = category.name;
@@ -428,7 +432,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (categoryCanvas) categoryCanvas.style.display = "block";
             if (categoryEmpty) categoryEmpty.style.display = "none";
 
-            const shownCategories = categoryList.filter(c =>
+            const shownCategories = getCurrentCategories().filter(c =>
                 selectedCategory === "all" || String(c.id) === selectedCategory
             );
 
