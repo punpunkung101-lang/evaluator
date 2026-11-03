@@ -216,6 +216,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let _isAdvancing = false;
     let _lastSelectionTime = 0;
     let _starWasSelectedBeforeGesture = false;
+    let _repeatStar = null;
+    let _repeatClicks = 0;
 
     function advanceToNext() {
         if (_isAdvancing) return;
@@ -224,6 +226,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (currentAnswer === undefined) return;
         if (nextBtn && nextBtn.disabled) return;
         _isAdvancing = true;
+        _repeatStar = null;
+        _repeatClicks = 0;
 
         const currentQuestions = getQuestions();
         if (questionIndex < currentQuestions.length - 1) {
@@ -283,6 +287,7 @@ document.addEventListener("DOMContentLoaded", () => {
             star.addEventListener("mouseenter", () => paintStars(i));
 
             star.addEventListener("click", (e) => {
+                if (_isAdvancing) return;
                 const prevAnswer = answers[phase][questionIndex];
                 const wasAlreadySelected = (typeof prevAnswer === "number" && prevAnswer === i);
 
@@ -293,9 +298,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!wasAlreadySelected) {
                     answers[phase][questionIndex] = i;
                     _lastSelectionTime = Date.now();
+                    _repeatStar = i;
+                    _repeatClicks = 1;
                     renderQuestion();
                 } else {
+                    _repeatClicks = _repeatStar === i ? _repeatClicks + 1 : 1;
+                    _repeatStar = i;
                     if (e.detail === 2 && (_starWasSelectedBeforeGesture || Date.now() - _lastSelectionTime >= 300)) {
+                        advanceToNext();
+                    } else if (_repeatClicks >= 3) {
                         advanceToNext();
                     }
                 }

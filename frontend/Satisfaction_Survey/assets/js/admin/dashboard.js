@@ -570,15 +570,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    function handleFileImport(file) {
+    async function handleFileImport(file) {
         if (!file.name.endsWith(".json")) {
             alert("กรุณาเลือกไฟล์ข้อมูลที่มีนามสกุล .json เท่านั้น");
             return;
         }
 
         const reader = new FileReader();
-        reader.onload = e => {
-            const result = EvaluationAPI.importEvaluationsJSON(e.target.result);
+        reader.onload = async e => {
+            const result = await EvaluationAPI.importEvaluationsJSON(e.target.result);
             if (result.success) {
                 alert(`นำเข้าชุดข้อมูลสำเร็จ: เพิ่มรายการใหม่ ${result.count} รายการ (รวมข้อมูลในระบบทั้งหมด ${result.total} รายการ)`);
                 closeModal();
@@ -591,12 +591,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     if (clearDataBtn) {
-        clearDataBtn.addEventListener("click", () => {
+        clearDataBtn.addEventListener("click", async () => {
             if (confirm("ท่านต้องการล้างชุดข้อมูลการประเมินที่นำเข้าทั้งหมดใช่หรือไม่?")) {
-                EvaluationAPI.clearLocalStorage();
-                alert("ล้างชุดข้อมูลเรียบร้อยแล้ว");
-                closeModal();
-                loadData();
+                try {
+                    await EvaluationAPI.clearEvaluations();
+                    alert("ล้างชุดข้อมูลเรียบร้อยแล้ว");
+                    closeModal();
+                    await loadData();
+                } catch (error) {
+                    alert(`ล้างข้อมูลไม่สำเร็จ: ${error.message}`);
+                }
             }
         });
     }
