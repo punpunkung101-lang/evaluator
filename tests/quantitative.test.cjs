@@ -130,7 +130,7 @@ for (const mode of ['configured', 'demo', 'refresh']) test(`wizard completes wit
     assert.equal(!!Q.records()[0].config.isDemo,mode==='demo');
 });
 test('local HTML scripts and styles resolve to existing files, and user navigation contains no admin links',()=>{
-    const files=['frontend/Effectiveness_Of_It/main/index.html','frontend/Effectiveness_Of_It/main/evaluation.html','frontend/Effectiveness_Of_It/main/admin.html','frontend/Effectiveness_Of_It/main/dashboard.html',...['index','evaluation','satisfaction'].map(p=>`frontend/Satisfaction_Survey/user/${p}.html`)];
+    const files=['frontend/Effectiveness_Of_It/main/index.html','frontend/Effectiveness_Of_It/main/evaluation.html','frontend/Effectiveness_Of_It/main/admin.html','frontend/Satisfaction_Survey/admin/dashboard.html',...['index','evaluation','satisfaction'].map(p=>`frontend/Satisfaction_Survey/user/${p}.html`)];
     for(const file of files) {
         const absolute=path.join(root,file),html=fs.readFileSync(absolute,'utf8');
         for(const match of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
@@ -143,6 +143,9 @@ test('local HTML scripts and styles resolve to existing files, and user navigati
         } else if (file === 'frontend/Effectiveness_Of_It/main/evaluation.html') {
             assert.ok(html.includes('assets/js/evaluation-shell.js'));
             assert.ok(html.includes('assets/js/evaluation-locale.js'));
+        } else if (file === 'frontend/Satisfaction_Survey/admin/dashboard.html') {
+            assert.ok(html.includes('id="quantitative-results"'));
+            assert.ok(html.includes('assets/js/admin-results.js'));
         } else {
             assert.ok(html.includes('assets/js/sidebar.js'));
         }

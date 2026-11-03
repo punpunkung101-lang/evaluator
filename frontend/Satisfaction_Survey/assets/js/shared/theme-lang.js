@@ -25,6 +25,8 @@
             app_title: "IT Evaluator",
             app_subtitle: "ระบบประเมินประสิทธิภาพและประสิทธิผลของระบบเทคโนโลยีสารสนเทศ",
             institution: "คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร",
+            admin_shell_label: "ศูนย์ประเมินระบบสารสนเทศ (IT Evaluator)",
+            admin_shell_signin: "เข้าสู่ระบบ — ยังไม่พร้อมใช้งาน",
             footer_text: "ระบบประเมินประสิทธิภาพ IT © 2026 | คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร",
             login: "เข้าสู่ระบบ",
             logout: "ออกจากระบบ",
@@ -35,6 +37,7 @@
             lang_toggle: "EN",
             back_to_categories: "กลับสู่หน้ารายการหมวดหมู่",
             back_to_systems: "กลับสู่หน้ารายการระบบ IT",
+            nav_management_back: "ย้อนกลับ",
             back_to_dashboard: "กลับสู่แดชบอร์ดหลัก",
             back_to_user_portal: "กลับสู่หน้าผู้ใช้งานทั่วไป",
             next: "ข้อถัดไป",
@@ -82,6 +85,14 @@
             system_required: "กรุณาเลือกระบบสารสนเทศที่ต้องการประเมิน",
             evaluation_page_title: "แบบประเมินประสิทธิภาพระบบ IT | IT Evaluator",
             evaluation_header: "แบบประเมินประสิทธิภาพและประสิทธิผลระบบ IT",
+            survey_home_title: "แบบประเมินความพึงพอใจต่อระบบ IT",
+            survey_home_instructions: "คำชี้แจง",
+            survey_home_purpose: "แบบประเมินนี้มีวัตถุประสงค์เพื่อสำรวจความพึงพอใจของผู้ใช้งานต่อระบบสารสนเทศ",
+            survey_home_count: "ชุดคำถามมาตรฐานมีทั้งหมด 15 ข้อ",
+            survey_home_scale: "ใช้ระดับคะแนน 1–5",
+            survey_home_experience: "โปรดตอบตามประสบการณ์การใช้งานจริง",
+            survey_home_role: "ประเภทผู้ประเมิน",
+            survey_home_start: "เริ่มประเมินความพึงพอใจ",
             evaluator_profile_title: "ข้อมูลผู้ประเมิน",
             evaluator_profile_desc: "โปรดระบุข้อมูลเบื้องต้นเพื่อใช้ประกอบการวิเคราะห์ทางสถิติของหน่วยงาน",
             evaluator_name_label: "ชื่อ-นามสกุล หรือ รหัสผู้ใช้งาน",
@@ -325,6 +336,9 @@
 
             // Assessment Management
             nav_assessment_mgmt: "การจัดการแบบประเมิน",
+            nav_system_management: "การจัดการระบบ",
+            nav_manage_assessments: "จัดการแบบประเมิน",
+            nav_manage_processes: "จัดการกระบวนการและตัวชี้วัด",
             mgmt_title: "การจัดการหัวข้อและแบบประเมิน",
             mgmt_subtitle: "จัดการหัวข้อการประเมิน (ระบบ IT) และข้อคำถามภายใต้แต่ละหมวดหมู่หลัก",
             mgmt_level1: "หมวดหมู่หลัก",
@@ -383,6 +397,8 @@
             app_title: "IT Evaluator",
             app_subtitle: "Information Technology Systems Performance & Effectiveness Evaluation",
             institution: "Faculty of Allied Health Sciences, Naresuan University",
+            admin_shell_label: "Information Systems Evaluation Centre (IT Evaluator)",
+            admin_shell_signin: "Sign in — not available yet",
             footer_text: "IT Performance Evaluation System © 2026 | Faculty of Allied Health Sciences, Naresuan University",
             login: "Login",
             logout: "Sign Out",
@@ -393,6 +409,7 @@
             lang_toggle: "ไทย",
             back_to_categories: "Back to Categories",
             back_to_systems: "Back to Systems Directory",
+            nav_management_back: "Back",
             back_to_dashboard: "Back to Main Dashboard",
             back_to_user_portal: "Back to User Portal",
             next: "Next",
@@ -440,6 +457,14 @@
             system_required: "Please select an information system to evaluate",
             evaluation_page_title: "IT System Performance Assessment | IT Evaluator",
             evaluation_header: "IT System Performance & Effectiveness Assessment",
+            survey_home_title: "IT System Satisfaction Survey",
+            survey_home_instructions: "Instructions",
+            survey_home_purpose: "This survey measures user satisfaction with the IT system.",
+            survey_home_count: "The standard survey contains 15 questions.",
+            survey_home_scale: "Use the 1–5 rating scale.",
+            survey_home_experience: "Please answer based on your actual experience.",
+            survey_home_role: "Evaluator type",
+            survey_home_start: "Start satisfaction survey",
             evaluator_profile_title: "Evaluator Profile",
             evaluator_profile_desc: "Please provide basic information for institutional statistical analysis.",
             evaluator_name_label: "Full Name or User ID",
@@ -683,6 +708,9 @@
 
             // Assessment Management
             nav_assessment_mgmt: "Assessment Management",
+            nav_system_management: "System management",
+            nav_manage_assessments: "Manage assessments",
+            nav_manage_processes: "Manage processes and indicators",
             mgmt_title: "Assessment Management",
             mgmt_subtitle: "Manage assessment topics (IT systems) and questions under each main category",
             mgmt_level1: "Main Category",
@@ -936,7 +964,8 @@
         div.innerHTML = buildToolbar();
         const toolbar = div.firstElementChild;
 
-        document.body.appendChild(toolbar);
+        const mount = document.getElementById("admin-toolbar-mount");
+        (mount || document.body).appendChild(toolbar);
         bindToolbarEvents();
     }
 

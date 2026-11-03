@@ -23,51 +23,167 @@
         if(!result.available)return {tone:'missing',label:'ข้อมูลไม่เพียงพอ',arrow:'—',amount:null,percent:null,outcome:result.reason};
         return {tone:result.outcome==='ดีขึ้น'?'good':result.outcome==='แย่ลง'?'bad':'neutral',label:result.delta<0?'ลดลง':result.delta>0?'เพิ่มขึ้น':'ไม่เปลี่ยนแปลง',arrow:result.delta<0?'↓':result.delta>0?'↑':'↔',amount:Math.abs(result.delta),percent:result.percent,outcome:result.outcome};
     }
-    if(typeof module!=='undefined')module.exports={summarize,initialDataSet,presentation};
-    if(typeof document==='undefined')return;
-    const section=document.getElementById('quantitative-results');
-    if(!section)return;
-    const Q=root.Quantitative;
-    const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const fmt=v=>v===null?'—':Number(v).toLocaleString('th-TH',{maximumFractionDigits:2});
-    const systems=()=>Q.systems();
-    const systemName=id=>systems().find(s=>s.id===id)?.name||id;
-    function result(m,v){const r=Q.calculate(m,v);return r.available?`${esc(r.outcome)} · ${r.percent===null?'คำนวณเปอร์เซ็นต์ไม่ได้ (ค่าเดิมเป็น 0)':fmt(r.percent)+'%'}${m.direction==='target'?` · เป้าหมาย ${fmt(m.target)} (${r.targetMet?'ถึงเป้าหมาย':'ยังไม่ถึงเป้าหมาย'})`:''}`:esc(r.reason);}
-    function icon(kind) {
-        const paths={time:'M12 8v5l3 2 M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0',steps:'M9 6h11M9 12h11M9 18h11M4 6h1M4 12h1M4 18h1',paper:'M14 3H6v18h12V7zM14 3v5h4M9 12h6M9 16h6',errors:'M12 8v5M12 17h.01M12 3 2 21h20z',target:'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0M17 12a5 5 0 1 1-10 0 5 5 0 0 1 10 0M12 10v4M10 12h4'};
-        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${paths[kind]||paths.target}"/></svg>`;
+    function comparable(records, source) {
+        const groups = new Map();
+        for (const record of records) {
+            const config = record.config;
+            if (!Number.isInteger(config?.version) || config.version < 1 ||
+                !Array.isArray(config.before) || !Array.isArray(config.after) ||
+                !Array.isArray(config.metrics)) continue;
+
+            const metrics = config.metrics.filter(metric => metric.active && metric.source === source);
+            const expectedUnit = source === 'time' ? 'นาที' : 'ขั้นตอน';
+            if (metrics.length !== 1 || metrics[0].unit !== expectedUnit || !metrics[0].basis?.trim()) continue;
+            const [metric] = metrics;
+            const phases = [config.before, config.after].map(steps => steps.filter(step => step.active && (source !== 'time' || step.timed)));
+            if (phases.some(steps => !steps.length || steps.some(step => !step.id || !step.name))) continue;
+
+            const value = record.values?.[metric.id];
+            if (value?.status !== 'known' || !finite(value.before) || !finite(value.after)) continue;
+            const key = JSON.stringify([record.systemId, config.version, metric.id, metric.unit, metric.basis,
+                phases.map(steps => steps.map(({id, name, description}) => [id, name, description]))]);
+            if (!groups.has(key)) groups.set(key, {before:0, after:0, count:0, basis:metric.basis, version:config.version});
+            const group = groups.get(key);
+            group.before += value.before;
+            group.after += value.after;
+            group.count++;
+        }
+        if (groups.size !== 1) return {
+            reason: groups.size ? 'เลือกหนึ่งระบบและเวอร์ชันที่ใช้ฐานการวัดเดียวกัน' : 'ไม่มีข้อมูลก่อน–หลังที่เปรียบเทียบได้'
+        };
+        const group = groups.values().next().value;
+        group.before /= group.count;
+        group.after /= group.count;
+        group.percent = group.before === 0 ? null : (group.after - group.before) / group.before * 100;
+        return group;
     }
-    function metricCard(g) {
-        const m=g.metric,input={status:g.count?'known':'unknown',before:g.before,after:g.after},p=presentation(m,input,Q.calculate);
-        const max=Math.max(g.before||0,g.after||0,1);
-        const percent=p.percent===null?'ไม่สามารถคำนวณเปอร์เซ็นต์ได้':`${p.percent>0?'+':''}${p.percent.toFixed(2)}%`;
-        return `<article class="qd-chart qd-metric-card"><div class="qd-metric-main"><div class="qd-metric-title"><span class="qd-metric-icon">${icon(m.id==='time'||m.id==='steps'||m.id==='paper'||m.id==='errors'?m.id:m.direction==='target'?'target':m.source)}</span><h3>${esc(m.name)}</h3></div><p class="qd-system-name">${esc(systemName(g.systemId))}</p><p>${esc(m.unit)} / ${esc(m.basis)}</p><p class="qd-meta">เวอร์ชัน ${esc(g.version)} · ข้อมูลครบ ${g.count} รายการ</p><div class="qd-values"><div><span>ก่อนใช้ระบบ</span><strong>${fmt(g.before)}</strong></div><div><span>หลังใช้ระบบ</span><strong>${fmt(g.after)}</strong></div></div><div class="qd-bar-row"><span>ก่อนใช้</span><div><i class="qd-before" style="width:${(g.before||0)/max*100}%"></i></div></div><div class="qd-bar-row"><span>หลังใช้</span><div><i style="width:${(g.after||0)/max*100}%"></i></div></div></div><div class="qd-delta qd-delta--${p.tone}"><span class="qd-delta-arrow" aria-hidden="true">${p.arrow}</span><p class="qd-delta-label">${p.label}</p><strong class="qd-delta-number">${p.amount===null?'—':fmt(p.amount)}</strong><span class="qd-delta-unit">${esc(m.unit)}</span><span class="qd-delta-percent">${p.amount===null?'ไม่มีข้อมูลที่คำนวณได้':percent}</span><span class="qd-delta-outcome">${esc(p.outcome)}</span>${m.direction==='target'?`<span class="qd-delta-target">เป้าหมาย ${fmt(m.target)} ${esc(m.unit)}</span>`:''}</div></article>`;
+
+    if (typeof module !== 'undefined') module.exports = {summarize, initialDataSet, presentation, comparable};
+    if (typeof document === 'undefined') return;
+    const section = document.getElementById('quantitative-results');
+    if (!section) return;
+
+    const Q = root.Quantitative;
+    const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const fmt = value => Number(value).toLocaleString('th-TH', {maximumFractionDigits:2});
+    const insufficient = 'ยังไม่มีข้อมูลเพียงพอสำหรับประเมินประสิทธิผล';
+    const percent = group => {
+        if (group.percent == null) return '—';
+        if (group.percent === 0) return 'ไม่เปลี่ยนแปลง 0%';
+        return `${group.percent < 0 ? '↓ ลดลง' : '↑ เพิ่มขึ้น'} ${fmt(Math.abs(group.percent))}%`;
+    };
+    const tone = group => group.percent < 0 ? 'reduced' : group.percent > 0 ? 'increased' : 'neutral';
+    const comparison = (group, unit) => group.count
+        ? `จาก ${fmt(group.before)} ${unit} เป็น ${fmt(group.after)} ${unit}`
+        : '';
+    const note = group => group.reason || (group.percent === null ? 'ค่าเริ่มต้นเป็นศูนย์' : `${group.count} รายการ · เวอร์ชัน ${group.version} · ${group.basis}`);
+
+    section.innerHTML = `
+        <div class="qd-heading">
+            <div><p class="qd-eyebrow">EFFICIENCY &amp; EFFECTIVENESS</p><h2>ผลประเมินประสิทธิภาพและประสิทธิผล</h2></div>
+            <a class="btn btn-primary btn-sm" href="../../Effectiveness_Of_It/main/admin.html">จัดการกระบวนการและตัวชี้วัด</a>
+        </div>
+        <div class="qd-filters">
+            <label>ระบบ IT<select id="qd-system"></select></label>
+            <label>เวอร์ชัน<select id="qd-version"></select></label>
+        </div>
+        <p id="qd-message" role="status"></p>
+        <div id="qd-content"></div>
+        <dialog id="qd-details" aria-labelledby="qd-details-title">
+            <h3 id="qd-details-title"></h3>
+            <div id="qd-details-content"></div>
+            <form method="dialog"><button class="btn btn-secondary" autofocus>ปิด</button></form>
+        </dialog>`;
+    const el = id => document.getElementById(id);
+    const systemFilter = el('qd-system');
+    const versionFilter = el('qd-version');
+
+    function setOptions(select, choices, all) {
+        const previous = select.value;
+        select.replaceChildren(new Option(all, ''), ...choices.map(([value, label]) => new Option(label, value)));
+        select.value = choices.some(([value]) => value === previous) ? previous : '';
     }
-    section.innerHTML=`<div class="qd-heading"><div class="qd-brand"><img class="qd-logo" src="../../Publice/Nu_bage.png" alt="ตรามหาวิทยาลัยนเรศวร" width="60" height="60"><div><p class="qd-eyebrow">EFFICIENCY & EFFECTIVENESS</p><h2>ผลประเมินประสิทธิภาพและประสิทธิผล</h2><p>เปรียบเทียบข้อมูลการทำงานก่อนและหลังใช้ระบบสารสนเทศ</p></div></div><a class="btn btn-primary btn-sm" href="../../Effectiveness_Of_It/main/admin.html">จัดการกระบวนการและตัวชี้วัด</a></div><p class="qd-notice">Frontend Prototype · อ่านข้อมูลที่ยืนยันส่งจาก localStorage ในเบราว์เซอร์และที่อยู่เว็บเดียวกัน ไม่ใช่ข้อมูลจากฐานข้อมูลส่วนกลาง</p><div class="qd-filters"><label>ระบบ IT<select id="qd-system"><option value="">ทุกระบบ</option></select></label><label>ชุดข้อมูล<select id="qd-demo"><option value="real">ข้อมูลที่ผู้ใช้ทดลองกรอก</option><option value="demo">ข้อมูลจากกระบวนการตัวอย่าง (จำลอง)</option></select></label><label>ตั้งแต่วันที่<input type="date" id="qd-start"></label><label>ถึงวันที่<input type="date" id="qd-end"></label><button type="button" class="btn btn-secondary btn-sm" id="qd-refresh">แสดงผล / โหลดข้อมูลใหม่</button><button type="button" class="btn btn-secondary btn-sm" id="qd-reset">รีเซ็ต</button><button type="button" class="btn btn-secondary btn-sm" id="qd-export">ดาวน์โหลด JSON ส่วนนี้</button></div><p id="qd-message" role="status"></p><div id="qd-content"></div>`;
-    const el=id=>document.getElementById(id);
-    let filtered=[],initialized=false;
-    function render(){
+
+    function showDetails(name, records) {
+        el('qd-details-title').textContent = name;
+        el('qd-details-content').innerHTML = records.map(record => {
+            const config = record.config;
+            if (!Number.isInteger(config?.version) || !Array.isArray(config.before) || !Array.isArray(config.after)) {
+                return '<p>รายการนี้มีข้อมูลเวอร์ชันหรือสำเนากระบวนการไม่เพียงพอ</p>';
+            }
+            return `<details><summary>เวอร์ชัน ${esc(config.version)} · ${esc(record.submittedAt)}</summary>
+                ${['before','after'].map(phase => `<h4>${phase === 'before' ? 'ก่อนใช้ IT' : 'หลังใช้ IT'}</h4>
+                <ol>${config[phase].filter(step => step.active).map(step => `<li>${esc(step.name)}${finite(record.durations?.[phase]?.[step.id]) ? ` · ${fmt(record.durations[phase][step.id])} นาที` : ''}</li>`).join('')}</ol>`).join('')}</details>`;
+        }).join('');
+        el('qd-details').showModal();
+    }
+
+    function render() {
         try {
-            const records=Q.records();if(!Array.isArray(records))throw new Error('รูปแบบข้อมูลไม่ใช่รายการผลประเมิน');
-            if(!initialized){const requested=new URLSearchParams(root.location.search).get('dataset');el('qd-demo').value=['real','demo'].includes(requested)?requested:initialDataSet(records);initialized=true;}
-            const selected=el('qd-system').value;
-            const ids=[...new Set([...systems().map(s=>s.id),...records.map(r=>r?.systemId).filter(Boolean)])];
-            el('qd-system').innerHTML='<option value="">ทุกระบบ</option>'+ids.map(id=>`<option value="${esc(id)}">${esc(systemName(id))} (${esc(id)})</option>`).join('');el('qd-system').value=selected;
-            const now=new Date(),period=el('periodFilter')?.value,year=String(now.getFullYear()),month=year+'-'+String(now.getMonth()+1).padStart(2,'0');
-            const filters={system:selected,demo:el('qd-demo').value,start:el('qd-start').value,end:el('qd-end').value,periodPrefix:period==='month'?month:period==='year'?year:''};
-            if(filters.start&&filters.end&&filters.start>filters.end){el('qd-message').textContent='วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด';el('qd-content').innerHTML='';filtered=[];return;}
-            const summary=summarize(records,filters);filtered=summary.records;
-            const otherCount=records.filter(r=>r?.config&&(filters.demo==='demo'?!r.config.isDemo:!!r.config.isDemo)).length;
-            el('qd-message').textContent=(filters.demo==='demo'?'กำลังแสดงผลจากกระบวนการตัวอย่าง (ข้อมูลจำลอง) · ':'')+(summary.unavailable?`มีตัวชี้วัด ${summary.unavailable} รายการที่ข้อมูลไม่ครบ / ไม่เกี่ยวข้อง จึงไม่นำมาคำนวณค่าเฉลี่ย · `:'')+(otherCount?`มีผลอีก ${otherCount} รายการในชุดข้อมูลอีกประเภท เปลี่ยนตัวกรองชุดข้อมูลเพื่อดู · `:'')+(!records.length?`ไม่พบผลประเมินใน ${root.location.origin} กรุณาเปิด Dashboard ด้วยเบราว์เซอร์ โฮสต์ และพอร์ตเดียวกับหน้าที่ส่งผลประเมิน`: '');
-            const cards=[['ระบบที่ได้รับการประเมิน',summary.systems,'ระบบ'],['ผลประเมินที่ยืนยันแล้ว',filtered.length,'รายการ'],['กลุ่มข้อมูลที่เปรียบเทียบได้',summary.groups.length,'กลุ่ม'],['ผลประเมินที่ต่ำกว่าเป้าหมาย',summary.belowTarget,'รายการ']];
-            el('qd-content').innerHTML=`<div class="qd-stats">${cards.map(([label,value,unit],index)=>`<div><span class="qd-kpi-icon" aria-hidden="true">${icon(['steps','paper','time','target'][index])}</span><h3>${label}</h3><strong>${value}</strong><span>${unit}</span></div>`).join('')}</div><div class="qd-notice qd-explainer"><span class="qd-info-icon" aria-hidden="true">i</span><div><strong>ประสิทธิภาพ:</strong> พิจารณาทรัพยากรที่ใช้ เช่น เวลา ขั้นตอน กระดาษ และข้อผิดพลาด <br><strong>ประสิทธิผล:</strong> พิจารณาตามตัวชี้วัดที่มีเป้าหมาย ${summary.targets?'':'— ยังไม่ได้กำหนดเกณฑ์ประสิทธิผลสำหรับข้อมูลที่เลือก'}<br>ไม่รวมต่างหน่วยเป็นคะแนนเดียว ค่าเฉลี่ยแยกตามระบบ เวอร์ชัน ตัวชี้วัด หน่วย และฐานการวัด<br>รายการที่มีเป้าหมาย ${summary.targets} รายการ · KPI ต่ำกว่าเป้าหมายนับรายการที่มีค่าหลังใช้ต่ำกว่าเป้าหมายอย่างน้อย 1 ตัวชี้วัด</div></div>${!filtered.length?'<div class="qd-empty"><h3>ยังไม่มีผลประเมินในชุดข้อมูลที่เลือก</h3><p>ตั้งค่ากระบวนการ กรอกแบบประเมินให้ครบ และยืนยันส่งก่อน ผลจึงจะแสดงที่นี่</p><a class="btn btn-secondary btn-sm" href="../../Effectiveness_Of_It/main/evaluation.html">เปิดแบบประเมิน</a></div>':''}<div class="qd-charts">${summary.displayGroups.map(metricCard).join('')}</div>${filtered.length?'<h3>รายละเอียดผลประเมินรายระบบ</h3>':''}${filtered.map(r=>`<details class="qd-record"><summary><span class="qd-chevron" aria-hidden="true">›</span><span>${esc(systemName(r.systemId))} · ${esc(r.submittedAt.slice(0,10))} · เวอร์ชัน ${esc(r.config.version)} ${r.config.isDemo?'(ข้อมูลจำลอง)':''}</span><span class="qd-open-state" aria-hidden="true"></span></summary><div class="qd-table"><table><thead><tr><th>ตัวชี้วัด / ฐานการวัด</th><th>ก่อน</th><th>หลัง</th><th>ผลการเปรียบเทียบ</th></tr></thead><tbody>${r.config.metrics.filter(m=>m.active).map(m=>{const v=r.values[m.id];return `<tr><th>${esc(m.name)}<br><small>${esc(m.unit)} / ${esc(m.basis)}</small></th><td>${v?.status==='known'&&finite(v.before)?fmt(v.before):'—'}</td><td>${v?.status==='known'&&finite(v.after)?fmt(v.after):'—'}</td><td>${result(m,v)}</td></tr>`;}).join('')}</tbody></table></div></details>`).join('')}`;
-        }catch(error){filtered=[];el('qd-message').textContent='อ่านผลประเมินเชิงปริมาณไม่ได้: '+error.message;el('qd-content').innerHTML='';}
+            const records = Q.records().filter(record => record?.systemId && typeof record.submittedAt === 'string' &&
+                record.submittedAt && !record.config?.isDemo && record.config?.version !== 'demo-1');
+            const catalog = Q.systems();
+            const names = new Map(catalog.map(system => [system.id, system.name]));
+            const ids = [...new Set([...names.keys(), ...records.map(record => record.systemId)])];
+            setOptions(systemFilter, ids.map(id => [id, `${names.get(id) || id} (${id})`]), 'ทุกระบบ');
+            const scoped = records.filter(record => !systemFilter.value || record.systemId === systemFilter.value);
+            const versions = [...new Set(scoped.map(record => record.config?.version).filter(Number.isInteger))].sort((a,b) => b-a);
+            setOptions(versionFilter, versions.map(version => [String(version), `เวอร์ชัน ${version}`]), 'ทุกเวอร์ชัน');
+            const filtered = scoped.filter(record => !versionFilter.value || String(record.config?.version) === versionFilter.value);
+            const systemIds = [...new Set(filtered.map(record => record.systemId))];
+            const time = comparable(filtered, 'time');
+            const steps = comparable(filtered, 'steps');
+            const cards = [
+                ['ระบบ IT ที่มีผลประเมิน', systemIds.length, 'ระบบ'],
+                ['ผลประเมินทั้งหมด', filtered.length, 'รายการ'],
+                ['การเปลี่ยนแปลงเวลา', percent(time), note(time), time, 'นาที'],
+                ['การเปลี่ยนแปลงจำนวนขั้นตอน', percent(steps), note(steps), steps, 'ขั้นตอน']
+            ];
+            el('qd-message').textContent = filtered.length
+                ? 'ใช้เฉพาะผลที่ยืนยันแล้วในเบราว์เซอร์นี้ ค่าเป็นลบหมายถึงลดลง'
+                : 'ยังไม่มีผลประเมินจริงตามตัวกรองที่เลือก';
+            const chart = time.count ? `
+                <p>${esc(time.basis)} · เวอร์ชัน ${time.version} · ${time.count} รายการ</p>
+                ${[['ก่อนใช้ IT',time.before],['หลังใช้ IT',time.after]].map(([title,value]) => `
+                    <div class="qd-bar-row"><span>${title}</span><div><i style="width:${value / (Math.max(time.before,time.after) || 1) * 100}%"></i></div><strong>${fmt(value)} นาที</strong></div>`).join('')}`
+                : `<p class="qd-empty">${esc(time.reason)}</p>`;
+            const rows = systemIds.map(id => {
+                const entries = filtered.filter(record => record.systemId === id);
+                const rowTime = comparable(entries, 'time');
+                const rowSteps = comparable(entries, 'steps');
+                return `<tr><th scope="row">${esc(names.get(id) || id)}<br><small>${esc(id)}</small></th><td>${entries.length}</td>
+                    <td><strong data-tone="${tone(rowTime)}">${percent(rowTime)}</strong><br><small>${comparison(rowTime, 'นาที')}</small><small>${esc(note(rowTime))}</small></td>
+                    <td><strong data-tone="${tone(rowSteps)}">${percent(rowSteps)}</strong><br><small>${comparison(rowSteps, 'ขั้นตอน')}</small><small>${esc(note(rowSteps))}</small></td>
+                    <td><span class="qd-status" title="${insufficient}">ข้อมูลไม่เพียงพอ</span></td><td><button type="button" class="btn btn-secondary btn-sm" data-qd-details="${esc(id)}">ดูรายละเอียด →</button></td></tr>`;
+            });
+            el('qd-content').innerHTML = `
+                <div class="qd-stats">${cards.map(([title,value,detail,group,unit]) => `<div><h3>${title}</h3><strong data-tone="${group ? tone(group) : 'count'}">${value}</strong>${group?.count ? `<p>${comparison(group,unit)}</p>` : ''}<p>${esc(detail)}</p></div>`).join('')}</div>
+                <figure class="qd-main-chart"><figcaption>เวลาเฉลี่ยก่อนและหลังใช้ IT</figcaption>${chart}</figure>
+                <section class="qd-report-table">
+                    <header><div><h3>ตารางสรุปผลรายระบบ</h3><p>สรุปผลการเปลี่ยนแปลงประสิทธิภาพและสถานะประสิทธิผลของระบบสารสนเทศ</p></div><span>${systemIds.length} ระบบ</span></header>
+                <div class="qd-table" tabindex="0" role="region" aria-label="ตารางสรุปผลรายระบบ">
+                    <table><thead><tr><th>ระบบ IT</th><th>จำนวนผลประเมิน</th><th>การเปลี่ยนแปลงเวลา</th><th>การเปลี่ยนแปลงขั้นตอน</th><th>สถานะประสิทธิผล</th><th>รายละเอียด</th></tr></thead>
+                    <tbody>${rows.join('') || '<tr><td colspan="6">ยังไม่มีข้อมูล</td></tr>'}</tbody></table>
+                </div></section>`;
+            section.querySelectorAll('[data-qd-details]').forEach(button => {
+                button.onclick = () => {
+                    const id = button.dataset.qdDetails;
+                    showDetails(names.get(id) || id, filtered.filter(record => record.systemId === id));
+                };
+            });
+        } catch (error) {
+            el('qd-message').textContent = 'อ่านผลประเมินเชิงปริมาณไม่ได้: ' + error.message;
+            el('qd-content').replaceChildren();
+        }
     }
-    section.querySelectorAll('input,select').forEach(input=>input.addEventListener('change',render));
-    el('periodFilter')?.addEventListener('change',render);
-    el('qd-refresh').addEventListener('click',render);
-    el('qd-reset').addEventListener('click',()=>{el('qd-system').value='';el('qd-start').value='';el('qd-end').value='';el('qd-demo').value=initialDataSet(Q.records());if(el('periodFilter')){el('periodFilter').value='all';el('periodFilter').dispatchEvent(new Event('change'));}render();});
-    root.addEventListener('storage',event=>{if(event.key===Q.keys.records||event.key===null)render();});
-    el('qd-export').addEventListener('click',()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(filtered,null,2)],{type:'application/json;charset=utf-8'})),link=document.createElement('a');link.href=url;link.download='quantitative-results.json';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+
+    systemFilter.addEventListener('change', () => {
+        versionFilter.value = '';
+        render();
+    });
+    versionFilter.addEventListener('change', render);
+    root.addEventListener('storage', event => {
+        if (event.key === Q.keys.records || event.key === Q.keys.config || event.key === null) render();
+    });
     render();
-})(typeof window!=='undefined'?window:globalThis);
+})(typeof window !== 'undefined' ? window : globalThis);

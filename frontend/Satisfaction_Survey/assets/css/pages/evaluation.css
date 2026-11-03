@@ -237,3 +237,25 @@
         width: 100%;
     }
 }
+
+.survey-home .evaluation-header { margin-bottom: 20px; }
+.survey-home .evaluation-header h1 { font-size: clamp(1.45rem, 3vw, 2.2rem); overflow-wrap: anywhere; }
+.survey-home .survey-intro {
+    margin-bottom: 20px;
+    padding: clamp(16px, 3vw, 24px);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-inline-start: 4px solid var(--primary);
+    border-radius: 10px;
+}
+.survey-home .survey-intro h2,
+.survey-home .profile-card h2 { font-size: 1.2rem; color: var(--text-primary); margin-bottom: 8px; }
+.survey-home .survey-intro ul { margin: 8px 0 0; padding-inline-start: 1.25rem; }
+.survey-home .profile-card { min-width: 0; padding: clamp(16px, 4vw, 32px); }
+.survey-home .profile-card .form-group { margin-block: 16px; }
+.survey-home .form-control { max-width: 100%; min-width: 0; }
+.survey-home #start-btn { margin-top: 8px; }
+@media (max-width: 520px) {
+    .survey-home #start-btn { width: 100%; justify-content: center; }
+}

@@ -53,6 +53,52 @@
         'จัดการกระบวนการและตัวชี้วัด — โหมดผู้ดูแลจำลอง':'Manage processes & indicators — prototype admin',
         'ขั้นที่':'Step','จาก':'of','ระบบ':'System'
     };
+    const admin = typeof document !== 'undefined' && document.body?.dataset.quantPage === 'admin';
+    if (admin) Object.assign(en, {
+        'เลือก IT เพื่อกำหนดแบบประเมิน':'Select an IT system to configure its assessment',
+        'จัดการกระบวนการและตัวชี้วัด':'Manage processes and indicators',
+        'กำหนดกระบวนการก่อน–หลังและตัวชี้วัดตามระบบ IT ที่เลือก':'Configure before and after processes and indicators for the selected IT system',
+        'ระบบประเมินประสิทธิภาพและประสิทธิผลของระบบ IT':'IT Efficiency and Effectiveness Evaluation System',
+        'ระบบบริหารจัดการข้อมูล':'Data management',
+        'ภาษาและธีม':'Language and theme',
+        'โหมดผู้ดูแลจำลอง การตั้งค่าเก็บเฉพาะเบราว์เซอร์นี้ ไม่มีระบบตรวจสิทธิ์จากเซิร์ฟเวอร์':'Admin prototype. Settings are stored in this browser. Server authentication is unavailable.',
+        'กระบวนการก่อนใช้ระบบ':'Processes before IT adoption',
+        'กระบวนการหลังใช้ระบบ':'Processes after IT adoption',
+        'ชื่อขั้นตอน (จำเป็น)':'Step name (required)',
+        'รายละเอียด (ไม่บังคับ)':'Description (optional)',
+        'ยังไม่ระบุชื่อ':'Unnamed',
+        'เปิดใช้งาน':'Enabled',
+        'ปิดใช้งาน':'Disabled',
+        'ต้องกรอกเวลา':'Time entry required',
+        'ไม่ต้องกรอกเวลา':'Time entry optional',
+        'เลื่อนขึ้น':'Move up','เลื่อนลง':'Move down',
+        'ลบขั้นตอน':'Delete step','เพิ่มขั้นตอน':'Add step',
+        'บันทึกการตั้งค่า':'Save settings','คืนค่าเดิม':'Restore saved settings',
+        'ดูตัวอย่างแบบฟอร์ม':'Preview form',
+        'จัดการตัวชี้วัด (KPI)':'Manage indicators (KPIs)',
+        'กำหนดตัวชี้วัดตามระบบ IT ที่เลือก':'Configure indicators for the selected IT system',
+        'เพิ่มตัวชี้วัดใหม่':'Add indicator','ลบตัวชี้วัด':'Delete indicator',
+        'ชื่อตัวชี้วัด':'Indicator name','วิธีคำนวณ':'Calculation method',
+        'หน่วย / ฐานการวัด':'Unit / Measurement basis',
+        'ฐานการวัดเดียวกันก่อนและหลัง':'Common measurement basis',
+        'ทิศทางเป้าหมาย':'Target direction','ทิศทาง':'Direction',
+        'ประเภทตัวชี้วัด':'Indicator type','รวมเวลาขั้นตอน':'Total process time',
+        'นับขั้นตอนที่เปิดใช้งาน':'Count enabled steps','กรอกก่อนและหลัง':'Enter before and after values',
+        'เปิดใช้งานกับระบบนี้':'Enabled for this system',
+        'จำเป็นต้องระบุสถานะข้อมูล':'Data status required',
+        'ลดลงยิ่งดี':'Lower is better','เพิ่มขึ้นยิ่งดี':'Higher is better',
+        'ความพร้อมของแบบประเมิน':'Assessment readiness',
+        'การลดจำนวนขั้นตอน':'Step reduction',
+        'ตัวชี้วัดที่เปิดใช้':'Enabled indicators',
+        'ไม่มีข้อมูลเพียงพอ':'Insufficient data',
+        'ตรวจสอบผลที่ส่งแล้ว':'View submitted results',
+        'เปิดแบบประเมินของระบบนี้':'Open this system’s assessment',
+        'แก้ไข':'Edit','จัดการ':'Manage','หน่วย':'Unit','รายละเอียด':'Description',
+        'ยังไม่มีตัวชี้วัด':'No indicators yet','เวอร์ชันที่บันทึก':'Saved version',
+        'บันทึกการตั้งค่าสำเร็จ แบบประเมินรอบใหม่จะอ่านการตั้งค่านี้':'Settings saved. New assessments will use these settings.',
+        'คุณมีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก ต้องการออกจากหน้านี้หรือไม่?':'You have unsaved changes. Leave this page?',
+        'ออกโดยไม่บันทึก':'Leave without saving'
+    });
     const keys=Object.keys(en).sort((a,b)=>b.length-a.length);
     const pattern=new RegExp(keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g');
     function translate(text,language) { return language==='en'?text.replace(pattern,match=>en[match]):text; }
@@ -84,17 +130,40 @@
                 const rendered=translate(source,language);values[key]={source,rendered};if(current!==rendered)element.setAttribute(key,rendered);
             }attributes.set(element,values);
         });
+        if (admin) {
+            const systems = root.AssessmentCatalog?.getSystems() || [];
+            for (const option of document.querySelectorAll('#admin-system option[data-user-content]')) {
+                const system = systems.find(item => item.id === option.value);
+                if (!system) continue;
+                const name = language === 'en' ? system.name_en || system.name : system.name;
+                const label = `${system.id} — ${name}`;
+                if (option.textContent !== label) option.textContent = label;
+            }
+        }
         document.documentElement.lang=language;
-        document.title=language==='en'?'Efficiency & Effectiveness Evaluation | IT Evaluator':'ประเมินประสิทธิภาพและประสิทธิผล | IT Evaluator';
+        document.title=admin?(language==='en'?'Manage processes and indicators | IT Evaluator':'จัดการกระบวนการและตัวชี้วัด | IT Evaluator'):language==='en'?'Efficiency & Effectiveness Evaluation | IT Evaluator':'ประเมินประสิทธิภาพและประสิทธิผล | IT Evaluator';
         document.documentElement.dataset.theme=theme;
         document.querySelectorAll('[data-language]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.language===language)));
+        if(admin){
+            const languageButton=document.getElementById('q-admin-language');
+            const nextLabel=language==='th'?'EN':'ไทย';
+            if(languageButton.textContent!==nextLabel)languageButton.textContent=nextLabel;
+            languageButton.setAttribute('aria-label',language==='th'?'ภาษาอังกฤษ':'Switch to Thai');
+        }
         const toggle=document.getElementById('ev-theme');
-        if(toggle){toggle.setAttribute('aria-pressed',String(theme==='dark'));toggle.setAttribute('aria-label',translate(theme==='dark'?'ธีมสว่าง':'ธีมมืด',language));toggle.querySelector('[data-theme-icon]').textContent=theme==='dark'?'☀':'☾';}
+        if(toggle){toggle.setAttribute('aria-pressed',String(theme==='dark'));toggle.setAttribute('aria-label',translate(theme==='dark'?'ธีมสว่าง':'ธีมมืด',language));if(admin){
+            toggle.querySelector('[data-admin-moon]').toggleAttribute('hidden',theme==='dark');
+            toggle.querySelector('[data-admin-sun]').toggleAttribute('hidden',theme!=='dark');
+        }else toggle.querySelector('[data-theme-icon]').textContent=theme==='dark'?'☀':'☾';}
     }
     let scheduled=false;
     const observer=new MutationObserver(()=>{if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;observer.disconnect();apply();observe();});});
     function observe(){observer.observe(document.body,{childList:true,characterData:true,subtree:true});}
     root.EvaluationLocale={apply,translate:text=>translate(text,language),getLanguage:()=>language,setLanguage(value){language=value==='en'?'en':'th';write(LANG,language);apply();},setTheme(value){theme=value==='dark'?'dark':'light';write(THEME,theme);apply();}};
+    if(admin){
+        document.getElementById('ev-theme').addEventListener('click',()=>root.EvaluationLocale.setTheme(theme==='dark'?'light':'dark'));
+        document.getElementById('q-admin-language').addEventListener('click',()=>root.EvaluationLocale.setLanguage(language==='th'?'en':'th'));
+    }
     apply();observe();
     root.addEventListener('storage',event=>{if(event.key===LANG){language=read(LANG,'th')==='en'?'en':'th';apply();}if(event.key===THEME){theme=read(THEME,'light')==='dark'?'dark':'light';apply();}});
 })(typeof window!=='undefined'?window:globalThis);

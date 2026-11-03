@@ -31,4 +31,115 @@
 .it-sidebar a.active { border-left:3px solid #1e3a8a; background:var(--primary-light,#eff6ff); color:var(--primary,#1e3a8a); }
 body.it-has-sidebar { padding-left:250px; }
 .it-sidebar details { margin-top:20px; padding:10px; }
+.q-process-admin-layout > .main-content {
+    flex: 1;
+    min-width: 0;
+    max-width: 1440px;
+    margin: 0;
+    padding: 28px clamp(16px, 3vw, 36px) 48px;
+}
+.q-process-admin-layout .dashboard-header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+}
+.q-process-admin-layout .q-card {
+    border-radius: var(--radius-md, 12px);
+    box-shadow: var(--shadow-sm);
+}
+.q-process-admin-layout .q-card h2 {
+    color: var(--text-primary);
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+.q-process-admin-layout .q-kpi th {
+    background: var(--bg-page);
+}
+.q-process-admin-layout .q-admin-actions {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md, 12px);
+    justify-content: flex-end;
+}
+@media (max-width: 768px) {
+    .q-process-admin-layout { flex-direction: column; }
+    .q-process-admin-layout > .sidebar {
+        position: static;
+        width: 100%;
+        min-width: 0;
+        min-height: 0;
+        height: auto;
+    }
+}
 @media(max-width:800px) { .it-sidebar { width:100%; position:relative; padding:12px; } body.it-has-sidebar { padding-left:0; } .it-sidebar nav { display:flex; flex-wrap:wrap; } .it-sidebar a { padding:8px; } .quant-main { padding:20px 12px; } .q-progress { flex-wrap:wrap; } .q-progress li { min-width:100px; } }
+
+.q-process {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-block: 8px;
+}
+.q-process[open] { border-color: #60a5fa; }
+.q-process summary {
+    cursor: pointer;
+    padding: 10px 14px;
+    overflow-wrap: anywhere;
+}
+.q-process summary small {
+    display: block;
+    margin-inline-start: 16px;
+    color: var(--text-secondary);
+}
+.q-process-fields { padding: 0 14px 12px; }
+.q-add-step { margin-top: 8px; }
+
+.q-admin-columns, .q-admin-summary {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.q-admin-summary > div {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+}
+.q-admin-summary strong { display: block; }
+.q-admin-summary [data-tone="decrease"] { color: #15803d; }
+.q-admin-summary [data-tone="increase"] { color: #dc2626; }
+.q-admin-summary [data-tone="neutral"] { color: var(--text-secondary); }
+.q-admin-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+}
+.q-process-fields [data-order] { padding: 4px 8px; }
+@media (max-width: 760px) {
+    .q-admin-columns { grid-template-columns: minmax(0, 1fr); }
+}
+
+.q-kpi { border-radius: 16px; }
+.q-kpi header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+.q-kpi header h2, .q-kpi header p { margin: 0; }
+.q-kpi header p, .q-kpi td small { color: var(--text-secondary); }
+.q-kpi-scroll { overflow-x: auto; }
+.q-kpi table { width: 100%; min-width: 760px; border-collapse: collapse; text-align: start; }
+.q-kpi th, .q-kpi td { padding: 14px 12px; border-bottom: 1px solid var(--border); text-align: start; }
+.q-kpi th { background: var(--bg-body, var(--primary-light)); color: var(--text-secondary); }
+.q-kpi td small { display: block; }
+.q-kpi td input[type="checkbox"] { display: inline-block; width: auto; accent-color: var(--primary); }
+.q-kpi-direction { display: inline-block; padding: 4px 10px; border-radius: 999px; background: var(--primary-light); color: var(--primary); }
+.q-kpi-direction[data-direction="decrease"] { background: #e5f5ec; color: #12663f; }
+.q-kpi-fields { margin: 0; min-width: 0; border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+
+.quant-main .q-admin-preferences .tl-btn {
+    display: inline-flex;
+    margin: 0;
+    border-color: var(--border);
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+}
+.quant-main .q-admin-preferences .tl-btn:hover { background: var(--bg-hover); }

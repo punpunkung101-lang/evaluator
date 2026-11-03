@@ -68,6 +68,32 @@ document.addEventListener("DOMContentLoaded", async () => {
         charts[id] = new Chart(canvas, config);
     }
 
+    function applyTrendTheme() {
+        const chart = charts.satisfactionTrendChart;
+        if (!chart) return;
+
+        const dark = document.documentElement.dataset.theme === "dark";
+        const skyBlue = "#38BDF8";
+        const dataset = chart.data.datasets[0];
+        dataset.borderColor = dark ? skyBlue : colorPrimary;
+        dataset.pointBackgroundColor = dataset.borderColor;
+        dataset.backgroundColor = dark ? "rgba(56, 189, 248, 0.12)" : "rgba(30, 58, 138, 0.08)";
+
+        const { scales, plugins } = chart.options;
+        plugins.legend.labels.color = dark ? skyBlue : "#334155";
+        scales.x.ticks.color = dark ? "#CBD5E1" : colorMuted;
+        scales.y.ticks.color = scales.x.ticks.color;
+        scales.x.grid.display = dark;
+        scales.x.grid.color = dark ? "#334155" : colorGrid;
+        scales.y.grid.color = scales.x.grid.color;
+        chart.update("none");
+    }
+
+    new MutationObserver(applyTrendTheme).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-theme"]
+    });
+
     function standardChartOptions(max = 5) {
         return {
             responsive: true,
@@ -124,12 +150,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const dismissBannerBtn = document.getElementById("dismissBannerBtn");
 
     const roleFilter = document.getElementById("userTypeFilter");
+    const systemFilter = document.getElementById("systemFilter");
     const periodFilter = document.getElementById("periodFilter");
     const tableBody = document.getElementById("systemsTableBody");
 
     // ==========================================
     // 3. STATISTICAL HELPERS
     // ==========================================
+
+    const isRating = value => Number.isInteger(value) && value >= 1 && value <= 5;
 
     function average(values) {
         if (!Array.isArray(values)) return null;
@@ -245,7 +274,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         const currentYear = today.toISOString().slice(0, 4);
 
         // All Systems
-        const visibleSystems = systems;
+        const selectedSystem = systemFilter.value;
+        systemFilter.replaceChildren(new Option("ทุกระบบ IT", ""), ...systems.map(system => new Option(system.name, system.id)));
+        systemFilter.value = systems.some(system => system.id === selectedSystem) ? selectedSystem : "";
+        const visibleSystems = systems.filter(system => !systemFilter.value || system.id === systemFilter.value);
         const visibleSystemIds = new Set(visibleSystems.map(s => s.id));
 
         // Filter Records
@@ -260,7 +292,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 matchPeriod = getYearKey(record.submittedAt) === currentYear;
             }
 
-            return matchSystem && matchRole && matchPeriod;
+            return matchSystem && matchRole && matchPeriod && record.satisfactionAnswers.some(isRating);
         });
 
         // 1. Summary Metrics
@@ -290,52 +322,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const hasRecords = records.length > 0;
 
-        // 2. Before / After Comparison Chart
-        const beforeAfterCanvas = document.getElementById("beforeAfterChart");
-        const beforeAfterEmpty = document.getElementById("beforeAfterEmpty");
-
-        if (!hasRecords) {
-            if (beforeAfterCanvas) beforeAfterCanvas.style.display = "none";
-            if (beforeAfterEmpty) beforeAfterEmpty.style.display = "flex";
-            destroyChart("beforeAfterChart");
-        } else {
-            if (beforeAfterCanvas) beforeAfterCanvas.style.display = "block";
-            if (beforeAfterEmpty) beforeAfterEmpty.style.display = "none";
-
-            const beforeScores = [];
-            const afterScores = [];
-
-            questionNames.forEach((_, qIndex) => {
-                const pairs = records.filter(r =>
-                    typeof r.beforeAnswers?.[qIndex] === "number" &&
-                    typeof r.afterAnswers?.[qIndex] === "number"
-                );
-                beforeScores.push(average(pairs.map(r => r.beforeAnswers[qIndex])));
-                afterScores.push(average(pairs.map(r => r.afterAnswers[qIndex])));
-            });
-
-            drawChart("beforeAfterChart", {
-                type: "bar",
-                data: {
-                    labels: questionNames,
-                    datasets: [
-                        {
-                            label: "ก่อนนำระบบ IT มาใช้",
-                            data: beforeScores,
-                            backgroundColor: colorBefore,
-                            borderRadius: 4
-                        },
-                        {
-                            label: "หลังนำระบบ IT มาใช้",
-                            data: afterScores,
-                            backgroundColor: colorAfter,
-                            borderRadius: 4
-                        }
-                    ]
-                },
-                options: standardChartOptions(5)
-            });
+        const ratingCounts = [0, 0, 0, 0, 0];
+        for (const record of records) {
+            for (const score of record.satisfactionAnswers.filter(isRating)) ratingCounts[score - 1]++;
         }
+        setText("ratingCounts", ratingCounts.map((count, index) => `${index + 1} ดาว: ${count}`).join(" · "));
+        drawChart("ratingCountsChart", {
+            type: "bar",
+            data: {
+                labels: ["1", "2", "3", "4", "5"],
+                datasets: [{ label: "จำนวนคำตอบ", data: ratingCounts, backgroundColor: "#2563eb" }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+        });
 
         // 3. Evaluation Status Doughnut Chart
         const statusCanvas = document.getElementById("evaluationStatusChart");
@@ -440,6 +439,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 },
                 options: standardChartOptions(5)
             });
+            applyTrendTheme();
         }
 
         // 7. System Table
@@ -454,7 +454,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (visibleSystems.length === 0) {
             const row = document.createElement("tr");
             row.className = "table-empty-row";
-            row.innerHTML = `<td colspan="10">ไม่พบระบบสารสนเทศตามหมวดหมู่ที่เลือก</td>`;
+            row.innerHTML = `<td colspan="6">ไม่พบระบบสารสนเทศตามหมวดหมู่ที่เลือก</td>`;
             tableBody.appendChild(row);
             return;
         }
@@ -462,31 +462,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         visibleSystems.forEach((system, index) => {
             const sysRecords = records.filter(r => r.systemId === system.id);
 
-            const beforeList = [];
-            const afterList = [];
-
-            sysRecords.forEach(r => {
-                for (let i = 0; i < 10; i++) {
-                    const b = r.beforeAnswers?.[i];
-                    const a = r.afterAnswers?.[i];
-                    if (typeof b === "number" && typeof a === "number") {
-                        beforeList.push(b);
-                        afterList.push(a);
-                    }
-                }
-            });
-
-            const beforeAvg = average(beforeList);
-            const afterAvg = average(afterList);
             const satAvg = average(sysRecords.map(r => r.satisfactionAverage ?? average(r.satisfactionAnswers)));
-
-            let diffBadge = "-";
-            if (beforeAvg !== null && afterAvg !== null) {
-                const diff = afterAvg - beforeAvg;
-                const sign = diff > 0 ? "+" : "";
-                const badgeClass = diff > 0 ? "positive" : diff < 0 ? "negative" : "neutral";
-                diffBadge = `<span class="score-badge ${badgeClass}">${sign}${diff.toFixed(2)}</span>`;
-            }
 
             const uniqueSysUsers = new Set(sysRecords.map(r => r.evaluatorId || r.evaluatorName)).size;
 
@@ -496,9 +472,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <td><strong>${system.id}</strong></td>
                 <td>${system.name}</td>
                 <td>${uniqueSysUsers} คน</td>
-                <td>${formatScore(beforeAvg)}</td>
-                <td>${formatScore(afterAvg)}</td>
-                <td>${diffBadge}</td>
                 <td><strong>${formatScore(satAvg)}</strong></td>
                 <td>
                     <a href="evaluation-detail.html?system=${encodeURIComponent(system.id)}" class="detail-btn">
@@ -511,7 +484,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Filter Listeners
-    [roleFilter, periodFilter].forEach(el => {
+    [roleFilter, periodFilter, systemFilter].forEach(el => {
         el?.addEventListener("change", updateDashboard);
     });
 
@@ -633,7 +606,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             const neutral = document.getElementById("neutralPercent")?.textContent || "0%";
             const unhappy = document.getElementById("unhappyPercent")?.textContent || "0%";
 
-            const beforeAfterImg = charts["beforeAfterChart"]?.toBase64Image() || "";
             const categoryImg = charts["categoryChart"]?.toBase64Image() || "";
             const statusImg = charts["evaluationStatusChart"]?.toBase64Image() || "";
             const trendImg = charts["satisfactionTrendChart"]?.toBase64Image() || "";
@@ -700,8 +672,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     <div class="charts-grid">
         <div class="chart-box">
-            <h3>เปรียบเทียบผลการดำเนินงานก่อน–หลังการใช้ระบบ IT</h3>
-            ${beforeAfterImg ? `<img src="${beforeAfterImg}" class="chart-img" alt="Before/After Comparison Chart">` : `<p style="font-size:12px;color:#64748b;">ไม่มีข้อมูลกราฟ</p>`}
         </div>
         <div class="chart-box">
             <h3>ระดับความพึงพอใจของผู้ใช้งาน</h3>
@@ -719,7 +689,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
     </div>
 
-    <h3 style="margin-top: 24px; font-size: 14px; font-weight: 600;">ตารางสรุปผลการประเมินประสิทธิภาพรายระบบ</h3>
+    <h3 style="margin-top: 24px; font-size: 14px; font-weight: 600;">ตารางสรุปผลการประเมินความพึงพอใจรายระบบ</h3>
     <div class="table-box">
         <table>
             <thead>
@@ -728,9 +698,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <th>รหัสระบบ</th>
                     <th>ชื่อระบบสารสนเทศ</th>
                     <th>จำนวนผู้ประเมิน</th>
-                    <th>ก่อนใช้ / 5</th>
-                    <th>หลังใช้ / 5</th>
-                    <th>ส่วนต่างคะแนน</th>
                     <th>ความพึงพอใจ / 5</th>
                 </tr>
             </thead>
@@ -772,27 +739,67 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 8. SIDEBAR NAVIGATION
     // ==========================================
 
-    const navLinks = document.querySelectorAll(".sidebar-nav .nav-link");
+    const navLinks = [...document.querySelectorAll(".sidebar-nav a.nav-link")];
+    const managementToggle = document.getElementById("management-toggle");
+    const managementMenu = document.getElementById("management-menu");
+    const processLink = document.getElementById("manage-processes");
+    const managementLinks = new Map([
+        ["#assessment-management", document.getElementById("manage-assessments")],
+        ["#process-management", processLink]
+    ]);
+    const returnUrl = new URL(window.location.href);
+    returnUrl.hash = "#process-management";
+    const processUrl = new URL(processLink.href);
+    processUrl.searchParams.set("returnTo", returnUrl.pathname + returnUrl.search + returnUrl.hash);
+    processLink.href = processUrl.href;
 
+    function setManagementOpen(open) {
+        managementMenu.inert = !open;
+        managementToggle.setAttribute("aria-expanded", String(open));
+        managementToggle.classList.toggle("active", open || Boolean(managementMenu.querySelector(".active")));
+    }
+
+    function selectLink(link) {
+        for (const item of navLinks) {
+            item.classList.toggle("active", item === link);
+            if (item === link) item.setAttribute("aria-current", managementMenu.contains(item) ? "page" : "location");
+            else item.removeAttribute("aria-current");
+        }
+        setManagementOpen(managementMenu.contains(link));
+    }
+
+    function restoreNavigation(scroll = true) {
+        const hash = window.location.hash || "#overview";
+        document.getElementById("quantitative-results").hidden = hash !== "#quantitative-results";
+        const link = managementLinks.get(hash) || navLinks.find(item => item.getAttribute("href") === hash);
+        selectLink(link || navLinks.find(item => item.hash === "#overview"));
+        if (!scroll || !link || managementMenu.contains(link)) return;
+        if (hash === "#overview") window.scrollTo({ top: 0, behavior: "smooth" });
+        else document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    managementToggle.addEventListener("click", () => setManagementOpen(managementMenu.inert));
     navLinks.forEach(link => {
         link.addEventListener("click", event => {
-            const targetId = link.getAttribute("href");
-            if (!targetId || !targetId.startsWith("#")) return;
-
-            const target = document.querySelector(targetId);
-            if (!target) return;
-
-            event.preventDefault();
-            navLinks.forEach(item => item.classList.remove("active"));
-            link.classList.add("active");
-
-            if (targetId === "#overview") {
-                window.scrollTo({ top: 0, behavior: "smooth" });
+            if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+            if (managementMenu.contains(link)) {
+                const [hash] = [...managementLinks].find(([, item]) => item === link);
+                history.replaceState(null, "", hash);
+                selectLink(link);
                 return;
             }
-
-            target.scrollIntoView({ behavior: "smooth", block: "start" });
+            const hash = link.getAttribute("href");
+            if (!hash.startsWith("#") || !document.getElementById(hash.slice(1))) return;
+            event.preventDefault();
+            if (window.location.hash !== hash) history.pushState(null, "", hash);
+            restoreNavigation();
         });
+    });
+    window.addEventListener("hashchange", () => restoreNavigation());
+    restoreNavigation(Boolean(window.location.hash));
+
+    window.addEventListener("pageshow", event => {
+        if (event.persisted && window.location.hash === "#assessment-management") window.location.reload();
     });
 
     // Initial Data Fetch
@@ -804,16 +811,4 @@ document.addEventListener("DOMContentLoaded", async () => {
         updateDashboard();
     });
 
-    // Initial Hash Scroll (e.g. #assessment-management)
-    if (window.location.hash) {
-        const hashLink = document.querySelector(`.sidebar-nav .nav-link[href="${window.location.hash}"]`);
-        const hashTarget = document.querySelector(window.location.hash);
-        if (hashLink && hashTarget) {
-            navLinks.forEach(item => item.classList.remove("active"));
-            hashLink.classList.add("active");
-            setTimeout(() => {
-                hashTarget.scrollIntoView({ behavior: "smooth", block: "start" });
-            }, 200);
-        }
-    }
 });

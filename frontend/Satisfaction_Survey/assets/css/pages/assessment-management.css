@@ -21,7 +21,7 @@
     flex-wrap: wrap;
 }
 
-.mgmt-title-group h3 {
+.mgmt-title-group h1 {
     font-size: 1.125rem;
     font-weight: 600;
     color: var(--text-primary);

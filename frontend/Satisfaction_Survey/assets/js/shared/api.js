@@ -3,6 +3,24 @@ const API_CONFIG = {
     backendBaseUrl: (typeof window !== "undefined" && window.ENV?.API_BASE_URL) || "http://localhost:8080"
 };
 
+/**
+ * Standard Evaluation Record Schema:
+ * {
+ *   id: string,
+ *   systemId: string,
+ *   systemName?: string,
+ *   evaluatorId: string,
+ *   evaluatorName?: string,
+ *   userRole: "student" | "teacher" | "staff",
+ *   beforeAnswers: (number | null)[], // 10 items, 1-5 or null
+ *   afterAnswers: (number | null)[],  // 10 items, 1-5 or null
+ *   satisfactionAnswers: number[],   // One score per question, 1-5
+ *   satisfactionAverage?: number,
+ *   feedback?: string,
+ *   submittedAt: string              // ISO date string YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss
+ * }
+ */
+
 const EvaluationAPI = {
     async request(path, options = {}) {
         let response;
@@ -18,11 +36,13 @@ const EvaluationAPI = {
 
     async submitEvaluation(record) {
         const payload = this.normalizeRecord(record);
-        return this.request("/evaluations", {
+        const saved = await this.request("/evaluations", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
+        if (saved.success !== true || saved.id !== payload.id) throw new Error("Backend ไม่ยืนยันการบันทึกผลประเมิน");
+        return saved;
     },
 
     async getEvaluations() {
@@ -68,12 +88,19 @@ const EvaluationAPI = {
         while (beforeAnswers.length < 10) beforeAnswers.push(null);
         const afterAnswers = Array.isArray(raw.afterAnswers) ? raw.afterAnswers.slice(0, 10).map(toFloatOrNull) : Array(10).fill(null);
         while (afterAnswers.length < 10) afterAnswers.push(null);
-        const satisfactionAnswers = Array.isArray(raw.satisfactionAnswers) ? raw.satisfactionAnswers.slice(0, 5).map(value => {
-            const number = parseFloat(value);
-            return !isNaN(number) && number >= 1 && number <= 5 ? number : 0;
-        }) : Array(5).fill(0);
-        while (satisfactionAnswers.length < 5) satisfactionAnswers.push(0);
-        const valid = satisfactionAnswers.filter(value => value > 0);
+
+        const satisfactionAnswers = Array.isArray(raw.satisfactionAnswers)
+            ? raw.satisfactionAnswers.map(v => {
+                const num = parseFloat(v);
+                return !isNaN(num) && num >= 1 && num <= 5 ? num : 0;
+            })
+            : Array(5).fill(0);
+
+        const validSat = satisfactionAnswers.filter(s => s > 0);
+        const satAvg = validSat.length > 0
+            ? validSat.reduce((a, b) => a + b, 0) / validSat.length
+            : null;
+
         return {
             id: raw.id || `eval_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
             systemId: String(raw.systemId || "").trim(),
@@ -87,7 +114,8 @@ const EvaluationAPI = {
             afterAverage: Number.isFinite(raw.afterAverage) ? raw.afterAverage : null,
             comparableCount: Number.isInteger(raw.comparableCount) ? raw.comparableCount : 0,
             satisfactionAnswers,
-            satisfactionAverage: valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : null,
+            ...(Array.isArray(raw.satisfactionQuestions) ? { satisfactionQuestions: raw.satisfactionQuestions } : {}),
+            satisfactionAverage: satAvg,
             feedback: typeof raw.feedback === "string" ? raw.feedback.trim() : "",
             submittedAt: String(raw.submittedAt || new Date().toISOString()).slice(0, 19).replace("T", " ")
         };

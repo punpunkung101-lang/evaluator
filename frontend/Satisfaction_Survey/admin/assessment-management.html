@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการแบบประเมิน | IT Evaluator</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS: Modular Architecture (Common, Admin Layout, Page Styles) -->
+    <link rel="stylesheet" href="../assets/css/common.css">
+    <link rel="stylesheet" href="../assets/css/layouts/admin-layout.css">
+    <link rel="stylesheet" href="../assets/css/pages/dashboard.css">
+    <link rel="stylesheet" href="../assets/css/pages/assessment-management.css">
+
+<link rel="stylesheet" href="../../Effectiveness_Of_It/main/assets/css/evaluation-shell.css">
+<link rel="stylesheet" href="../../Effectiveness_Of_It/main/assets/css/admin-shell.css">
+</head>
+<body class="assessment-management-page">
+    <header class="ev-header ev-admin-header">
+        <div class="ev-topbar"><div class="ev-header-inner"><span data-i18n="admin_shell_label">ศูนย์ประเมินระบบสารสนเทศ (IT Evaluator)</span></div></div>
+        <div class="ev-header-inner ev-university">
+            <div class="ev-faculty">
+                <img src="../../Publice/Nu_bage.png" alt="ตรามหาวิทยาลัยนเรศวร" width="72" height="72">
+                <span><strong>คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</strong><small lang="en">Faculty of Allied Health Sciences, Naresuan University</small></span>
+            </div>
+            <div class="ev-controls">
+
+                <span id="admin-toolbar-mount"></span>
+                <button type="button" class="ev-signin" disabled data-i18n="admin_shell_signin">เข้าสู่ระบบ — ยังไม่พร้อมใช้งาน</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-layout ev-admin-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                </div>
+                <div class="brand-info">
+                    <h2>IT Evaluator</h2>
+                    <p>ระบบบริหารจัดการข้อมูล</p>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html#assessment-management" class="nav-link">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20z"/></svg>
+                    <span data-i18n="nav_management_back">ย้อนกลับ</span>
+                </a>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <!-- ========== ASSESSMENT MANAGEMENT SECTION (Near Overview) ========== -->
+            <section class="dashboard-card assessment-mgmt-section" id="assessment-management">
+                <div class="mgmt-header">
+                    <div class="mgmt-title-group">
+                        <h1>
+                            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: var(--primary);" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                            <span data-i18n="nav_manage_assessments">จัดการแบบประเมิน</span>
+                        </h1>
+                        <p data-i18n="mgmt_subtitle">จัดการรายการระบบสารสนเทศ (IT Systems) และข้อคำถามการประเมิน</p>
+                    </div>
+                    <div class="mgmt-header-actions">
+                        <button id="mgmtResetDefaultsBtn" class="btn btn-secondary btn-sm" type="button" title="คืนค่าข้อมูลหัวข้อและคำถามเริ่มต้น">
+                            <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;" aria-hidden="true"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                            <span data-i18n="mgmt_btn_reset">คืนค่าเริ่มต้น</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hierarchy Stepper (Level 1: รายการระบบ IT -> Level 2: ข้อคำถาม) -->
+                <div id="mgmtHierarchyStepper" class="hierarchy-stepper">
+                    <!-- Dynamic via assessment-management.js -->
+                </div>
+
+                <!-- Assessment Topics Panel (IT Systems List) -->
+                <div id="mgmtTopicsPanel">
+                    <div class="mgmt-panel-header">
+                        <h4 id="mgmtSelectedCatTitle">รายการระบบสารสนเทศทั้งหมด</h4>
+                        <div class="mgmt-panel-actions">
+                            <button id="mgmtAddTopicBtn" class="btn btn-primary btn-sm" type="button">
+                                <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                                <span data-i18n="mgmt_btn_add_topic">เพิ่มระบบสารสนเทศใหม่</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mgmt-table-wrapper">
+                        <table class="mgmt-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px; text-align: center;">#</th>
+                                    <th style="width: 120px;" data-i18n="mgmt_th_code">รหัส</th>
+                                    <th data-i18n="mgmt_th_name">ชื่อหัวข้อการประเมิน</th>
+                                    <th style="width: 160px;" data-i18n="mgmt_th_q_count">จำนวนข้อคำถาม</th>
+                                    <th class="mgmt-actions-cell" style="width: 280px;" data-i18n="mgmt_th_actions">การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mgmtTopicsTableBody">
+                                <!-- Ingested dynamically via assessment-management.js -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="mgmtTopicsEmpty" class="mgmt-empty" style="display: none;">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                        <p data-i18n="mgmt_empty_topics">ไม่พบหัวข้อการประเมินในหมวดหมู่นี้ กดปุ่ม "เพิ่มหัวข้อการประเมิน" เพื่อสร้างใหม่</p>
+                    </div>
+                </div>
+
+                <!-- Level 3: Questions Panel (Drill-down into Topic) -->
+                <div id="mgmtQuestionsPanel" style="display: none;">
+                    <div class="questions-context-bar">
+                        <div class="topic-context-info" id="mgmtTopicContextInfo">
+                            <!-- Populated dynamically -->
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span id="mgmtTopicQuestionsCountBadge" class="mgmt-q-badge">-</span>
+                            <button id="mgmtBackToTopicsBtn" class="btn btn-secondary btn-sm" type="button">
+                                <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                                <span data-i18n="mgmt_btn_back">ย้อนกลับรายการหัวข้อ</span>
+                            </button>
+                            <button id="mgmtAddQuestionBtn" class="btn btn-primary btn-sm" type="button">
+                                <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                                <span data-i18n="mgmt_btn_add_q">เพิ่มข้อคำถาม</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mgmt-table-wrapper">
+                        <table class="mgmt-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 60px; text-align: center;" data-i18n="mgmt_th_q_no">ข้อที่</th>
+                                    <th data-i18n="mgmt_th_q_text">ข้อความคำถาม</th>
+                                    <th style="width: 170px;" data-i18n="mgmt_th_q_type">กลุ่มเกณฑ์</th>
+                                    <th style="width: 140px;" data-i18n="mgmt_th_q_scale">รูปแบบการให้คะแนน</th>
+                                    <th class="mgmt-actions-cell" style="width: 160px;" data-i18n="mgmt_th_actions">การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mgmtQuestionsTableBody">
+                                <!-- Ingested dynamically via assessment-management.js -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="mgmtQuestionsEmpty" class="mgmt-empty" style="display: none;">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                        <p data-i18n="mgmt_empty_questions">ยังไม่มีข้อคำถามในหัวข้อนี้ กดปุ่ม "เพิ่มข้อคำถาม" เพื่อเพิ่มข้อใหม่</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODAL: Add / Rename Topic -->
+    <div id="mgmtTopicModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="mgmtTopicModalTitle">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="mgmtTopicModalTitle" data-i18n="mgmt_modal_add_topic_title">เพิ่มระบบสารสนเทศใหม่</h3>
+                <button class="modal-close" id="closeTopicModal" aria-label="ปิด">&times;</button>
+            </div>
+            <div class="mgmt-form-group">
+                <label for="mgmtTopicCodeInput" data-i18n="mgmt_field_code">รหัสระบบสารสนเทศ (เช่น SYS022)</label>
+                <input type="text" id="mgmtTopicCodeInput" class="mgmt-form-control" placeholder="SYS022">
+            </div>
+            <div class="mgmt-form-group">
+                <label for="mgmtTopicNameThInput">
+                    <span data-i18n="mgmt_field_name_th">ชื่อระบบสารสนเทศ (ภาษาไทย)</span>
+                    <span class="required">*</span>
+                </label>
+                <input type="text" id="mgmtTopicNameThInput" class="mgmt-form-control" placeholder="เช่น ระบบลาออนไลน์">
+            </div>
+            <div class="mgmt-form-group">
+                <label for="mgmtTopicNameEnInput" data-i18n="mgmt_field_name_en">ชื่อระบบสารสนเทศ (English)</label>
+                <input type="text" id="mgmtTopicNameEnInput" class="mgmt-form-control" placeholder="e.g. Online Leave System">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+                <button id="cancelTopicModalBtn" class="btn btn-secondary btn-sm" type="button" data-i18n="cancel">ยกเลิก</button>
+                <button id="saveTopicBtn" class="btn btn-primary btn-sm" type="button" data-i18n="btn_save">บันทึกข้อมูล</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Add / Edit Question -->
+    <div id="mgmtQuestionModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="mgmtQuestionModalTitle">
+        <div class="modal-card" style="max-width: 580px;">
+            <div class="modal-header">
+                <h3 id="mgmtQuestionModalTitle" data-i18n="mgmt_modal_add_q_title">เพิ่มข้อคำถามใหม่</h3>
+                <button class="modal-close" id="closeQuestionModal" aria-label="ปิด">&times;</button>
+            </div>
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 12px;">
+                <div class="mgmt-form-group">
+                    <label for="mgmtQuestionOrderInput" data-i18n="mgmt_field_q_no">ลำดับข้อที่</label>
+                    <input type="number" id="mgmtQuestionOrderInput" class="mgmt-form-control" min="1" value="1">
+                </div>
+                <div class="mgmt-form-group">
+                    <label for="mgmtQuestionTypeSelect" data-i18n="mgmt_field_q_type">ประเภทเกณฑ์การประเมิน</label>
+                    <select id="mgmtQuestionTypeSelect" class="mgmt-form-control">
+                        <option value="efficiency" data-i18n="mgmt_type_efficiency">เกณฑ์การประเมินประสิทธิภาพ (10 ด้าน)</option>
+                        <option value="satisfaction" data-i18n="mgmt_type_satisfaction">เกณฑ์วัดความพึงพอใจ (5 ด้าน)</option>
+                        <option value="custom" data-i18n="mgmt_type_custom">เกณฑ์เพิ่มเติม / กำหนดเอง</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mgmt-form-group">
+                <label for="mgmtQuestionTextThInput">
+                    <span data-i18n="mgmt_field_q_text_th">ข้อความคำถาม (ภาษาไทย)</span>
+                    <span class="required">*</span>
+                </label>
+                <textarea id="mgmtQuestionTextThInput" class="mgmt-form-control" placeholder="เช่น สามารถดำเนินงานให้เสร็จได้อย่างรวดเร็ว"></textarea>
+            </div>
+            <div class="mgmt-form-group">
+                <label for="mgmtQuestionTextEnInput" data-i18n="mgmt_field_q_text_en">ข้อความคำถาม (English)</label>
+                <textarea id="mgmtQuestionTextEnInput" class="mgmt-form-control" placeholder="e.g. Speed of work completion"></textarea>
+            </div>
+            <div class="mgmt-form-group">
+                <label for="mgmtQuestionScaleSelect" data-i18n="mgmt_field_scale">รูปแบบระดับคะแนน</label>
+                <select id="mgmtQuestionScaleSelect" class="mgmt-form-control">
+                    <option value="likert5" data-i18n="mgmt_scale_likert5">สเกล 5 ระดับ (1 = น้อยที่สุด, 5 = มากที่สุด)</option>
+                </select>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+                <button id="cancelQuestionModalBtn" class="btn btn-secondary btn-sm" type="button" data-i18n="cancel">ยกเลิก</button>
+                <button id="saveQuestionBtn" class="btn btn-primary btn-sm" type="button" data-i18n="btn_save">บันทึกข้อมูล</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Confirm Delete -->
+    <div id="mgmtDeleteModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="mgmtDeleteModalTitle">
+        <div class="modal-card" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3 id="mgmtDeleteModalTitle" data-i18n="mgmt_confirm_delete_topic_title">ยืนยันการลบ</h3>
+                <button class="modal-close" id="closeDeleteModal" aria-label="ปิด">&times;</button>
+            </div>
+            <div class="delete-confirm-box">
+                <div class="delete-confirm-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                </div>
+                <p id="mgmtDeleteModalMessage" style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;"></p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button id="cancelDeleteModalBtn" class="btn btn-secondary btn-sm" type="button" data-i18n="cancel">ยกเลิก</button>
+                <button id="confirmDeleteBtn" class="btn btn-primary btn-sm" style="background: var(--danger); border-color: var(--danger-border);" type="button" data-i18n="btn_confirm_delete">ยืนยันการลบ</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/shared/systems-data.js"></script>
+    <script src="../assets/js/shared/theme-lang.js?v=20261103-assessment"></script>
+    <script src="../assets/js/admin/assessment-management.js"></script>
+</body>
+</html>

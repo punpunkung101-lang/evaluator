@@ -153,25 +153,211 @@
     function admin() {
         const requested = new URLSearchParams(location.search).get('system');
         let selected=systems.some(s=>s.id===requested)?requested:'', config=selected?Q.config(selected):null;
+        const openSteps = new Set();
+        let dirty = false;
+        window.addEventListener('beforeunload', event=>{
+            if(!dirty)return;
+            event.preventDefault();
+            event.returnValue='';
+        });
+        const sources=[['time','รวมเวลาขั้นตอน'],['steps','นับขั้นตอนที่เปิดใช้งาน'],['manual','กรอกก่อนและหลัง']];
+        function confirmChange(message, onConfirm, confirmLabel = 'ยืนยัน') {
+            const dialog=document.getElementById('q-admin-confirm');
+            dialog.querySelector('p').textContent=message;
+            dialog.querySelector('[value=confirm]').textContent=confirmLabel;
+            dialog.returnValue='';
+            dialog.addEventListener('close',()=>{
+                if(dialog.returnValue==='confirm')safe(onConfirm);
+            },{once:true});
+            dialog.showModal();
+        }
+        document.addEventListener('click', event=>{
+            const back=event.target.closest('#q-admin-dashboard-back');
+            if(!back || !dirty || event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)return;
+            event.preventDefault();
+            confirmChange('คุณมีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก ต้องการออกจากหน้านี้หรือไม่?',()=>{
+                dirty=false;
+                location.assign(back.href);
+            },'ออกโดยไม่บันทึก');
+        });
+        function processCard(phase, step, index) {
+            const prefix = `${phase}-${index}`;
+            return `<details class="q-process" data-phase="${phase}" data-index="${index}" ${openSteps.has(step.id)?'open':''}>
+                <summary><span>ขั้นตอน ${index+1} · <span data-step-name>${user(step.name || 'ยังไม่ระบุชื่อ')}</span></span>
+                    <small data-step-status>${processStatus(step.active, step.timed)}</small></summary>
+                <div class="q-process-fields">
+                    ${field(prefix+'-name','ชื่อขั้นตอน (จำเป็น)',step.name)}
+                    ${field(prefix+'-description','รายละเอียด (ไม่บังคับ)',step.description)}
+                    <label><input type="checkbox" data-prop="active" ${step.active?'checked':''}> เปิดใช้งาน</label>
+                    <label><input type="checkbox" data-prop="timed" ${step.timed?'checked':''}> ต้องกรอกเวลา</label>
+                    <button type="button" data-order="-1" title="เลื่อนขึ้น" aria-label="เลื่อนขึ้น" ${index===0?'disabled':''}>▲</button>
+                    <button type="button" data-order="1" title="เลื่อนลง" aria-label="เลื่อนลง" ${index===config[phase].length-1?'disabled':''}>▼</button>
+                    <button type="button" data-delete-step>ลบขั้นตอน</button>
+                </div>
+            </details>`;
+        }
+        function processStatus(active, timed) {
+            return `${active?'เปิดใช้งาน':'ปิดใช้งาน'} · ${timed?'ต้องกรอกเวลา':'ไม่ต้องกรอกเวลา'}`;
+        }
         function render() {
             app.innerHTML=`<label>ระบบ IT<select id="admin-system">${systemOptions(selected)}</select></label><p id="q-message" role="status"></p>${!config?'เลือก IT เพื่อกำหนดแบบประเมิน':''}<div id="config-editor"></div>`;
-            document.getElementById('admin-system').onchange=e=>safe(()=>{selected=e.target.value;config=selected?Q.config(selected):null;render();});
+            app.insertAdjacentHTML('beforeend','<dialog id="q-admin-confirm" aria-labelledby="q-admin-confirm-message"><form method="dialog"><p id="q-admin-confirm-message"></p><button value="cancel" autofocus>ยกเลิก</button><button value="confirm" class="primary">ยืนยัน</button></form></dialog>');
+            const systemSelect=document.getElementById('admin-system');
+            systemSelect.onchange=()=>{
+                const next=systemSelect.value;
+                systemSelect.value=selected;
+                const change=()=>{
+                    const nextConfig=next?Q.config(next):null;
+                    selected=next;
+                    config=nextConfig;
+                    dirty=false;
+                    openSteps.clear();
+                    render();
+                };
+                if(dirty)confirmChange('ละทิ้งการแก้ไขที่ยังไม่ได้บันทึกและเปลี่ยนระบบ IT หรือไม่?',change);
+                else safe(change);
+            };
             if(!config)return;
             const editor=document.getElementById('config-editor');
-            editor.innerHTML=`<p>เวอร์ชันที่บันทึก: ${config.version} · แบบร่างที่เริ่มแล้วและผลเก่าจะเก็บโครงสร้างเดิม</p>${['before','after'].map(phase=>`<section class="q-card"><h2>กระบวนการ${phase==='before'?'ก่อน':'หลัง'}ใช้ระบบ</h2><div>${config[phase].map((s,i)=>`<fieldset class="q-card" data-phase="${phase}" data-index="${i}"><legend>ขั้นตอน ${i+1}</legend>${field(`${phase}-${i}-name`,'ชื่อขั้นตอน',s.name)}${field(`${phase}-${i}-description`,'รายละเอียด',s.description)}<label><input type="checkbox" data-prop="active" ${s.active?'checked':''}> เปิดใช้งาน</label><label><input type="checkbox" data-prop="timed" ${s.timed?'checked':''}> ต้องกรอกเวลา</label><button type="button" data-move="-1" ${i===0?'disabled':''}>เลื่อนขึ้น</button><button type="button" data-move="1" ${i===config[phase].length-1?'disabled':''}>เลื่อนลง</button></fieldset>`).join('')}</div><button data-add-phase="${phase}">เพิ่มขั้นตอน</button></section>`).join('')}<section class="q-card"><h2>ตัวชี้วัด</h2>${config.metrics.map((m,i)=>`<fieldset class="q-card" data-metric="${i}"><legend>${esc(m.id)}</legend><div class="q-grid">${field(`m-${i}-name`,'ชื่อตัวชี้วัด',m.name)}${field(`m-${i}-description`,'คำอธิบาย',m.description)}${field(`m-${i}-unit`,'หน่วย',m.unit)}${field(`m-${i}-basis`,'ฐานการวัดเดียวกันก่อนและหลัง',m.basis)}</div><label>ทิศทาง<select data-prop="direction">${[['decrease','ลดลงยิ่งดี'],['increase','เพิ่มขึ้นยิ่งดี'],['target','เทียบเป้าหมาย (ใกล้เป้าหมายยิ่งดี)']].map(([v,l])=>`<option value="${v}" ${m.direction===v?'selected':''}>${l}</option>`).join('')}</select></label>${field(`m-${i}-target`,'ค่าเป้าหมาย (จำเป็นเมื่อเทียบเป้าหมาย)',m.target,'number')}<p>วิธีคำนวณ: ${esc(m.source==='time'?'รวมเวลาขั้นตอน':m.source==='steps'?'นับขั้นตอนที่เปิดใช้งาน':'กรอกก่อนและหลัง')}</p><label><input data-prop="active" type="checkbox" ${m.active?'checked':''}> เปิดใช้งานกับระบบนี้</label><label><input data-prop="required" type="checkbox" ${m.required?'checked':''}> จำเป็นต้องระบุสถานะข้อมูล</label></fieldset>`).join('')}<button id="add-metric">เพิ่มตัวชี้วัด</button></section><button id="save-config" class="primary">บันทึกการตั้งค่า</button><button id="preview-config">ดูตัวอย่างแบบฟอร์ม</button><section id="preview" class="q-card" hidden></section>`;
+            editor.innerHTML=`<p>เวอร์ชันที่บันทึก: ${config.version} · แบบร่างที่เริ่มแล้วและผลเก่าจะเก็บโครงสร้างเดิม</p><div class="q-admin-columns">${['before','after'].map(phase=>`<section class="q-card"><h2>กระบวนการ${phase==='before'?'ก่อน':'หลัง'}ใช้ระบบ</h2><div>${config[phase].map((step,index)=>processCard(phase,step,index)).join('')}</div><button type="button" class="primary q-add-step" data-add-phase="${phase}">+ เพิ่มขั้นตอน</button></section>`).join('')}</div><section class="q-card q-kpi">
+                <header><div><h2>จัดการตัวชี้วัด (KPI)</h2><p>กำหนดตัวชี้วัดตามระบบ IT ที่เลือก</p></div>
+                    <button id="add-metric" class="primary">+ เพิ่มตัวชี้วัดใหม่</button></header>
+                <div class="q-kpi-scroll" tabindex="0" role="region" aria-label="ตารางตัวชี้วัด">
+                    <table><thead><tr><th>ชื่อตัวชี้วัด</th><th>วิธีคำนวณ</th><th>หน่วย / ฐานการวัด</th><th>ทิศทางเป้าหมาย</th><th>เปิดใช้งาน</th><th>จัดการ</th></tr></thead>
+                    <tbody>${config.metrics.map((m,i)=>`<tr>
+                        <td><strong data-kpi-name="${i}">${user(m.name || 'ยังไม่ระบุชื่อ')}</strong><small>${user(m.description)}</small></td>
+                        <td>${sources.find(([value])=>value===m.source)?.[1] || 'กรอกก่อนและหลัง'}</td>
+                        <td><span>${user(m.unit)}</span><small>${user(m.basis)}</small></td>
+                        <td><span class="q-kpi-direction" data-direction="${esc(m.direction)}">${({decrease:'↓ ลดลงยิ่งดี',increase:'↑ เพิ่มขึ้นยิ่งดี',target:'◎ เทียบเป้าหมาย'})[m.direction] || 'ยังไม่กำหนด'}</span></td>
+                        <td><input type="checkbox" data-kpi-active="${i}" aria-label="เปิดใช้งานตัวชี้วัดรายการที่ ${i+1}" ${m.active?'checked':''}></td>
+                        <td><button type="button" data-kpi-edit="${i}" aria-expanded="false" aria-controls="q-kpi-edit-${i}">แก้ไข</button></td>
+                    </tr><tr id="q-kpi-edit-${i}" hidden><td colspan="6"><fieldset class="q-kpi-fields" data-metric="${i}"><legend>${esc(m.id)}</legend><div class="q-grid">${field(`m-${i}-name`,'ชื่อตัวชี้วัด',m.name)}${field(`m-${i}-description`,'คำอธิบาย',m.description)}${field(`m-${i}-unit`,'หน่วย',m.unit)}${field(`m-${i}-basis`,'ฐานการวัดเดียวกันก่อนและหลัง',m.basis)}</div><label>ทิศทาง<select id="m-${i}-direction" data-prop="direction" aria-describedby="m-${i}-direction-error">${[['decrease','ลดลงยิ่งดี'],['increase','เพิ่มขึ้นยิ่งดี'],['target','เทียบเป้าหมาย (ใกล้เป้าหมายยิ่งดี)']].map(([v,l])=>`<option value="${v}" ${m.direction===v?'selected':''}>${l}</option>`).join('')}</select></label><small class="q-error" id="m-${i}-direction-error"></small>${field(`m-${i}-target`,'ค่าเป้าหมาย (จำเป็นเมื่อเทียบเป้าหมาย)',m.target,'number')}<label>ประเภทตัวชี้วัด<select data-prop="source">${sources.map(([value,label])=>`<option value="${value}" ${m.source===value?'selected':''}>${label}</option>`).join('')}</select></label><label><input data-prop="active" type="checkbox" ${m.active?'checked':''}> เปิดใช้งานกับระบบนี้</label><label><input data-prop="required" type="checkbox" ${m.required?'checked':''}> จำเป็นต้องระบุสถานะข้อมูล</label><button type="button" data-delete-metric>ลบตัวชี้วัด</button></fieldset></td></tr>`).join('') || '<tr><td colspan="6">ยังไม่มีตัวชี้วัด</td></tr>'}</tbody></table>
+                </div></section><div class="q-admin-actions"><button id="save-config" class="primary">บันทึกการตั้งค่า</button><button id="restore-config" type="button">คืนค่าเดิม</button><button id="preview-config">ดูตัวอย่างแบบฟอร์ม</button></div><section id="preview" class="q-card" hidden></section>`;
             const readiness = document.createElement('section');
             readiness.className = 'q-card';
             const activeBefore = config.before.filter(s=>s.active).length;
             const activeAfter = config.after.filter(s=>s.active).length;
-            readiness.innerHTML = `<h2>ความพร้อมของแบบประเมิน ${esc(selected)}</h2><p>ก่อนใช้ IT: ${activeBefore} ขั้นตอน · หลังใช้ IT: ${activeAfter} ขั้นตอน · ตัวชี้วัดที่เปิดใช้: ${config.metrics.filter(m=>m.active).length} รายการ</p><p>${activeBefore && activeAfter ? 'มีกระบวนการครบทั้งสองช่วง สามารถเปิดแบบประเมินเพื่อตรวจสอบได้' : 'ยังไม่พร้อมประเมิน กรุณาเพิ่มและเปิดใช้งานกระบวนการอย่างน้อยช่วงละ 1 ขั้นตอน แล้วบันทึก'}</p><p>เมื่อบันทึกแล้ว ให้เปิดแบบประเมินใหม่ หากมีแบบร่างเดิมที่ไม่มีกระบวนการ ให้กดโหลดการตั้งค่าล่าสุดในขั้นที่ 2</p><a class="q-button" href="evaluation.html?system=${encodeURIComponent(selected)}">เปิดแบบประเมินของระบบนี้</a><a class="q-button" href="dashboard.html">ตรวจสอบผลที่ส่งแล้ว</a>`;
+            readiness.innerHTML = `<h2>ความพร้อมของแบบประเมิน ${esc(selected)}</h2><div class="q-admin-summary" aria-live="polite"></div><p>${activeBefore && activeAfter ? 'มีกระบวนการครบทั้งสองช่วง สามารถเปิดแบบประเมินเพื่อตรวจสอบได้' : 'ยังไม่พร้อมประเมิน กรุณาเพิ่มและเปิดใช้งานกระบวนการอย่างน้อยช่วงละ 1 ขั้นตอน แล้วบันทึก'}</p><p>เมื่อบันทึกแล้ว ให้เปิดแบบประเมินใหม่ หากมีแบบร่างเดิมที่ไม่มีกระบวนการ ให้กดโหลดการตั้งค่าล่าสุดในขั้นที่ 2</p><a class="q-button" href="evaluation.html?system=${encodeURIComponent(selected)}">เปิดแบบประเมินของระบบนี้</a><a class="q-button" href="../../Satisfaction_Survey/admin/dashboard.html#quantitative-results">ตรวจสอบผลที่ส่งแล้ว</a>`;
+            function updateSummary() {
+                const before=editor.querySelectorAll('[data-phase="before"] [data-prop="active"]:checked').length;
+                const after=editor.querySelectorAll('[data-phase="after"] [data-prop="active"]:checked').length;
+                const metrics=editor.querySelectorAll('[data-metric] [data-prop="active"]:checked').length;
+                const reduction=before ? ((before-after)/before*100).toFixed(2)+'%' : 'ไม่มีข้อมูลเพียงพอ';
+                const tone=before && before!==after ? (before>after?'decrease':'increase') : 'neutral';
+                readiness.querySelector('.q-admin-summary').innerHTML=`
+                    <div>ก่อนใช้ IT <strong>${before}</strong></div><div>หลังใช้ IT <strong>${after}</strong></div>
+                    <div data-tone="${tone}">การลดจำนวนขั้นตอน <strong>${reduction}</strong></div>
+                    <div>ตัวชี้วัดที่เปิดใช้ <strong>${metrics}</strong></div>`;
+            }
+            editor.oninput=event=>{
+                dirty=true;
+                if(event.target.matches('[data-prop="active"]'))updateSummary();
+            };
+            updateSummary();
+            document.getElementById('restore-config').onclick=()=>confirmChange('คืนการตั้งค่าที่บันทึกล่าสุดของระบบนี้หรือไม่?',()=>{
+                config=Q.config(selected);
+                dirty=false;
+                openSteps.clear();
+                render();
+            });
             editor.prepend(readiness);
             function capture() {
                 editor.querySelectorAll('[data-phase]').forEach(row=>{const {phase,index}=row.dataset,s=config[phase][index];s.name=document.getElementById(`${phase}-${index}-name`).value.trim();s.description=document.getElementById(`${phase}-${index}-description`).value.trim();['active','timed'].forEach(k=>s[k]=row.querySelector(`[data-prop=${k}]`).checked);});
-                editor.querySelectorAll('[data-metric]').forEach(row=>{const i=row.dataset.metric,m=config.metrics[i];for(const prop of ['name','description','unit','basis'])m[prop]=document.getElementById(`m-${i}-${prop}`).value.trim();m.target=num(document.getElementById(`m-${i}-target`).value);m.direction=row.querySelector('[data-prop=direction]').value;for(const k of ['active','required'])m[k]=row.querySelector(`[data-prop=${k}]`).checked;});
+                editor.querySelectorAll('[data-metric]').forEach(row=>{const i=row.dataset.metric,m=config.metrics[i];for(const prop of ['name','description','unit','basis'])m[prop]=document.getElementById(`m-${i}-${prop}`).value.trim();m.target=num(document.getElementById(`m-${i}-target`).value);m.direction=row.querySelector('[data-prop=direction]').value;m.source=row.querySelector('[data-prop=source]').value;for(const k of ['active','required'])m[k]=row.querySelector(`[data-prop=${k}]`).checked;});
             }
-            editor.querySelectorAll('[data-add-phase]').forEach(b=>b.onclick=()=>{capture();config[b.dataset.addPhase].push({id:uid(),name:'',description:'',active:true,timed:true});render();});
-            editor.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>{capture();const row=b.closest('[data-phase]'),list=config[row.dataset.phase],i=Number(row.dataset.index),j=i+Number(b.dataset.move);[list[i],list[j]]=[list[j],list[i]];render();});
-            document.getElementById('add-metric').onclick=()=>{capture();config.metrics.push({id:uid(),name:'',description:'',unit:'',basis:'ต่อคำขอ',direction:'decrease',source:'manual',active:true,required:false});render();};
+            editor.querySelectorAll('[data-phase]').forEach(card=>{
+                const {phase,index}=card.dataset;
+                const step=config[phase][index];
+                const name=card.querySelector(`#${phase}-${index}-name`);
+                card.ontoggle=()=>card.open?openSteps.add(step.id):openSteps.delete(step.id);
+                card.oninput=()=>{
+                    card.querySelector('[data-step-name]').textContent=name.value.trim() || 'ยังไม่ระบุชื่อ';
+                    card.querySelector('[data-step-status]').textContent=processStatus(
+                        card.querySelector('[data-prop=active]').checked,
+                        card.querySelector('[data-prop=timed]').checked
+                    );
+                };
+                card.querySelectorAll('[data-order]').forEach(button=>button.onclick=()=>{
+                    capture();
+                    const list=config[phase], from=Number(index), to=from+Number(button.dataset.order);
+                    list.splice(to,0,list.splice(from,1)[0]);
+                    dirty=true;
+                    render();
+                    editorFocus(phase,to);
+                });
+                card.querySelector('[data-delete-step]').onclick=()=>confirmChange(`ลบขั้นตอน “${name.value.trim() || 'ยังไม่ระบุชื่อ'}” หรือไม่? การเปลี่ยนแปลงจะมีผลเมื่อบันทึกการตั้งค่า`,()=>{
+                    dirty=true;
+                    capture();
+                    config[phase].splice(Number(index),1);
+                    openSteps.delete(step.id);
+                    render();
+                    editorFocus(phase,index);
+                });
+            });
+            function editorFocus(phase,index) {
+                const next=document.querySelector(`[data-phase="${phase}"][data-index="${index}"] summary`);
+                (next || document.querySelector(`[data-add-phase="${phase}"]`)).focus();
+            }
+            editor.querySelectorAll('[data-delete-metric]').forEach(button=>{
+                button.onclick=()=>confirmChange('ลบตัวชี้วัดนี้หรือไม่? การเปลี่ยนแปลงจะมีผลเมื่อบันทึกการตั้งค่า',()=>{
+                    capture();
+                    config.metrics.splice(Number(button.closest('[data-metric]').dataset.metric),1);
+                    dirty=true;
+                    render();
+                    document.getElementById('add-metric').focus();
+                });
+            });
+            editor.querySelectorAll('[data-add-phase]').forEach(button=>button.onclick=()=>{
+                capture();
+                const phase=button.dataset.addPhase;
+                const step={id:uid(),name:'',description:'',active:true,timed:true};
+                const index=config[phase].push(step)-1;
+                openSteps.add(step.id);
+                dirty=true;
+                render();
+                const name=document.getElementById(`${phase}-${index}-name`);
+                name.focus({preventScroll:true});
+                name.scrollIntoView({block:'nearest'});
+            });
+            function showMetric(index, open) {
+                const row=document.getElementById(`q-kpi-edit-${index}`);
+                row.hidden=!open;
+                editor.querySelector(`[data-kpi-edit="${index}"]`).setAttribute('aria-expanded',String(open));
+            }
+            editor.querySelectorAll('[data-metric]').forEach(fields=>{
+                fields.addEventListener('input',()=>{
+                    const index=fields.dataset.metric;
+                    const cells=fields.closest('tr').previousElementSibling.cells;
+                    cells[0].querySelector('strong').textContent=document.getElementById(`m-${index}-name`).value.trim() || 'ยังไม่ระบุชื่อ';
+                    cells[0].querySelector('small').textContent=document.getElementById(`m-${index}-description`).value;
+                    cells[1].textContent=fields.querySelector('[data-prop="source"]').selectedOptions[0].textContent;
+                    cells[2].firstElementChild.textContent=document.getElementById(`m-${index}-unit`).value;
+                    cells[2].querySelector('small').textContent=document.getElementById(`m-${index}-basis`).value;
+                    const direction=fields.querySelector('[data-prop="direction"]');
+                    cells[3].firstElementChild.dataset.direction=direction.value;
+                    cells[3].firstElementChild.textContent=direction.selectedOptions[0].textContent;
+                });
+            });
+            editor.querySelectorAll('[data-kpi-edit]').forEach(button=>{
+                button.onclick=()=>showMetric(button.dataset.kpiEdit,button.getAttribute('aria-expanded')==='false');
+            });
+            editor.querySelectorAll('[data-kpi-active]').forEach(toggle=>{
+                const field=editor.querySelector(`[data-metric="${toggle.dataset.kpiActive}"] [data-prop="active"]`);
+                toggle.oninput=()=>{
+                    field.checked=toggle.checked;
+                    dirty=true;
+                    updateSummary();
+                };
+                field.oninput=()=>{toggle.checked=field.checked;};
+            });
+            document.getElementById('add-metric').onclick=()=>{
+                capture();
+                dirty=true;
+                const index=config.metrics.push({id:uid(),name:'',description:'',unit:'',basis:'ต่อคำขอ',direction:'decrease',source:'manual',active:true,required:false})-1;
+                render();
+                showMetric(index,true);
+                document.getElementById(`m-${index}-name`).focus();
+            };
             document.getElementById('save-config').onclick=()=>safe(async()=>{
                 capture();let valid=true;
                 editor.querySelectorAll('[aria-invalid=true]').forEach(el=>el.setAttribute('aria-invalid','false'));
@@ -181,13 +367,17 @@
                     document.getElementById('q-message').textContent='ยังบันทึกไม่ได้: กรุณาเพิ่มและเปิดใช้งานขั้นตอน'+missingPhases.map(phase=>phase==='before'?'ก่อนใช้ IT':'หลังใช้ IT').join(' และ ')+' อย่างน้อยช่วงละ 1 ขั้นตอน';
                     return;
                 }
-                for(const phase of ['before','after']) config[phase].forEach((s,i)=>{if(!s.name){error(`${phase}-${i}-name`,'กรุณาระบุชื่อขั้นตอน');valid=false;}});
-                config.metrics.forEach((m,i)=>{for(const prop of ['name','unit','basis'])if(!m[prop]){error(`m-${i}-${prop}`,'กรุณากรอกข้อมูล');valid=false;}if(m.direction==='target'&&!Q.finite(m.target)){error(`m-${i}-target`,'กรุณาระบุเป้าหมายตั้งแต่ 0 ขึ้นไป');valid=false;}if(m.source==='time'&&m.unit!=='นาที'){error(`m-${i}-unit`,'เวลาจากขั้นตอนใช้หน่วยนาที');valid=false;}if(m.source==='steps'&&m.unit!=='ขั้นตอน'){error(`m-${i}-unit`,'จำนวนขั้นตอนใช้หน่วยขั้นตอน');valid=false;}});
-                if(!valid){document.getElementById('q-message').textContent='กรุณาตรวจสอบช่องที่มีข้อความแจ้งเตือนก่อนบันทึก';editor.querySelector('[aria-invalid=true]')?.focus();return;}
+                for(const phase of ['before','after']) config[phase].forEach((s,i)=>{if(s.active&&!s.name){document.getElementById(`${phase}-${i}-name`).closest('details').open=true;error(`${phase}-${i}-name`,'กรุณาระบุชื่อขั้นตอน');valid=false;}});
+                config.metrics.forEach((m,i)=>{for(const prop of ['name','unit','basis'])if(!m[prop]){error(`m-${i}-${prop}`,'กรุณากรอกข้อมูล');valid=false;}if(!['increase','decrease','target'].includes(m.direction)){error(`m-${i}-direction`,'กรุณาเลือกทิศทางเป้าหมาย');valid=false;}if(m.direction==='target'&&!Q.finite(m.target)){error(`m-${i}-target`,'กรุณาระบุเป้าหมายตั้งแต่ 0 ขึ้นไป');valid=false;}if(m.source==='time'&&m.unit!=='นาที'){error(`m-${i}-unit`,'เวลาจากขั้นตอนใช้หน่วยนาที');valid=false;}if(m.source==='steps'&&m.unit!=='ขั้นตอน'){error(`m-${i}-unit`,'จำนวนขั้นตอนใช้หน่วยขั้นตอน');valid=false;}});
+                if(!valid){
+                    editor.querySelectorAll('[data-metric]').forEach(row=>{
+                        if(row.querySelector('[aria-invalid=true]'))showMetric(row.dataset.metric,true);
+                    });
+                    document.getElementById('q-message').textContent='กรุณาตรวจสอบช่องที่มีข้อความแจ้งเตือนก่อนบันทึก';editor.querySelector('[aria-invalid=true]')?.focus();return;}
                 const savedSystem=selected;
                 const savedConfig=await Q.saveConfig(savedSystem,config);
                 if(selected!==savedSystem)return;
-                config=savedConfig;render();document.getElementById('q-message').textContent='บันทึกในเบราว์เซอร์แล้ว แบบประเมินรอบใหม่จะอ่านการตั้งค่านี้';
+                config=savedConfig;dirty=false;render();document.getElementById('q-message').textContent='บันทึกการตั้งค่าสำเร็จ แบบประเมินรอบใหม่จะอ่านการตั้งค่านี้';
             });
             document.getElementById('preview-config').onclick=()=>{capture();const p=document.getElementById('preview');p.hidden=false;p.innerHTML='<h2>ตัวอย่างแบบฟอร์ม (ยังไม่บันทึก)</h2>'+['before','after'].map(phase=>`<h3>${phase==='before'?'ก่อน':'หลัง'}</h3>`+config[phase].filter(s=>s.active).map(s=>`<p>${user(s.name)} · ${user(s.description)} ${s.timed?'[ช่องกรอกเวลา นาที]':''}</p>`).join('')).join('')+config.metrics.filter(m=>m.active).map(m=>`<p>${user(m.name)} — ${user(m.unit)} / ${user(m.basis)}</p>`).join('');};
         }

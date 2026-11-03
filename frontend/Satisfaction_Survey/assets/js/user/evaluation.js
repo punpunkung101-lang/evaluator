@@ -12,6 +12,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const params = new URLSearchParams(window.location.search);
     const systemId = params.get("system");
+    if (new URLSearchParams(window.location.search).get("mode") !== "before-after") {
+        window.location.replace(`satisfaction.html${window.location.search}`);
+        return;
+    }
+
 
     let selectedSystem = null;
     const sysList = window.AssessmentCatalog ? window.AssessmentCatalog.getSystems() : (window.systems || []);
@@ -68,13 +73,21 @@ document.addEventListener("DOMContentLoaded", () => {
     // 3. เก็บคำตอบก่อนและหลังใช้ระบบ
     // =====================================
 
-    let answers = {
-        before: Array(10).fill(undefined),
-        after: Array(10).fill(undefined)
+    const progressKey = `itEvaluationProgress:${systemId}`;
+    const progress = JSON.parse(sessionStorage.getItem(progressKey) || "null");
+    const evaluationId = progress?.id || `eval_${crypto.randomUUID?.() || Date.now() + "_" + Math.random().toString(36).slice(2)}`;
+    const answers = {
+        before: progress?.before.map(value => value === "unanswered" ? undefined : value) || Array(10).fill(undefined),
+        after: progress?.after.map(value => value === "unanswered" ? undefined : value) || Array(10).fill(undefined)
     };
-
-    let phase = "before";
-    let questionIndex = 0;
+    let phase = progress?.phase || "before";
+    let questionIndex = progress?.questionIndex || 0;
+    let leaving = false;
+    window.addEventListener("beforeunload", event => {
+        if (leaving || !answers.before.concat(answers.after).some(value => value !== undefined)) return;
+        event.preventDefault();
+        event.returnValue = "";
+    });
 
     // =====================================
     // 4. เลือก HTML ที่ต้องใช้
@@ -82,7 +95,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const profileSection = document.getElementById("profile-section");
     const questionSection = document.getElementById("question-section");
-    const resultSection = document.getElementById("result-section");
 
     const questionText = document.getElementById("question-text");
     const ratingStars = document.getElementById("rating-stars");
@@ -141,6 +153,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================
 
     function renderQuestion() {
+        const serialize = values => values.map(value => value === undefined ? "unanswered" : value);
+        sessionStorage.setItem(progressKey, JSON.stringify({
+            id: evaluationId, phase, questionIndex,
+            before: serialize(answers.before), after: serialize(answers.after)
+        }));
         const isBefore = phase === "before";
         const currentQuestions = getQuestions();
         const currentLabels = getRatingLabels();
@@ -202,7 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (phase === "before" && questionIndex === currentQuestions.length - 1) {
                 nextBtnText.textContent = window.t ? window.t("btn_to_phase_2") : "ไปยังช่วงที่ 2 (หลังใช้ระบบ IT)";
             } else if (phase === "after" && questionIndex === currentQuestions.length - 1) {
-                nextBtnText.textContent = window.t ? window.t("btn_to_results") : "ดูผลการเปรียบเทียบ";
+                nextBtnText.textContent = document.documentElement.lang === "en" ? "Continue to satisfaction survey" : "ไปยังแบบประเมินความพึงพอใจ";
             } else {
                 nextBtnText.textContent = window.t ? window.t("next") : "ข้อถัดไป";
             }
@@ -238,7 +255,7 @@ document.addEventListener("DOMContentLoaded", () => {
             questionIndex = 0;
             renderQuestion();
         } else {
-            showResult();
+            continueToSatisfaction();
         }
         setTimeout(() => {
             _isAdvancing = false;
@@ -380,7 +397,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 10. ฟังก์ชันคำนวณและแสดงผลสรุป
     // =====================================
 
-    function showResult() {
+    function continueToSatisfaction() {
         const currentQuestions = getQuestions();
         const beforeValues = [];
         const afterValues = [];
@@ -409,7 +426,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const profile = profileRaw ? JSON.parse(profileRaw) : { name: defaultName, role: defaultRole };
 
         const evaluationData = {
-            id: `eval_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+            id: evaluationId,
             systemId: selectedSystem ? selectedSystem.id : (systemId || "UNKNOWN"),
             systemName: selectedSystem ? (window.getSystemName ? window.getSystemName(selectedSystem) : selectedSystem.name) : "",
             evaluatorName: profile.name,
@@ -421,91 +438,15 @@ document.addEventListener("DOMContentLoaded", () => {
             comparableCount: beforeValues.length
         };
 
-        sessionStorage.setItem("itEvaluationDraft", JSON.stringify(evaluationData));
+        sessionStorage.setItem(`itEvaluationDraft:${evaluationId}`, JSON.stringify(evaluationData));
 
-        if (questionSection) questionSection.hidden = true;
-        if (resultSection) resultSection.hidden = false;
-
-        const beforeScore = document.getElementById("before-score");
-        const afterScore = document.getElementById("after-score");
-        const differenceScore = document.getElementById("difference-score");
-        const resultNote = document.getElementById("result-note");
-
-        if (beforeAvg === null || afterAvg === null) {
-            const noDataText = window.t ? window.t("no_data") : "ไม่มีข้อมูล";
-            if (beforeScore) beforeScore.textContent = noDataText;
-            if (afterScore) afterScore.textContent = noDataText;
-            if (differenceScore) differenceScore.textContent = window.t ? window.t("score_no_comparison") : "ไม่สามารถเปรียบเทียบได้";
-            if (resultNote) resultNote.textContent = window.t ? window.t("score_no_comparison_desc") : "ไม่มีข้อคำถามที่ได้รับการประเมินครบทั้งช่วงก่อนและหลังการใช้งาน";
-            return;
-        }
-
-        if (beforeScore) beforeScore.textContent = window.t ? window.t("score_out_of_5", { score: beforeAvg.toFixed(2) }) : `${beforeAvg.toFixed(2)} / 5`;
-        if (afterScore) afterScore.textContent = window.t ? window.t("score_out_of_5", { score: afterAvg.toFixed(2) }) : `${afterAvg.toFixed(2)} / 5`;
-
-        const difference = afterAvg - beforeAvg;
-        const percentagePoints = (difference / 5) * 100;
-
-        let direction = "";
-        if (difference > 0) {
-            direction = window.t ? window.t("direction_increase") : "เพิ่มขึ้น";
-        } else if (difference < 0) {
-            direction = window.t ? window.t("direction_decrease") : "ลดลง";
-        } else {
-            direction = window.t ? window.t("direction_same") : "คงที่";
-        }
-
-        if (differenceScore) {
-            differenceScore.textContent = window.t
-                ? window.t("score_diff_summary", { direction, diff: Math.abs(difference).toFixed(2) })
-                : `คะแนนเฉลี่ย${direction} ${Math.abs(difference).toFixed(2)} คะแนน`;
-        }
-        if (resultNote) {
-            resultNote.textContent = window.t
-                ? window.t("score_diff_percentage", { pct: Math.abs(percentagePoints).toFixed(2), count: beforeValues.length })
-                : `คิดเป็นผลต่าง ${Math.abs(percentagePoints).toFixed(2)} จุดเปอร์เซ็นต์ (คำนวณจาก ${beforeValues.length} ข้อคำถามที่ตอบครบทั้งสองช่วง)`;
-        }
+        leaving = true;
+        window.location.href = `satisfaction.html?system=${encodeURIComponent(evaluationData.systemId)}&assessment=${encodeURIComponent(evaluationId)}`;
     }
-
-    // =====================================
-    // 11. รีสตาร์ท หรือ ไปประเมินความพึงพอใจ
-    // =====================================
-
-    const restartBtn = document.getElementById("restart-btn");
-    if (restartBtn) {
-        restartBtn.addEventListener("click", () => {
-            answers = {
-                before: Array(10).fill(undefined),
-                after: Array(10).fill(undefined)
-            };
-
-            phase = "before";
-            questionIndex = 0;
-
-            if (resultSection) resultSection.hidden = true;
-            if (questionSection) questionSection.hidden = false;
-            renderQuestion();
-        });
-    }
-
-    const satisfactionBtn = document.getElementById("satisfaction-btn");
-    if (satisfactionBtn) {
-        satisfactionBtn.addEventListener("click", () => {
-            if (!selectedSystem) return;
-            window.location.href = `satisfaction.html?system=${encodeURIComponent(selectedSystem.id)}`;
-        });
-    }
-
-    // =====================================
-    // 12. Dynamic Language Switch Listener
-    // =====================================
 
     document.addEventListener("langchange", () => {
+        document.getElementById("survey-part").textContent = document.documentElement.lang === "en" ? "Part 1/2 — Efficiency and effectiveness" : "ส่วนที่ 1/2 — ประสิทธิภาพและประสิทธิผล";
         updateSystemBadge();
-        if (questionSection && !questionSection.hidden) {
-            renderQuestion();
-        } else if (resultSection && !resultSection.hidden) {
-            showResult();
-        }
+        if (questionSection && !questionSection.hidden) renderQuestion();
     });
 });

@@ -26,16 +26,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     updateSystemName();
 
-    function getQuestions() {
-        const defaultQuestions = [
-            "ความสะดวกในการเข้าใช้งานและการดำเนินงานผ่านระบบ",
-            "ความรวดเร็วในการประมวลผลและการตอบสนองของระบบ",
-            "ความถูกต้องและความน่าเชื่อถือของข้อมูลและผลลัพธ์",
-            "ความชัดเจนของหน้าจอ เมนูคำสั่ง และคู่มือการใช้งาน",
-            "ความพึงพอใจต่อภาพรวมของการใช้งานระบบ IT นี้"
-        ];
-        if (!window.t) return defaultQuestions;
-        return Array.from({ length: 5 }, (_, i) => window.t(`sat_q${i + 1}`));
+    const questions = selectedSystem
+        ? window.AssessmentCatalog.getQuestionsForTopic(systemId).slice().sort((a, b) => a.order - b.order)
+        : [];
+    function questionTextFor(question) {
+        return document.documentElement.lang === "en" ? question.text_en || question.text : question.text;
     }
 
     function getRatingLabels() {
@@ -46,8 +41,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const SVG_STAR = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
 
-    let answers = Array(5).fill(null);
-    let currentIndex = 0;
+    const requestedId = params.get("assessment");
+    const draftKey = requestedId ? `itEvaluationDraft:${requestedId}` : "itEvaluationDraft";
+    const draft = requestedId ? JSON.parse(sessionStorage.getItem(draftKey) || "null") : null;
+    const standaloneKey = `itSatisfactionSession:${systemId}`;
+    const assessmentId = requestedId || sessionStorage.getItem(standaloneKey) || `eval_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const completionKey = `itEvaluationComplete:${assessmentId}`;
+    const completed = JSON.parse(sessionStorage.getItem(completionKey) || "null");
+    const matchingCompletion = completed?.id === assessmentId && completed.systemId === systemId && completed.submittedAt;
+    const editUrl = `evaluation.html?mode=before-after&system=${encodeURIComponent(systemId || "")}`;
+    if (!selectedSystem || (requestedId && !matchingCompletion && (draft?.id !== requestedId || draft.systemId !== systemId))) {
+        window.location.replace(selectedSystem ? editUrl : "index.html");
+        return;
+    }
+    if (!requestedId) sessionStorage.setItem(standaloneKey, assessmentId);
+    const progressKey = `itSatisfactionProgress:${assessmentId}`;
+    const progress = JSON.parse(sessionStorage.getItem(progressKey) || "null");
+    const questionSnapshot = questions.map(({ id, text, text_en }) => ({ id, text, text_en }));
+    const sameQuestions = JSON.stringify(progress?.questions) === JSON.stringify(questionSnapshot);
+    const answers = sameQuestions ? progress.answers : Array(questions.length).fill(null);
+    let currentIndex = sameQuestions ? progress.index : 0;
+    let atFeedback = sameQuestions && Boolean(progress.atFeedback);
+    let leaving = false;
+    let finished = Boolean(matchingCompletion);
+    const english = () => document.documentElement.lang === "en";
+    const label = (th, en) => english() ? en : th;
+
+    window.addEventListener("beforeunload", event => {
+        if (leaving || finished) return;
+        event.preventDefault();
+        event.returnValue = "";
+    });
 
     const questionText = document.getElementById("question-text");
     const ratingStars = document.getElementById("rating-stars");
@@ -59,11 +83,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderQuestion() {
         const score = answers[currentIndex];
-        const questions = getQuestions();
         const labels = getRatingLabels();
 
         if (questionText) {
-            questionText.textContent = questions[currentIndex];
+            questionText.textContent = questionTextFor(questions[currentIndex]);
         }
 
         const questionNumber = document.getElementById("question-number");
@@ -89,14 +112,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (prevBtn) {
-            prevBtn.disabled = currentIndex === 0;
+            prevBtn.disabled = currentIndex === 0 && !draft;
         }
         if (nextBtn) {
             nextBtn.disabled = score === null;
         }
 
         if (nextBtnText) {
-            if (currentIndex === 4) {
+            if (currentIndex === questions.length - 1) {
                 nextBtnText.textContent = window.t ? window.t("btn_to_feedback") : "ไปยังข้อเสนอแนะเพิ่มเติม";
             } else {
                 nextBtnText.textContent = window.t ? window.t("next") : "ข้อถัดไป";
@@ -108,10 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Advance helper with double-click guard
     let _isAdvancing = false;
-    let _lastSelectionTime = 0;
-    let _starWasSelectedBeforeGesture = false;
-    let _repeatStar = null;
-    let _repeatClicks = 0;
+    let pendingScore = null;
 
     function advanceToNext() {
         if (_isAdvancing) return;
@@ -119,19 +139,20 @@ document.addEventListener("DOMContentLoaded", () => {
         if (typeof score !== "number") return;
         if (nextBtn && nextBtn.disabled) return;
         _isAdvancing = true;
-        _repeatStar = null;
-        _repeatClicks = 0;
+        pendingScore = null;
 
-        const questions = getQuestions();
         if (currentIndex < questions.length - 1) {
             currentIndex++;
             renderQuestion();
         } else {
+            atFeedback = true;
             const card = document.querySelector(".satisfaction-card");
             if (card) card.hidden = true;
             const feedbackSection = document.getElementById("feedback-section");
             if (feedbackSection) feedbackSection.hidden = false;
         }
+        saveProgress();
+        if (atFeedback) openConfirmation();
         setTimeout(() => {
             _isAdvancing = false;
         }, 350);
@@ -175,42 +196,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             star.addEventListener("mouseenter", () => paintStars(value));
 
-            star.addEventListener("click", (e) => {
+            star.addEventListener("click", () => {
                 if (_isAdvancing) return;
-                const prevScore = answers[currentIndex];
-                const wasAlreadySelected = (typeof prevScore === "number" && prevScore === value);
-
-                if (e.detail <= 1) {
-                    _starWasSelectedBeforeGesture = wasAlreadySelected;
-                }
-
-                if (!wasAlreadySelected) {
-                    answers[currentIndex] = value;
-                    _lastSelectionTime = Date.now();
-                    _repeatStar = value;
-                    _repeatClicks = 1;
-                    renderQuestion();
-                } else {
-                    _repeatClicks = _repeatStar === value ? _repeatClicks + 1 : 1;
-                    _repeatStar = value;
-                    if (e.detail === 2 && (_starWasSelectedBeforeGesture || Date.now() - _lastSelectionTime >= 300)) {
-                        advanceToNext();
-                    } else if (_repeatClicks >= 3) {
-                        advanceToNext();
-                    }
-                }
-            });
-
-            star.addEventListener("dblclick", (e) => {
-                e.preventDefault();
-                const cur = answers[currentIndex];
-                if (typeof cur !== "number" || cur !== value) {
+                if (pendingScore === value) {
+                    advanceToNext();
                     return;
                 }
-                if (!_starWasSelectedBeforeGesture && Date.now() - _lastSelectionTime < 300) {
-                    return;
-                }
-                advanceToNext();
+                pendingScore = value;
+                answers[currentIndex] = value;
+                saveProgress();
+                renderQuestion();
             });
 
             ratingStars.appendChild(star);
@@ -231,11 +226,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (prevBtn) {
         prevBtn.addEventListener("click", () => {
+            pendingScore = null;
             if (currentIndex > 0) {
                 _repeatStar = null;
                 _repeatClicks = 0;
                 currentIndex--;
+                saveProgress();
                 renderQuestion();
+            } else if (draft) {
+                leaving = true;
+                window.location.href = editUrl;
             }
         });
     }
@@ -259,79 +259,161 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    if (feedback) {
-        feedback.addEventListener("input", updateCharCount);
-    }
-
-    // บันทึกและคำนวณคะแนนความพึงพอใจ
+    const card = document.querySelector(".satisfaction-card");
+    const feedbackSection = document.getElementById("feedback-section");
+    const resultSection = document.getElementById("result-section");
     const submitBtn = document.getElementById("submit-btn");
-    if (submitBtn) {
-        submitBtn.addEventListener("click", async () => {
-            if (answers.some(score => typeof score !== "number")) return;
-            const total = answers.reduce((sum, score) => sum + (score || 0), 0);
-            const average = total / answers.length;
+    const isScore = value => Number.isInteger(value) && value >= 1 && value <= 5;
 
-            // อ่านข้อมูล Before–After ที่เก็บไว้ใน sessionStorage
-            const savedDraft = sessionStorage.getItem("itEvaluationDraft");
-
-            if (!savedDraft) {
-                alert(window.t ? window.t("alert_no_draft") : "ไม่พบข้อมูลการประเมินเบื้องต้น กรุณาเริ่มทำแบบประเมินใหม่อีกครั้ง");
-                window.location.href = "index.html";
-                return;
-            }
-
-            const evaluationData = JSON.parse(savedDraft);
-
-            if (evaluationData.systemId !== systemId) {
-                alert(window.t ? window.t("alert_id_mismatch") : "ข้อมูลรหัสระบบไม่สอดคล้องกัน กรุณาเริ่มทำแบบประเมินใหม่อีกครั้ง");
-                window.location.href = "index.html";
-                return;
-            }
-
-            // รวมคะแนนความพึงพอใจและข้อเสนอแนะ
-            evaluationData.satisfactionAnswers = [...answers];
-            evaluationData.satisfactionAverage = average;
-            evaluationData.feedback = feedback ? feedback.value.trim() : "";
-
-            // เก็บข้อมูลลงใน sessionStorage
-            sessionStorage.setItem("itEvaluationComplete", JSON.stringify(evaluationData));
-
-            if (typeof EvaluationAPI === "undefined") {
-                alert("ไม่พบโมดูล API กรุณาโหลดหน้าใหม่และตรวจสอบการตั้งค่า");
-                return;
-            }
-            submitBtn.disabled = true;
-            try {
-                await EvaluationAPI.submitEvaluation(evaluationData);
-            } catch (error) {
-                submitBtn.disabled = false;
-                alert(`บันทึกข้อมูลไม่สำเร็จ: ${error.message}`);
-                return;
-            }
-
-            const feedbackSection = document.getElementById("feedback-section");
-            if (feedbackSection) feedbackSection.hidden = true;
-
-            const resultSection = document.getElementById("result-section");
-            if (resultSection) resultSection.hidden = false;
-
-            const avgScoreEl = document.getElementById("average-score");
-            if (avgScoreEl) avgScoreEl.textContent = `${average.toFixed(2)} / 5`;
-
-            const resultMsg = document.getElementById("result-message");
-            if (resultMsg) {
-                resultMsg.textContent = window.t ? window.t("sat_success_msg") : "ระบบได้บันทึกผลการประเมินประสิทธิภาพและความพึงพอใจเรียบร้อยแล้ว";
-            }
-        });
+    function saveProgress() {
+        sessionStorage.setItem(progressKey, JSON.stringify({
+            answers, questions: questionSnapshot, index: currentIndex, atFeedback, feedback: feedback.value
+        }));
     }
 
-    // Dynamic Language Switch Listener
-    document.addEventListener("langchange", () => {
-        updateSystemName();
-        renderQuestion();
+    function renderSummary(record, focus = false) {
+        card.hidden = true;
+        feedbackSection.hidden = true;
+        resultSection.hidden = false;
+        document.getElementById("survey-part").hidden = true;
+        const heading = resultSection.querySelector("h2");
+        heading.textContent = label("ส่งแบบประเมินสำเร็จ", "Assessment submitted");
+
+        document.getElementById("summary-home").textContent = label("กลับหน้าหลัก", "Back to home");
+        document.getElementById("summary-system").textContent =
+            `${selectedSystem ? window.getSystemName?.(selectedSystem) || selectedSystem.name : record.systemName || ""} (${record.systemId})`;
+        const date = document.getElementById("summary-date");
+        date.dateTime = record.submittedAt;
+        date.textContent = new Date(record.submittedAt).toLocaleString(english() ? "en" : "th");
+        const satisfaction = document.getElementById("summary-satisfaction");
+        satisfaction.replaceChildren();
+
+        const scoreLabel = score => score == null ? label("ไม่มีข้อมูล", "No data") : `${score.toFixed(2)} / 5`;
+        const average = record.satisfactionAverage;
+        const level = average >= 3.5 ? "sat_high" : average >= 2.5 ? "sat_medium" : "sat_low";
+        const scores = record.satisfactionAnswers;
+        const answered = scores.filter(isScore).length;
+
+        document.getElementById("summary-average-title").textContent = label("คะแนนความพึงพอใจเฉลี่ย", "Average satisfaction");
+        document.getElementById("summary-average").textContent = scoreLabel(average);
+        const levelText = document.getElementById("summary-level");
+        levelText.textContent = average == null ? "" : window.t(level);
+        levelText.dataset.level = average == null ? "" : level;
+        document.getElementById("summary-count-title").textContent = label("จำนวนคำถามที่ตอบ", "Questions answered");
+        document.getElementById("summary-count").textContent = `${answered} / ${scores.length}`;
+        document.getElementById("summary-count-note").textContent = answered === scores.length
+            ? label("ตอบครบทุกข้อ", "All questions answered")
+            : label(`ข้าม ${scores.length - answered} ข้อ`, `${scores.length - answered} skipped`);
+        document.getElementById("summary-details-title").textContent = label("รายละเอียดผลการประเมินรายข้อ", "Scores by question");
+
+        scores.forEach((score, index) => {
+            const row = document.createElement("li");
+            const title = document.createElement("span");
+            const question = record.satisfactionQuestions?.[index];
+            title.textContent = `${index + 1}. ${question ? questionTextFor(question) : label("คำถาม", "Question")}`;
+            const value = document.createElement("strong");
+            value.textContent = scoreLabel(isScore(score) ? score : null);
+            row.append(title, value);
+            if (isScore(score)) {
+                const bar = document.createElement("progress");
+                bar.max = 5;
+                bar.value = score;
+                bar.setAttribute("aria-label", title.textContent);
+                row.append(bar);
+            }
+            satisfaction.append(row);
+        });
+        if (focus) heading.focus();
+    }
+
+    document.getElementById("summary-home").addEventListener("click", () => {
+        if (!requestedId) sessionStorage.removeItem(standaloneKey);
+    });
+    feedback.value = progress?.feedback || "";
+    feedback.addEventListener("input", () => {
+        saveProgress();
         updateCharCount();
     });
+    document.getElementById("edit-satisfaction").onclick = () => {
+        pendingScore = null;
+        atFeedback = false;
+        card.hidden = false;
+        feedbackSection.hidden = true;
+        saveProgress();
+        renderQuestion();
+    };
 
-    // เริ่มแสดงคำถามข้อแรก
-    renderQuestion();
+    let summary = matchingCompletion ? completed : null;
+    const confirmation = document.getElementById("submit-confirmation");
+    function openConfirmation() {
+        if (!finished && answers.length > 0 && answers.length === questions.length && answers.every(isScore)) {
+            confirmation.returnValue = "";
+            confirmation.showModal();
+        }
+    }
+    submitBtn.onclick = openConfirmation;
+    confirmation.addEventListener("close", async () => {
+        if (confirmation.returnValue !== "confirm") return;
+        if (submitBtn.disabled || finished || !answers.length || answers.length !== questions.length || !answers.every(isScore)) return;
+        submitBtn.disabled = true;
+        const error = document.getElementById("submit-error");
+        error.textContent = "";
+        const profile = JSON.parse(sessionStorage.getItem("evaluatorProfile") || "{}");
+        const record = {
+            ...draft,
+            id: assessmentId,
+            systemId,
+            systemName: selectedSystem.name,
+            evaluatorName: draft?.evaluatorName || profile.name,
+            userRole: draft?.userRole || profile.role,
+            satisfactionAnswers: [...answers],
+            satisfactionQuestions: questionSnapshot,
+            satisfactionAverage: answers.reduce((sum, score) => sum + score, 0) / answers.length,
+            feedback: feedback.value.trim(),
+            submittedAt: new Date().toISOString()
+        };
+        try {
+            const saved = await EvaluationAPI.submitEvaluation(record);
+            summary = { ...record, submittedAt: saved.submittedAt?.includes("T") ? saved.submittedAt : saved.submittedAt ? saved.submittedAt.replace(" ", "T") + "Z" : record.submittedAt };
+            sessionStorage.setItem(completionKey, JSON.stringify(summary));
+            if (draft) {
+                sessionStorage.removeItem(draftKey);
+                sessionStorage.removeItem(`itEvaluationProgress:${systemId}`);
+            }
+            sessionStorage.removeItem(progressKey);
+            finished = true;
+            renderSummary(summary, true);
+        } catch {
+            error.textContent = label("บันทึกผลไม่สำเร็จ กรุณาลองอีกครั้ง", "Could not save your assessment. Please try again.");
+            submitBtn.disabled = false;
+        }
+    });
+
+    function renderLanguage() {
+        if (summary) {
+            renderSummary(summary);
+            return;
+        }
+        updateSystemName();
+        if (!questions.length) {
+            card.hidden = false;
+            questionText.textContent = label("ระบบนี้ยังไม่มีคำถาม กรุณาติดต่อผู้ดูแล", "No questions have been configured for this system.");
+            nextBtn.disabled = true;
+            return;
+        }
+        renderQuestion();
+        updateCharCount();
+        document.getElementById("survey-part").hidden = !draft;
+        document.getElementById("survey-part").textContent = label("ส่วนที่ 2/2 — ความพึงพอใจ", "Part 2/2 — Satisfaction");
+        submitBtn.querySelector("span").textContent = label("ส่งแบบประเมินและดูผลสรุป", "Submit and view summary");
+        document.getElementById("edit-satisfaction").textContent = label("ย้อนกลับไปแก้คะแนน", "Edit ratings");
+    }
+
+    window.addEventListener("pageshow", event => {
+        if (event.persisted) window.location.reload();
+    });
+    card.hidden = atFeedback;
+    feedbackSection.hidden = !atFeedback;
+    document.addEventListener("langchange", renderLanguage);
+    renderLanguage();
 });
