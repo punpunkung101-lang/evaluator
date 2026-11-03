@@ -160,11 +160,16 @@
 
             // Fetch records
             let records = [];
+            let dataError = null;
             if (typeof EvaluationAPI !== "undefined") {
                 const res = await EvaluationAPI.getEvaluations();
                 if (res.success && Array.isArray(res.data)) {
                     records = res.data.filter(r => r.systemId === systemId);
+                } else {
+                    dataError = res.error || "ไม่สามารถโหลดข้อมูลจาก C++ Backend ได้";
                 }
+            } else {
+                dataError = "โมดูล EvaluationAPI ไม่พร้อมใช้งาน";
             }
 
             const countEl = document.getElementById("evaluatorCount");
@@ -181,7 +186,7 @@
                 if (satEl) satEl.textContent = "-";
                 if (feedbackEl) {
                     feedbackEl.innerHTML = `
-                        <div class="state-banner empty">ยังไม่มีข้อมูลการประเมินสำหรับระบบนี้</div>
+                        <div class="state-banner ${dataError ? "error" : "empty"}">${dataError ? `โหลดข้อมูลไม่สำเร็จ: ${dataError}` : "ยังไม่มีข้อมูลการประเมินสำหรับระบบนี้"}</div>
                     `;
                 }
                 return;

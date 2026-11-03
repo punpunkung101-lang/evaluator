@@ -8,13 +8,29 @@
 evaluator/
 ├── frontend/
 │   ├── Satisfaction_Survey/
-│   │   ├── user/                  # index.html, evaluation.html, satisfaction.html
-│   │   ├── admin/                 # dashboard.html, evaluation-detail.html
-│   │   └── assets/                # CSS และ JavaScript ที่ใช้ร่วมกัน
+│   │   ├── user/
+│   │   ├── admin/
+│   │   └── assets/
+│   │       ├── css/
+│   │       └── js/
+│   │           ├── shared/
+│   │           │   └── api.js
+│   │           ├── user/
+│   │           └── admin/
+│   │
 │   └── Effectiveness_Of_It/
-│       └── main/                  # เตรียมสำหรับหน้าประเมินประสิทธิผล
-├── backend/src/                   # ซอร์ส C++ ที่มีอยู่
-└── database/                      # schema.sql และ seed.sql
+│       └── main/
+│
+├── backend/
+│   └── src/                    # C++ Backend เดิม
+│
+├── database/
+│   ├── evaluator.db            # ไฟล์ฐานข้อมูล SQLite
+│   ├── schema.sql              # คำสั่งสร้างตาราง
+│   └── README.md               # อธิบายฐานข้อมูล
+│
+├── .gitignore
+└── README.md
 ```
 
 ## Satisfaction Survey

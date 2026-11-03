@@ -42,3 +42,8 @@ __pycache__/
 .venv/
 venv/
 
+# SQLite database files
+database/*.db
+database/*.db-journal
+database/*.db-shm
+database/*.db-wal

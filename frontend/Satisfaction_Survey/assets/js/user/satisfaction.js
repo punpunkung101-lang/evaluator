@@ -110,6 +110,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let _isAdvancing = false;
     let _lastSelectionTime = 0;
     let _starWasSelectedBeforeGesture = false;
+    let _repeatStar = null;
+    let _repeatClicks = 0;
 
     function advanceToNext() {
         if (_isAdvancing) return;
@@ -117,6 +119,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (typeof score !== "number") return;
         if (nextBtn && nextBtn.disabled) return;
         _isAdvancing = true;
+        _repeatStar = null;
+        _repeatClicks = 0;
 
         const questions = getQuestions();
         if (currentIndex < questions.length - 1) {
@@ -172,6 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
             star.addEventListener("mouseenter", () => paintStars(value));
 
             star.addEventListener("click", (e) => {
+                if (_isAdvancing) return;
                 const prevScore = answers[currentIndex];
                 const wasAlreadySelected = (typeof prevScore === "number" && prevScore === value);
 
@@ -182,9 +187,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!wasAlreadySelected) {
                     answers[currentIndex] = value;
                     _lastSelectionTime = Date.now();
+                    _repeatStar = value;
+                    _repeatClicks = 1;
                     renderQuestion();
                 } else {
+                    _repeatClicks = _repeatStar === value ? _repeatClicks + 1 : 1;
+                    _repeatStar = value;
                     if (e.detail === 2 && (_starWasSelectedBeforeGesture || Date.now() - _lastSelectionTime >= 300)) {
+                        advanceToNext();
+                    } else if (_repeatClicks >= 3) {
                         advanceToNext();
                     }
                 }
@@ -221,6 +232,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (prevBtn) {
         prevBtn.addEventListener("click", () => {
             if (currentIndex > 0) {
+                _repeatStar = null;
+                _repeatClicks = 0;
                 currentIndex--;
                 renderQuestion();
             }
@@ -253,7 +266,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // บันทึกและคำนวณคะแนนความพึงพอใจ
     const submitBtn = document.getElementById("submit-btn");
     if (submitBtn) {
-        submitBtn.addEventListener("click", () => {
+        submitBtn.addEventListener("click", async () => {
+            if (answers.some(score => typeof score !== "number")) return;
             const total = answers.reduce((sum, score) => sum + (score || 0), 0);
             const average = total / answers.length;
 
@@ -282,9 +296,17 @@ document.addEventListener("DOMContentLoaded", () => {
             // เก็บข้อมูลลงใน sessionStorage
             sessionStorage.setItem("itEvaluationComplete", JSON.stringify(evaluationData));
 
-            // บันทึกผ่าน EvaluationAPI เพื่อส่งต่อไปยัง Backend/Supabase หรือ Local Storage ถาวร
-            if (typeof EvaluationAPI !== "undefined") {
-                EvaluationAPI.submitEvaluation(evaluationData);
+            if (typeof EvaluationAPI === "undefined") {
+                alert("ไม่พบโมดูล API กรุณาโหลดหน้าใหม่และตรวจสอบการตั้งค่า");
+                return;
+            }
+            submitBtn.disabled = true;
+            try {
+                await EvaluationAPI.submitEvaluation(evaluationData);
+            } catch (error) {
+                submitBtn.disabled = false;
+                alert(`บันทึกข้อมูลไม่สำเร็จ: ${error.message}`);
+                return;
             }
 
             const feedbackSection = document.getElementById("feedback-section");
