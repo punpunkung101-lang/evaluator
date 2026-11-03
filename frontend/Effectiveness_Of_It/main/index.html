@@ -32,7 +32,7 @@
                     <span class="control-icon" aria-hidden="true">☾</span><span data-i18n="theme">โหมดมืด</span>
                 </button>
                 <button class="control-button" id="language-toggle" type="button" aria-label="Switch language">TH / EN</button>
-                <button class="login-button" type="button" data-open-dialog="login-dialog"><span aria-hidden="true">◉</span><span data-i18n="login">เข้าสู่ระบบ</span></button>
+                <button class="login-button" id="auth-button" type="button" data-open-dialog="login-dialog"><span aria-hidden="true">◉</span><span data-i18n="login">เข้าสู่ระบบ</span></button>
                 <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav"><span></span><span></span><span></span><span class="sr-only">Menu</span></button>
             </div>
         </div>
@@ -98,7 +98,11 @@
     <footer class="site-footer"><div class="shell"><span data-i18n="footer">คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</span><span>© <span id="year"></span> AHS IT Evaluation</span></div></footer>
 
     <dialog id="contact-dialog" class="dialog"><button class="dialog-close" type="button" data-close-dialog aria-label="Close">×</button><p class="eyebrow" data-i18n="contact">ติดต่อเรา</p><h2 data-i18n="contactTitle">ศูนย์เทคโนโลยีสารสนเทศ</h2><p data-i18n="contactText">หากต้องการความช่วยเหลือเกี่ยวกับการประเมิน โปรดติดต่อผู้ดูแลระบบของคณะสหเวชศาสตร์</p><a href="https://github.com/punpunkung101-lang">The Dev for this wed site</a></dialog>
-    <dialog id="login-dialog" class="dialog"><button class="dialog-close" type="button" data-close-dialog aria-label="Close">×</button><p class="eyebrow" data-i18n="login">เข้าสู่ระบบ</p><h2 data-i18n="loginTitle">เข้าสู่ระบบผู้ดูแล</h2><form id="login-form"><label><span data-i18n="username">ชื่อผู้ใช้</span><input required autocomplete="username" type="text"></label><label><span data-i18n="password">รหัสผ่าน</span><input required autocomplete="current-password" type="password"></label><button class="submit-button" type="submit" data-i18n="signIn">เข้าสู่ระบบ</button><p class="form-note" id="login-note" aria-live="polite"></p></form></dialog>
+    <dialog id="login-dialog" class="dialog"><button class="dialog-close" type="button" data-close-dialog aria-label="Close">×</button><p class="eyebrow" data-i18n="login">เข้าสู่ระบบ</p><h2 data-i18n="loginTitle">เข้าสู่ระบบ</h2>
+        <form id="login-form"><label><span data-i18n="username">ชื่อผู้ใช้</span><input id="login-username" required autocomplete="username" type="text"></label><label><span data-i18n="password">รหัสผ่าน</span><input id="login-password" required autocomplete="current-password" type="password"></label><button class="submit-button" type="submit" data-i18n="signIn">เข้าสู่ระบบ</button><p class="form-note" id="login-note" aria-live="polite"></p><button class="auth-switch" id="show-register" type="button" data-i18n="createAccount">สร้างบัญชี</button></form>
+        <form id="register-form" hidden><label><span data-i18n="username">ชื่อผู้ใช้</span><input name="username" required minlength="3" autocomplete="username" type="text"></label><label><span data-i18n="password">รหัสผ่าน (อย่างน้อย 10 ตัวอักษร)</span><input name="password" required minlength="10" autocomplete="new-password" type="password"></label><label><span data-i18n="fullName">ชื่อ-นามสกุล</span><input name="fullName" required autocomplete="name" type="text"></label><label><span data-i18n="email">อีเมล</span><input name="email" required autocomplete="email" type="email"></label><label><span data-i18n="evaluatorId">รหัสผู้ประเมิน</span><input name="evaluatorId" required type="text"></label><label><span data-i18n="role">ประเภทผู้ใช้</span><select name="role" required><option value="student">นิสิต</option><option value="teacher">อาจารย์ / นักวิจัย</option><option value="staff">บุคลากรสายสนับสนุน</option></select></label><button class="submit-button" type="submit" data-i18n="register">สร้างบัญชี</button><p class="form-note" id="register-note" aria-live="polite"></p><button class="auth-switch" id="show-login" type="button" data-i18n="backToLogin">กลับไปเข้าสู่ระบบ</button></form>
+    </dialog>
+    <script src="../../Satisfaction_Survey/assets/js/shared/api.js"></script>
     <script src="assets/js/app.js"></script>
 </body>
 </html>

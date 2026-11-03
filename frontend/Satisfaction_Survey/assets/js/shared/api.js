@@ -1,19 +1,35 @@
 /** Shared API for the evaluator C++/SQLite backend. */
 const API_CONFIG = {
-    backendBaseUrl: (typeof window !== "undefined" && window.ENV?.API_BASE_URL) || "http://localhost:8080"
+    backendBaseUrl: (typeof window !== "undefined" && window.ENV?.API_BASE_URL) || (typeof window !== "undefined" ? `http://${window.location.hostname || "localhost"}:8080` : "http://localhost:8080")
 };
 
 const EvaluationAPI = {
     async request(path, options = {}) {
         let response;
         try {
-            response = await fetch(`${API_CONFIG.backendBaseUrl}${path}`, options);
+            response = await fetch(`${API_CONFIG.backendBaseUrl}${path}`, { credentials: "include", ...options });
         } catch (error) {
             throw new Error(`ไม่สามารถเชื่อมต่อ C++ Backend (${API_CONFIG.backendBaseUrl}): ${error.message}`);
         }
         const body = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(body.error || `Backend ตอบกลับ HTTP ${response.status}`);
         return body;
+    },
+
+    async login(username, password) {
+        return this.request("/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password }) });
+    },
+
+    async register(account) {
+        return this.request("/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(account) });
+    },
+
+    async getCurrentUser() {
+        return this.request("/auth/me");
+    },
+
+    async logout() {
+        return this.request("/auth/logout", { method: "POST" });
     },
 
     async submitEvaluation(record) {

@@ -96,7 +96,7 @@ pkg-config --cflags --libs sqlite3
 จากนั้น Build:
 
 ``` powershell
-g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -o backend/evaluator_backend.exe
+g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evaluator_backend.exe
 ```
 
 ถ้า Build สำเร็จ จะได้ไฟล์:
@@ -151,9 +151,19 @@ Endpoint ที่ Backend รองรับ:
   Method   Endpoint         รายละเอียด
   -------- ---------------- ----------------------
   GET      `/health`        ตรวจสอบสถานะ Backend
-  GET      `/evaluations`   อ่านรายการผลการประเมิน
-  POST     `/evaluations`   บันทึกผลการประเมิน
-  DELETE   `/evaluations`   ลบข้อมูลการประเมิน
+  POST     `/auth/register` สร้างบัญชีและเข้าสู่ระบบ
+  POST     `/auth/login`    เข้าสู่ระบบ
+  GET      `/auth/me`       อ่านข้อมูลบัญชีปัจจุบัน
+  POST     `/auth/logout`   ออกจากระบบ
+  GET      `/evaluations`   อ่านรายการผลการประเมิน (บัญชีผู้ดูแล)
+  POST     `/evaluations`   บันทึกผลการประเมิน (ต้องเข้าสู่ระบบ)
+  DELETE   `/evaluations`   ลบข้อมูล (บัญชีผู้ดูแลเท่านั้น)
+
+สร้างบัญชีผู้ดูแลเริ่มต้นโดยกำหนด environment variables ก่อนเริ่ม Backend:
+`EVALUATOR_ADMIN_USERNAME`, `EVALUATOR_ADMIN_PASSWORD` (อย่างน้อย 14 ตัวอักษร),
+`EVALUATOR_ADMIN_EMAIL` และ `EVALUATOR_ADMIN_EVALUATOR_ID`.
+`EVALUATOR_ADMIN_FULL_NAME` เป็นตัวเลือก หากไม่กำหนดจะใช้ชื่อเริ่มต้น
+บัญชีทั่วไปที่สมัครจากหน้าเว็บไม่มีสิทธิ์ผู้ดูแล
 
 Backend ใช้ Port `8080` เป็นค่าเริ่มต้น หากต้องการใช้ Port อื่น สามารถส่งหมายเลข
 Port เป็น argument ได้ เช่น:
@@ -316,7 +326,7 @@ pkg-config --cflags --libs sqlite3
 Build the backend:
 
 ``` powershell
-g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -o backend/evaluator_backend.exe
+g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evaluator_backend.exe
 ```
 
 If the build succeeds, the executable will be created at:
@@ -374,9 +384,18 @@ Available API endpoints:
   Method   Endpoint         Description
   -------- ---------------- -----------------------------
   GET      `/health`        Check backend health
-  GET      `/evaluations`   Retrieve evaluation records
-  POST     `/evaluations`   Save an evaluation
-  DELETE   `/evaluations`   Delete evaluation records
+  POST     `/auth/register` Create an account and sign in
+  POST     `/auth/login`    Sign in
+  GET      `/auth/me`       Get the current account
+  POST     `/auth/logout`   Sign out
+  GET      `/evaluations`   Retrieve records (administrator account)
+  POST     `/evaluations`   Save a record (authentication required)
+  DELETE   `/evaluations`   Delete records (administrator only)
+
+Provision an initial administrator by setting `EVALUATOR_ADMIN_USERNAME`,
+`EVALUATOR_ADMIN_PASSWORD` (14+ characters), `EVALUATOR_ADMIN_EMAIL`, and
+`EVALUATOR_ADMIN_EVALUATOR_ID` before starting the backend.
+`EVALUATOR_ADMIN_FULL_NAME` is optional. Publicly registered accounts are not admins.
 
 The default port is `8080`. To use a different port, pass it as the
 first argument:

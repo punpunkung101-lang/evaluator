@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+    <script>document.documentElement.classList.add("auth-checking");</script>
+    <style>.auth-checking body{visibility:hidden}</style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="sat_page_title">แบบประเมินความพึงพอใจการใช้งานระบบ IT | IT Evaluator</title>
@@ -13,7 +15,7 @@
     <link rel="stylesheet" href="../assets/css/common.css">
     <link rel="stylesheet" href="../assets/css/pages/satisfaction.css">
 </head>
-<body>
+<body data-auth-required="true">
 
 <main class="container">
 
@@ -102,6 +104,7 @@
 <!-- JS: Shared Data, Shared API & User Page Logic -->
 <script src="../assets/js/shared/systems-data.js"></script>
 <script src="../assets/js/shared/api.js"></script>
+<script src="../assets/js/shared/auth-gate.js"></script>
 <script src="../assets/js/shared/theme-lang.js"></script>
 <script src="../assets/js/user/satisfaction.js"></script>
 

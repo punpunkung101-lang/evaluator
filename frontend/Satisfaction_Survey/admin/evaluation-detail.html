@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+    <script>document.documentElement.classList.add("auth-checking");</script>
+    <style>.auth-checking body{visibility:hidden}</style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>รายละเอียดผลการประเมินรายระบบ | IT Evaluator Admin</title>
@@ -16,7 +18,7 @@
     <link rel="stylesheet" href="../assets/css/pages/dashboard.css">
 </head>
 
-<body>
+<body data-auth-required="admin">
     <div class="admin-layout">
 
         <!-- ========== SIDEBAR ========== -->
@@ -137,9 +139,12 @@
     <!-- Scripts -->
     <script src="../assets/js/shared/systems-data.js"></script>
     <script src="../assets/js/shared/api.js"></script>
+    <script src="../assets/js/shared/auth-gate.js"></script>
     <script src="../assets/js/shared/theme-lang.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
+            const user = await window.authReady;
+            if (!user || !user.isAdmin) return;
             const params = new URLSearchParams(window.location.search);
             const systemId = params.get("system");
 

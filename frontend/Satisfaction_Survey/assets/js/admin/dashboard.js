@@ -13,6 +13,8 @@
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
+    const user = await window.authReady;
+    if (!user || !user.isAdmin) return;
 
     // ==========================================
     // 1. DATA SOURCES & SYSTEMS DEFINITION

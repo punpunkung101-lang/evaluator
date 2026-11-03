@@ -753,6 +753,13 @@
         return "th";
     }
 
+    async function getAdminUser() {
+        if (!window.EvaluationAPI) throw new Error("Authentication API is unavailable");
+        const user = await window.EvaluationAPI.getCurrentUser();
+        if (!user.isAdmin) throw new Error("Administrator account required");
+        return user;
+    }
+
     function saveTheme(val) {
         localStorage.setItem(THEME_KEY, val);
     }

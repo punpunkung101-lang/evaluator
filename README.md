@@ -16,7 +16,7 @@ evaluator/
 
 ## เริ่มใช้งานแบบสำรวจความพึงพอใจ
 
-เปิดไฟล์ [frontend/Satisfaction_Survey/user/index.html](frontend/Satisfaction_Survey/user/index.html) ในเว็บเบราว์เซอร์ หรือเปิดโฟลเดอร์ `frontend/Satisfaction_Survey` ด้วย VS Code และใช้ Live Server
+เริ่ม Backend ก่อน แล้วเปิด `frontend/Effectiveness_Of_It/main/index.html` ผ่าน Live Server หรือเว็บเซิร์ฟเวอร์ในเครื่อง (อย่าเปิดเป็น `file://`) บัญชีใหม่สร้างได้จากหน้าต่างเข้าสู่ระบบ ข้อมูลบัญชีใช้รหัสผ่านแบบ PBKDF2 และ session cookie ฝั่ง Backend
 
 ## สถานะโครงการประเมินประสิทธิผล
 
@@ -30,7 +30,7 @@ evaluator/
 1\. Build (เฉพาะกรณี EXE ยังไม่มี หรือแก้โค้ด)
 
 ```
-g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -o backend/evaluator_backend.exe
+g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evaluator_backend.exe
 ```
 
 2\. Run Backend
@@ -48,5 +48,7 @@ http://localhost:8080/health
 ```
 
 ถ้าได้ `{"status":"ok"}` แสดงว่าพร้อมใช้งานครับ
+
+จากนั้นเปิดหน้าแรกผ่าน Live Server แล้วสร้างบัญชีหรือเข้าสู่ระบบก่อนเริ่มแบบประเมิน
 
 จำไว้: ครั้งต่อไปถ้าไม่ได้แก้ `main.cpp` และยังมีไฟล์ `.exe` อยู่ ข้ามขั้นตอน Build ไปได้เลยครับ 😁
