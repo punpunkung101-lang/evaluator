@@ -5,6 +5,7 @@
 #include <bcrypt.h>
 #include <sqlite3.h>
 #include <algorithm>
+#include <atomic>
 #include <cctype>
 #include <cstdlib>
 #include <ctime>
@@ -12,8 +13,10 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <mutex>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <vector>
 
 struct Json
@@ -476,6 +479,11 @@ static Response handle(sqlite3 *db, const std::string &method, const std::string
         const char *sql = "INSERT INTO users(id,username,password_hash,full_name,email,evaluator_id,user_role) VALUES(?,?,?,?,?,?,?)";
         if (sqlite3_prepare_v2(db, sql, -1, &q, nullptr) != SQLITE_OK)
             return error(500, "Account creation failed");
+        if (!exec(db, "BEGIN IMMEDIATE"))
+        {
+            sqlite3_finalize(q);
+            return error(500, "Account creation failed");
+        }
         bindText(q, 1, id);
         bindText(q, 2, username);
         bindText(q, 3, hash);
@@ -486,11 +494,17 @@ static Response handle(sqlite3 *db, const std::string &method, const std::string
         int rc = sqlite3_step(q);
         sqlite3_finalize(q);
         if (rc != SQLITE_DONE)
+        {
+            exec(db, "ROLLBACK");
             return error(rc == SQLITE_CONSTRAINT ? 409 : 500, rc == SQLITE_CONSTRAINT ? "Username, email, or evaluator ID is already registered" : "Account creation failed");
+        }
         User u{id, username, name, email, evaluator, role};
         Response r{201, "{\"success\":true,\"user\":" + userJson(u) + "}", ""};
-        if (!createSession(db, u, r, secureCookie))
+        if (!createSession(db, u, r, secureCookie) || !exec(db, "COMMIT"))
+        {
+            exec(db, "ROLLBACK");
             return error(500, "Could not start session");
+        }
         return r;
     }
     if (method == "POST" && path == "/auth/login")
@@ -503,9 +517,12 @@ static Response handle(sqlite3 *db, const std::string &method, const std::string
         if (sqlite3_prepare_v2(db, "SELECT id,password_hash FROM users WHERE username=? COLLATE NOCASE", -1, &q, nullptr) != SQLITE_OK)
             return error(500, "Login failed");
         bindText(q, 1, username);
-        bool found = sqlite3_step(q) == SQLITE_ROW;
+        int rc = sqlite3_step(q);
+        bool found = rc == SQLITE_ROW;
         std::string id = found ? col(q, 0) : "", hash = found ? col(q, 1) : "";
         sqlite3_finalize(q);
+        if (rc != SQLITE_ROW && rc != SQLITE_DONE)
+            return error(500, "Login failed");
         User u;
         if (!found || !passwordMatches(password, hash) || !loadUser(db, id, u))
             return error(401, "Invalid username or password");
@@ -748,28 +765,43 @@ static bool bootstrapAdmin(sqlite3 *db)
         std::cout << "Bootstrap administrator account created for " << username << "\n";
     return ok;
 }
-static void client(SOCKET sock, sqlite3 *db)
+static void client(SOCKET sock, sqlite3 *db, std::mutex &dbMutex)
 {
+    const DWORD timeout = 5000;
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeout, sizeof timeout);
+    setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char *)&timeout, sizeof timeout);
     std::string req;
     char buf[8192];
     int n;
+    size_t bodyLength = 0;
+    bool complete = false;
+    const auto started = GetTickCount64();
     while ((n = recv(sock, buf, sizeof(buf), 0)) > 0)
     {
+        if (GetTickCount64() - started >= timeout)
+            break;
         req.append(buf, n);
         auto p = req.find("\r\n\r\n");
         if (p != std::string::npos)
         {
-            size_t len = 0;
-            std::string h = req.substr(0, p);
-            size_t x = h.find("Content-Length:");
-            if (x != std::string::npos)
-                len = std::strtoul(h.c_str() + x + 15, nullptr, 10);
-            if (req.size() >= p + 4 + len)
+            const auto length = header(req.substr(0, p), "Content-Length");
+            if (!length.empty())
+            {
+                char *tail = nullptr;
+                const auto parsed = std::strtoull(length.c_str(), &tail, 10);
+                if (!std::isdigit((unsigned char)length.front()) || *tail || parsed > SIZE_MAX)
+                    break;
+                bodyLength = (size_t)parsed;
+            }
+            if (req.size() - (p + 4) >= bodyLength)
+            {
+                complete = true;
                 break;
+            }
         }
     }
     size_t end = req.find("\r\n\r\n");
-    if (end == std::string::npos)
+    if (!complete)
     {
         closesocket(sock);
         return;
@@ -777,7 +809,7 @@ static void client(SOCKET sock, sqlite3 *db)
     std::istringstream first(req.substr(0, req.find("\r\n")));
     std::string method, path, ver;
     first >> method >> path >> ver;
-    std::string headers = req.substr(0, end), body = req.substr(end + 4);
+    std::string headers = req.substr(0, end), body = req.substr(end + 4, bodyLength);
     std::string origin = header(headers, "Origin");
     bool localOrigin = isLocalOrigin(origin);
     bool secureCookie = origin.rfind("https://", 0) == 0;
@@ -787,7 +819,10 @@ static void client(SOCKET sock, sqlite3 *db)
         r = {204, "", ""};
     }
     else
+    {
+        std::lock_guard<std::mutex> lock(dbMutex);
         r = handle(db, method, path, body, header(headers, "Cookie"), secureCookie);
+    }
     std::string label = r.status == 200 ? "OK" : r.status == 201 ? "Created"
                                              : r.status == 204   ? "No Content"
                                              : r.status == 400   ? "Bad Request"
@@ -834,11 +869,31 @@ int main(int argc, char **argv)
         return 1;
     }
     std::cout << "Evaluator C++ API listening on http://localhost:" << port << "\nDatabase: database/evaluator.db\n";
+    std::mutex dbMutex;
+    std::atomic<unsigned> activeClients{0};
     for (;;)
     {
         SOCKET s = accept(server, nullptr, nullptr);
-        if (s != INVALID_SOCKET)
-            client(s, db);
+        if (s == INVALID_SOCKET)
+            continue;
+        if (activeClients.fetch_add(1) >= 32)
+        {
+            activeClients.fetch_sub(1);
+            closesocket(s);
+            continue;
+        }
+        try
+        {
+            std::thread([s, db, &dbMutex, &activeClients] {
+                client(s, db, dbMutex);
+                activeClients.fetch_sub(1);
+            }).detach();
+        }
+        catch (const std::system_error &)
+        {
+            activeClients.fetch_sub(1);
+            closesocket(s);
+        }
     }
     sqlite3_close(db);
     WSACleanup();

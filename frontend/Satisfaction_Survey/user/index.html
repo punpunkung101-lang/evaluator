@@ -14,15 +14,40 @@
     <!-- CSS: Common Master Stylesheet & Page Styles -->
     <link rel="stylesheet" href="../assets/css/common.css">
     <link rel="stylesheet" href="../assets/css/pages/evaluation.css">
+    <link rel="stylesheet" href="../../Effectiveness_Of_It/main/assets/css/evaluation-shell.css">
+<link rel="stylesheet" href="../assets/css/components/user-field-effects.css">
 </head>
-<body data-auth-required="true">
+<body data-auth-required="true" class="survey-sidebar-style survey-home">
+    <header class="ev-header ev-survey-header">
+        <div class="ev-topbar"><div class="ev-header-inner"><span data-i18n="admin_shell_label">ศูนย์ประเมินระบบสารสนเทศ (IT Evaluator)</span></div></div>
+        <div class="ev-header-inner ev-university">
+            <div class="ev-faculty">
+                <img src="../../Publice/Nu_bage.png" alt="ตรามหาวิทยาลัยนเรศวร" width="72" height="72">
+                <span><strong>คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</strong><small lang="en">Faculty of Allied Health Sciences, Naresuan University</small></span>
+            </div>
+            <div class="ev-controls">
+
+                <span id="admin-toolbar-mount"></span>
+                <button type="button" class="ev-signin" disabled data-i18n="admin_shell_signin">เข้าสู่ระบบ — ยังไม่พร้อมใช้งาน</button>
+            </div>
+        </div>
+    </header>
 
     <main class="container">
         <header class="evaluation-header">
-            <h1 data-i18n="app_title">IT Evaluator</h1>
-            <p class="subtitle" data-i18n="app_subtitle">ระบบประเมินประสิทธิภาพและประสิทธิผลของระบบเทคโนโลยีสารสนเทศ</p>
+            <h1 data-i18n="survey_home_title">แบบประเมินความพึงพอใจต่อระบบ IT</h1>
             <p class="institution" data-i18n="institution">คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</p>
         </header>
+
+        <section class="survey-intro" aria-labelledby="survey-intro-title">
+            <h2 id="survey-intro-title" data-i18n="survey_home_instructions">คำชี้แจง</h2>
+            <p data-i18n="survey_home_purpose">แบบประเมินนี้มีวัตถุประสงค์เพื่อสำรวจความพึงพอใจของผู้ใช้งานต่อระบบสารสนเทศ</p>
+            <ul>
+                <li data-i18n="survey_home_count">ชุดคำถามมาตรฐานมีทั้งหมด 15 ข้อ</li>
+                <li data-i18n="survey_home_scale">ใช้ระดับคะแนน 1–5</li>
+                <li data-i18n="survey_home_experience">โปรดตอบตามประสบการณ์การใช้งานจริง</li>
+            </ul>
+        </section>
 
         <!-- ข้อมูลผู้ประเมินและการเลือกระบบสารสนเทศ -->
         <section class="form-section profile-card" id="profile-section">
@@ -42,7 +67,7 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="user-role" data-i18n="evaluator_role_label">ประเภทบุคลากร / ผู้ใช้งาน</label>
+                <label class="form-label" for="user-role" data-i18n="survey_home_role">ประเภทผู้ประเมิน</label>
                 <select id="user-role" class="form-control">
                     <option value="" data-i18n="role_select_prompt">-- โปรดเลือกประเภทผู้ใช้งาน --</option>
                     <option value="student" data-i18n="role_student">นิสิต</option>
@@ -60,7 +85,7 @@
             </div>
 
             <button id="start-btn" class="btn btn-primary" type="button">
-                <span data-i18n="evaluator_start_btn">เริ่มต้นการประเมิน</span>
+                <span data-i18n="survey_home_start">เริ่มประเมินความพึงพอใจ</span>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42 5.43 5.43H5v2z"/></svg>
             </button>
         </section>
@@ -152,10 +177,11 @@
                         role: userRole
                     }));
 
-                    window.location.href = `evaluation.html?system=${encodeURIComponent(selectedSystem)}`;
+                    window.location.href = `satisfaction.html?system=${encodeURIComponent(selectedSystem)}`;
                 });
             }
         });
     </script>
+    <script src="../../Effectiveness_Of_It/main/assets/js/sidebar.js"></script>
 </body>
 </html>

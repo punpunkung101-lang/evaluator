@@ -1,0 +1,20 @@
+/* Loaded by user pages only. */
+:where(input:not([type="hidden"], [type="submit"], [type="button"], [type="reset"]), textarea, select, .rating-star):focus:not(:disabled) {
+    outline: 2px solid #60a5fa;
+    outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 800px) and (prefers-reduced-motion: no-preference) {
+    :is(input:not([type="hidden"], [type="submit"], [type="button"], [type="reset"]), textarea, select, .rating-star):not(:disabled) {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    :is(input:not([type="hidden"], [type="submit"], [type="button"], [type="reset"]), textarea, select, .rating-star):not(:disabled):hover {
+        transform: scale(1.03);
+        box-shadow: 0 2px 8px rgb(59 130 246 / 18%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rating-star { transition: none; }
+}

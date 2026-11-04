@@ -1,6 +1,6 @@
 (() => {
     const API = window.EvaluationAPI;
-    const homeUrl = new URL("../../Effectiveness_Of_It/main/index.html", window.location.href);
+    const homeUrl = new URL("../../../../Effectiveness_Of_It/main/index.html", document.currentScript.src);
     const requiredRole = document.body.dataset.authRequired;
 
     function addLogout(user) {
@@ -8,7 +8,6 @@
         button.type = "button";
         button.textContent = `${user.fullName} · ${window.t ? window.t("logout") : "ออกจากระบบ"}`;
         button.setAttribute("aria-label", window.t ? window.t("logout") : "ออกจากระบบ");
-        button.style.cssText = "position:fixed;right:16px;top:12px;z-index:1000;padding:8px 12px;border:1px solid #ccd5e0;border-radius:6px;background:var(--bg-surface,#fff);color:var(--text-primary,#183557);cursor:pointer;font:inherit";
         button.addEventListener("click", async () => {
             button.disabled = true;
             try { await API.logout(); } catch (_) { /* The server clears the session on next request if offline. */ }
@@ -17,7 +16,14 @@
             sessionStorage.removeItem("itEvaluationComplete");
             window.location.replace(homeUrl.href);
         });
-        document.body.appendChild(button);
+        const signIn = document.querySelector(".ev-signin");
+        if (signIn) {
+            button.className = signIn.className;
+            signIn.replaceWith(button);
+        } else {
+            button.style.cssText = "position:fixed;right:16px;top:12px;z-index:1000";
+            document.body.appendChild(button);
+        }
     }
 
     window.authReady = API.getCurrentUser().then(user => {

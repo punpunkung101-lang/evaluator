@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="th"><head><script>document.documentElement.classList.add("auth-checking");</script><style>.auth-checking body{visibility:hidden}</style><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>จัดการกระบวนการและตัวชี้วัด | IT Evaluator</title><link rel="stylesheet" href="../../Satisfaction_Survey/assets/css/common.css">    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../Satisfaction_Survey/assets/css/layouts/admin-layout.css"><link rel="stylesheet" href="assets/css/quantitative.css"><link rel="stylesheet" href="assets/css/evaluation-shell.css">
+<link rel="stylesheet" href="assets/css/admin-shell.css">
+</head>
+<body data-auth-required="admin" data-quant-page="admin">
+    <header class="ev-header ev-admin-header">
+        <div class="ev-topbar"><div class="ev-header-inner"><a href="index.html" aria-label="กลับหน้าหลัก"><span data-i18n="admin_shell_label">ศูนย์ประเมินระบบสารสนเทศ (IT Evaluator)</span></a></div></div>
+        <div class="ev-header-inner ev-university">
+            <div class="ev-faculty">
+                <img src="../../Publice/Nu_bage.png" alt="ตรามหาวิทยาลัยนเรศวร" width="72" height="72">
+                <span><strong>คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</strong><small lang="en">Faculty of Allied Health Sciences, Naresuan University</small></span>
+            </div>
+            <div class="ev-controls">
+                <div class="header-actions q-admin-preferences" role="group" aria-label="ภาษาและธีม">
+                    <button type="button" class="tl-btn tl-icon-btn" id="ev-theme" aria-label="ธีมมืด">
+                        <svg data-admin-moon viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 6 6 0 0 1-9-9z"/></svg>
+                        <svg data-admin-sun viewBox="0 0 24 24" aria-hidden="true" hidden><circle cx="12" cy="12" r="4"/><path d="M11 1h2v4h-2zm0 18h2v4h-2zM1 11h4v2H1zm18 0h4v2h-4zM4 3l3 3-1 1-3-3zm14 14 3 3-1 1-3-3zm2-14 1 1-3 3-1-1zM6 17l1 1-3 3-1-1z"/></svg>
+                    </button>
+                    <button type="button" class="tl-btn tl-lang-btn" id="q-admin-language" aria-label="ภาษาอังกฤษ">EN</button>
+                </div>
+                <span id="admin-toolbar-mount"></span>
+                <button type="button" class="ev-signin" disabled data-i18n="admin_shell_signin">เข้าสู่ระบบ — ยังไม่พร้อมใช้งาน</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-layout ev-admin-layout q-process-admin-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                </div>
+                <div class="brand-info">
+                    <h2>IT Evaluator</h2>
+                    <p>ระบบบริหารจัดการข้อมูล</p>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a id="q-admin-dashboard-back" href="../../Satisfaction_Survey/admin/dashboard.html#process-management" class="nav-link">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20z"/></svg>
+                    <span data-i18n="nav_management_back">ย้อนกลับ</span>
+                </a>
+            </nav>
+        </aside>
+        <main class="main-content quant-main">
+            <header class="dashboard-header">
+                <div>
+                    <h1>จัดการกระบวนการและตัวชี้วัด</h1>
+                    <p>กำหนดกระบวนการก่อน–หลังและตัวชี้วัดตามระบบ IT ที่เลือก</p>
+                </div>
+
+            </header>
+            <p class="prototype">Frontend Prototype — โหมดผู้ดูแลจำลอง การตั้งค่าเก็บเฉพาะเบราว์เซอร์นี้ ไม่มีระบบตรวจสิทธิ์จากเซิร์ฟเวอร์</p><div id="quant-app"></div>
+            <footer class="dashboard-footer">ระบบประเมินประสิทธิภาพและประสิทธิผลของระบบ IT © 2026 | คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</footer>
+        </main>
+    </div>
+    <script src="../../Satisfaction_Survey/assets/js/shared/systems-data.js"></script><script src="assets/js/quantitative-data.js"></script><script src="assets/js/evaluation-locale.js"></script><script src="assets/js/quantitative.js"></script><script src="assets/js/sidebar.js"></script><script src="../../Satisfaction_Survey/assets/js/shared/api.js"></script><script src="../../Satisfaction_Survey/assets/js/shared/auth-gate.js"></script></body></html>

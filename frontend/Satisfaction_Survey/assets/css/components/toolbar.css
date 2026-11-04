@@ -68,3 +68,20 @@
         gap: 4px;
     }
 }
+
+.assessment-management-page .tl-toolbar,
+.q-admin-preferences { display: flex; gap: 8px; }
+
+.assessment-management-page .tl-toolbar .tl-btn,
+.quant-main .q-admin-preferences .tl-btn {
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 42px;
+    padding: 8px 13px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.assessment-management-page .tl-toolbar svg,
+.q-admin-preferences svg { width: 19px; height: 19px; }
