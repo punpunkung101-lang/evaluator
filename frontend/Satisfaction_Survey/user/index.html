@@ -25,7 +25,7 @@
             <div class="ev-controls">
 
                 <span id="admin-toolbar-mount"></span>
-                <button type="button" class="ev-signin" disabled data-i18n="admin_shell_signin">เข้าสู่ระบบ — ยังไม่พร้อมใช้งาน</button>
+                <a class="ev-signin" href="../../Effectiveness_Of_It/main/index.html?login=1">เข้าสู่ระบบ / สร้างบัญชี</a>
             </div>
         </div>
     </header>
@@ -93,6 +93,7 @@
     </main>
 
     <!-- JS: Shared Systems Data & Theme/Lang Logic -->
+    <script src="../assets/js/shared/auth.js"></script>
     <script src="../assets/js/shared/systems-data.js"></script>
     <script src="../assets/js/shared/theme-lang.js"></script>
     <script>
@@ -101,6 +102,11 @@
             const startBtn = document.getElementById("start-btn");
             const evaluatorNameInput = document.getElementById("evaluator-name");
             const userRoleSelect = document.getElementById("user-role");
+            const signedInUser = window.EvaluatorAuth && window.EvaluatorAuth.current();
+            if (signedInUser) {
+                evaluatorNameInput.value = signedInUser.name || signedInUser.username || "";
+                if (["student", "teacher", "staff"].includes(signedInUser.role)) userRoleSelect.value = signedInUser.role;
+            }
 
             // Populate system options from shared data
             function populateSystems() {
@@ -151,6 +157,8 @@
 
                     const defaultName = window.ThemeLang && window.ThemeLang.t ? window.ThemeLang.t("anonymous_evaluator") : "ผู้ใช้งานไม่ประสงค์ออกนาม";
                     sessionStorage.setItem("evaluatorProfile", JSON.stringify({
+                        ...(signedInUser || {}),
+                        evaluatorId: signedInUser?.id || signedInUser?.username || "",
                         name: evaluatorName || defaultName,
                         role: userRole
                     }));

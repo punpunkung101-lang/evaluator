@@ -364,6 +364,7 @@ document.addEventListener("DOMContentLoaded", () => {
             id: assessmentId,
             systemId,
             systemName: selectedSystem.name,
+            evaluatorId: profile.id || profile.username || "",
             evaluatorName: draft?.evaluatorName || profile.name,
             userRole: draft?.userRole || profile.role,
             satisfactionAnswers: [...answers],

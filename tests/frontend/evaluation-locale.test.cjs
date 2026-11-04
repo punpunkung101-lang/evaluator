@@ -1,6 +1,6 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const {translate}=require('../frontend/Effectiveness_Of_It/main/assets/js/evaluation-locale.js');
+const {translate}=require('../../frontend/Effectiveness_Of_It/main/assets/js/evaluation-locale.js');
 test('step counter and longest UI phrases translate without changing numbers',()=>{
     assert.equal(translate('ขั้นที่ 5 จาก 5: ตรวจสอบและส่ง','en'),'Step 5 of 5: Review & submit');
     assert.equal(translate('ยังไม่ถึงเป้าหมาย','en'),'Target not met');

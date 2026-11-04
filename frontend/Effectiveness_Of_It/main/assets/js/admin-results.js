@@ -62,6 +62,9 @@
     if (typeof document === 'undefined') return;
     const section = document.getElementById('quantitative-results');
     if (!section) return;
+    const syncSectionVisibility = () => { section.hidden = root.location.hash !== '#quantitative-results'; };
+    syncSectionVisibility();
+    root.addEventListener('hashchange', syncSectionVisibility);
 
     const Q = root.Quantitative;
     const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

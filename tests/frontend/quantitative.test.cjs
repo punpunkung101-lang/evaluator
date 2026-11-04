@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
-const root = path.resolve(__dirname, '..');
+const root = path.resolve(__dirname, '../..');
 test('energy stepper fills and drains all five stages with exactly one current step',()=>{
     const context={window:{}};
     vm.runInNewContext(fs.readFileSync(path.join(root,'frontend/Effectiveness_Of_It/main/assets/js/energy-stepper.js'),'utf8'),context);

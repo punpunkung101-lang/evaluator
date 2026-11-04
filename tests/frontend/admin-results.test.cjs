@@ -1,7 +1,7 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const {summarize,initialDataSet,presentation}=require('../frontend/Effectiveness_Of_It/main/assets/js/admin-results.js');
-const {calculate}=require('../frontend/Effectiveness_Of_It/main/assets/js/quantitative-data.js');
+const {summarize,initialDataSet,presentation}=require('../../frontend/Effectiveness_Of_It/main/assets/js/admin-results.js');
+const {calculate}=require('../../frontend/Effectiveness_Of_It/main/assets/js/quantitative-data.js');
 function record(options={}) { return {systemId:'SYS001',submittedAt:'2026-11-03T00:00:00Z',config:{version:1,metrics:[{id:'time',name:'เวลา',unit:'นาที',basis:'ต่อคำขอ',source:'time',direction:'decrease',active:true}]},values:{time:{status:'known',before:240,after:30}},...options}; }
 test('first dashboard visit shows demo results when they are the only submitted records',()=>{
     const demo=record();demo.config.isDemo=true;

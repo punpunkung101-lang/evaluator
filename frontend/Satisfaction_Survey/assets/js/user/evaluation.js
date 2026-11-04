@@ -427,6 +427,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const evaluationData = {
             id: evaluationId,
+            evaluatorId: profile.id || profile.username || "",
             systemId: selectedSystem ? selectedSystem.id : (systemId || "UNKNOWN"),
             systemName: selectedSystem ? (window.getSystemName ? window.getSystemName(selectedSystem) : selectedSystem.name) : "",
             evaluatorName: profile.name,

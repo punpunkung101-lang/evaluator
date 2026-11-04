@@ -96,7 +96,7 @@ pkg-config --cflags --libs sqlite3
 จากนั้น Build:
 
 ``` powershell
-g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -o backend/evaluator_backend.exe
+g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evaluator_backend.exe
 ```
 
 ถ้า Build สำเร็จ จะได้ไฟล์:
@@ -123,7 +123,7 @@ backend/evaluator_backend.exe
 
 ``` text
 Evaluator C++ API listening on http://localhost:8080
-Database: database/evaluator.db
+Database: database/evaluator.db (shared users, systems and assessment records)
 ```
 
 เปิด Terminal อีกหน้าต่างหนึ่งเพื่อทดสอบ API โดยปล่อยหน้าต่างที่รัน Backend เปิดค้างไว้
@@ -316,7 +316,7 @@ pkg-config --cflags --libs sqlite3
 Build the backend:
 
 ``` powershell
-g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -o backend/evaluator_backend.exe
+g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evaluator_backend.exe
 ```
 
 If the build succeeds, the executable will be created at:
@@ -345,7 +345,7 @@ On successful startup, you should see output similar to:
 
 ``` text
 Evaluator C++ API listening on http://localhost:8080
-Database: database/evaluator.db
+Database: database/evaluator.db (shared users, systems and assessment records)
 ```
 
 Keep this terminal open while the backend is running. Open a second
@@ -465,3 +465,4 @@ the project configuration.
     unless they are intentionally part of the project.
 -   ไม่ควร Commit ข้อมูลประเมินส่วนตัวหรือไฟล์ Build ในเครื่องขึ้น Git
     เว้นแต่ตั้งใจให้เป็นส่วนหนึ่งของโปรเจกต์
+

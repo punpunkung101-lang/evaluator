@@ -46,6 +46,13 @@
                         <a href="../../Satisfaction_Survey/user/index.html" data-i18n="aboutSatisfaction">ประเมินความพึงพอใจ</a>
                     </div>
                 </div>
+                <div class="nav-dropdown">
+                    <button class="nav-link dropdown-toggle" type="button" aria-expanded="false">สำหรับผู้ดูแล <span aria-hidden="true">⌄</span></button>
+                    <div class="dropdown-menu">
+                        <a href="../../Satisfaction_Survey/admin/dashboard.html">Dashboard ความพึงพอใจ</a>
+                        <a href="../../Satisfaction_Survey/admin/dashboard.html#quantitative-results">Dashboard ประสิทธิผลระบบ IT</a>
+                    </div>
+                </div>
                 <div class="nav-dropdown systems-dropdown">
                     <button class="nav-link dropdown-toggle" type="button" aria-expanded="false" data-i18n="systems">ประสิทธิผลระบบ <span aria-hidden="true">⌄</span></button>
                     <div class="dropdown-menu systems-menu" id="systems-menu"></div>
@@ -97,8 +104,8 @@
     <footer class="site-footer"><div class="shell"><span data-i18n="footer">คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</span><span>© <span id="year"></span> AHS IT Evaluation</span></div></footer>
 
     <dialog id="contact-dialog" class="dialog"><button class="dialog-close" type="button" data-close-dialog aria-label="Close">×</button><p class="eyebrow" data-i18n="contact">ติดต่อเรา</p><h2 data-i18n="contactTitle">ศูนย์เทคโนโลยีสารสนเทศ</h2><p data-i18n="contactText">หากต้องการความช่วยเหลือเกี่ยวกับการประเมิน โปรดติดต่อผู้ดูแลระบบของคณะสหเวชศาสตร์</p><a href="https://github.com/punpunkung101-lang">The Dev for this wed site</a></dialog>
-    <dialog id="login-dialog" class="dialog"><button class="dialog-close" type="button" data-close-dialog aria-label="Close">×</button><p class="eyebrow" data-i18n="login">เข้าสู่ระบบ</p><h2 data-i18n="loginTitle">เข้าสู่ระบบผู้ดูแล</h2><form id="login-form"><label><span data-i18n="username">ชื่อผู้ใช้</span><input required autocomplete="username" type="text"></label><label><span data-i18n="password">รหัสผ่าน</span><input required autocomplete="current-password" type="password"></label><button class="submit-button" type="submit" data-i18n="signIn">เข้าสู่ระบบ</button><p class="form-note" id="login-note" aria-live="polite"></p></form></dialog>
+    <dialog id="login-dialog" class="dialog"><button class="dialog-close" type="button" data-close-dialog aria-label="Close">×</button><p class="eyebrow" data-i18n="login">บัญชีผู้ใช้งาน</p><h2 id="account-title">เข้าสู่ระบบ</h2><form id="login-form"><label><span>ชื่อผู้ใช้</span><input id="account-username" required autocomplete="username" type="text"></label><label id="display-name-wrap" hidden><span>ชื่อที่ใช้แสดง</span><input id="account-display-name" autocomplete="name" type="text"></label><label id="account-role-wrap" hidden><span>ประเภทผู้ใช้งาน</span><select id="account-role"><option value="student">นิสิต</option><option value="teacher">อาจารย์ / นักวิจัย</option><option value="staff">บุคลากรสายสนับสนุน</option></select></label><label><span>รหัสผ่าน (อย่างน้อย 8 ตัวอักษร)</span><input id="account-password" required minlength="8" autocomplete="current-password" type="password"></label><button class="submit-button" id="account-submit" type="submit">เข้าสู่ระบบ</button><button class="control-button" id="account-mode" type="button">สร้างบัญชีใหม่</button><p class="form-note" id="login-note" aria-live="polite"></p></form></dialog>
     <details class="shell"><summary>เครื่องมือทดสอบ Prototype สำหรับผู้พัฒนา</summary><p>โหมดผู้ดูแลจำลอง ยังไม่มีการตรวจสอบสิทธิ์จาก Server</p><a href="admin.html">จัดการกระบวนการและตัวชี้วัด</a> · <a href="../../Satisfaction_Survey/admin/dashboard.html#quantitative-results">ตรวจสอบผลทดลองเชิงปริมาณ</a></details>
-    <script src="assets/js/app.js"></script>
+    <script src="../../Satisfaction_Survey/assets/js/shared/auth.js"></script><script src="assets/js/app.js"></script>
 </body>
 </html>

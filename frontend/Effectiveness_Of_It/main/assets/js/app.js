@@ -16,6 +16,38 @@ $('#language-toggle').addEventListener('click', () => { language = language === 
 document.querySelectorAll('[data-open-dialog]').forEach(button => button.addEventListener('click', () => $(`#${button.dataset.openDialog}`).showModal()));
 document.querySelectorAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
 document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); }));
-$('#login-form').addEventListener('submit', event => { event.preventDefault(); $('#login-note').textContent = copy[language].loginMessage; });
+let createAccount = false;
+$('#account-mode').addEventListener('click', () => {
+    createAccount = !createAccount;
+    $('#account-title').textContent = createAccount ? 'สร้างบัญชีผู้ใช้งาน' : 'เข้าสู่ระบบ';
+    $('#account-submit').textContent = createAccount ? 'สร้างบัญชี' : 'เข้าสู่ระบบ';
+    $('#account-mode').textContent = createAccount ? 'มีบัญชีแล้ว? เข้าสู่ระบบ' : 'สร้างบัญชีใหม่';
+    $('#display-name-wrap').hidden = !createAccount;
+    $('#account-role-wrap').hidden = !createAccount;
+    $('#account-password').autocomplete = createAccount ? 'new-password' : 'current-password';
+    $('#login-note').textContent = '';
+});
+$('#login-form').addEventListener('submit', async event => {
+    event.preventDefault();
+    const note = $('#login-note');
+    const username = $('#account-username').value.trim();
+    const password = $('#account-password').value;
+    const displayName = $('#account-display-name').value.trim();
+    $('#account-submit').disabled = true;
+    note.textContent = 'กำลังเชื่อมต่อฐานข้อมูล...';
+    try {
+        const user = createAccount
+            ? await window.EvaluatorAuth.register(username, password, displayName, $('#account-role').value)
+            : await window.EvaluatorAuth.login(username, password);
+        window.EvaluatorAuth.saveSession(user);
+        note.textContent = `เข้าสู่ระบบแล้ว: ${user.displayName}`;
+        window.setTimeout(() => $('#login-dialog').close(), 650);
+    } catch (error) {
+        note.textContent = error.message;
+    } finally {
+        $('#account-submit').disabled = false;
+    }
+});
 if (localStorage.getItem('it_eval_theme') === 'dark') { document.body.classList.add('dark'); $('#theme-toggle').setAttribute('aria-pressed', 'true'); $('.control-icon').textContent = '☀'; }
 $('#year').textContent = new Date().getFullYear(); applyLanguage();
+if (new URLSearchParams(location.search).get('login') === '1') $('#login-dialog').showModal();
