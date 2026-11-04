@@ -1,0 +1,574 @@
+{
+  "format": "it-evaluator-sqlite-export-v1",
+  "exportedAt": "2026-11-02T19:21:04.584961+00:00",
+  "note": "SQLite exports only. Browser localStorage is not read or changed. Sources under backend/build are automated test data, not real faculty evaluations.",
+  "sources": [
+    {
+      "path": "backend/build/tmp62zooodm/test.sqlite3",
+      "isTestDatabase": true,
+      "evaluations": []
+    },
+    {
+      "path": "backend/build/tmpi629c9a8/test.sqlite3",
+      "isTestDatabase": true,
+      "evaluations": [
+        {
+          "categoryId": "all",
+          "config": {
+            "after": [
+              {
+                "active": true,
+                "id": "a",
+                "name": "ออนไลน์",
+                "timed": true
+              }
+            ],
+            "before": [
+              {
+                "active": true,
+                "id": "b",
+                "name": "กระดาษ",
+                "timed": true
+              }
+            ],
+            "metrics": [
+              {
+                "active": true,
+                "basis": "ต่อคำขอ",
+                "direction": "decrease",
+                "id": "time",
+                "name": "เวลา",
+                "required": true,
+                "source": "time",
+                "unit": "นาที"
+              },
+              {
+                "active": true,
+                "basis": "ต่อคำขอ",
+                "direction": "decrease",
+                "id": "paper",
+                "name": "กระดาษ",
+                "required": false,
+                "source": "manual",
+                "unit": "แผ่น"
+              }
+            ],
+            "version": 1
+          },
+          "durationStatuses": {
+            "after": {
+              "a": "known"
+            },
+            "before": {
+              "b": "known"
+            }
+          },
+          "durations": {
+            "after": {
+              "a": 30
+            },
+            "before": {
+              "b": 240
+            }
+          },
+          "id": "402e20ce2a41a0d0222e6563438b6db8",
+          "kind": "backend-user-entry",
+          "profile": {
+            "department": "หน่วยงานจำลอง",
+            "name": "ทดสอบ",
+            "role": "staff"
+          },
+          "results": {
+            "paper": {
+              "available": false,
+              "status": "unknown"
+            },
+            "time": {
+              "available": true,
+              "delta": -210.0,
+              "outcome": "ดีขึ้น",
+              "percent": -87.5
+            }
+          },
+          "submittedAt": "2026-11-02T19:08:05Z",
+          "systemId": "SYS003",
+          "values": {
+            "paper": {
+              "after": null,
+              "before": null,
+              "status": "unknown"
+            },
+            "time": {
+              "after": 30.0,
+              "before": 240.0,
+              "status": "known"
+            }
+          }
+        },
+        {
+          "categoryId": "all",
+          "config": {
+            "after": [
+              {
+                "active": true,
+                "id": "a",
+                "name": "ออนไลน์",
+                "timed": true
+              }
+            ],
+            "before": [
+              {
+                "active": true,
+                "id": "b",
+                "name": "กระดาษ",
+                "timed": true
+              }
+            ],
+            "metrics": [
+              {
+                "active": true,
+                "basis": "ต่อคำขอ",
+                "direction": "decrease",
+                "id": "time",
+                "name": "เวลา",
+                "required": true,
+                "source": "time",
+                "unit": "นาที"
+              },
+              {
+                "active": true,
+                "basis": "ต่อคำขอ",
+                "direction": "decrease",
+                "id": "paper",
+                "name": "กระดาษ",
+                "required": false,
+                "source": "manual",
+                "unit": "แผ่น"
+              }
+            ],
+            "version": 1
+          },
+          "durationStatuses": {
+            "after": {
+              "a": "known"
+            },
+            "before": {
+              "b": "known"
+            }
+          },
+          "durations": {
+            "after": {
+              "a": 30
+            },
+            "before": {
+              "b": 240
+            }
+          },
+          "id": "6cd732db65fb31b98c1f4fc366ace57b",
+          "kind": "backend-user-entry",
+          "profile": {
+            "department": "หน่วยงานจำลอง",
+            "name": "ทดสอบ",
+            "role": "staff"
+          },
+          "results": {
+            "paper": {
+              "available": false,
+              "status": "unknown"
+            },
+            "time": {
+              "available": true,
+              "delta": -210.0,
+              "outcome": "ดีขึ้น",
+              "percent": -87.5
+            }
+          },
+          "submittedAt": "2026-11-02T19:08:05Z",
+          "systemId": "SYS002",
+          "values": {
+            "paper": {
+              "after": null,
+              "before": null,
+              "status": "unknown"
+            },
+            "time": {
+              "after": 30.0,
+              "before": 240.0,
+              "status": "known"
+            }
+          }
+        },
+        {
+          "categoryId": "all",
+          "config": {
+            "after": [
+              {
+                "active": true,
+                "id": "a",
+                "name": "ออนไลน์",
+                "timed": true
+              }
+            ],
+            "before": [
+              {
+                "active": true,
+                "id": "b",
+                "name": "กระดาษ",
+                "timed": true
+              }
+            ],
+            "metrics": [
+              {
+                "active": true,
+                "basis": "ต่อคำขอ",
+                "direction": "decrease",
+                "id": "time",
+                "name": "เวลา",
+                "required": true,
+                "source": "time",
+                "unit": "นาที"
+              },
+              {
+                "active": true,
+                "basis": "ต่อคำขอ",
+                "direction": "decrease",
+                "id": "paper",
+                "name": "กระดาษ",
+                "required": false,
+                "source": "manual",
+                "unit": "แผ่น"
+              }
+            ],
+            "version": 2
+          },
+          "durationStatuses": {
+            "after": {
+              "a": "known"
+            },
+            "before": {
+              "b": "known"
+            }
+          },
+          "durations": {
+            "after": {
+              "a": 30
+            },
+            "before": {
+              "b": 240
+            }
+          },
+          "id": "55107f37051b52b9d53c98452b45839c",
+          "kind": "backend-user-entry",
+          "profile": {
+            "department": "หน่วยงานจำลอง",
+            "name": "ทดสอบ",
+            "role": "staff"
+          },
+          "results": {
+            "paper": {
+              "available": false,
+              "status": "unknown"
+            },
+            "time": {
+              "available": true,
+              "delta": -210.0,
+              "outcome": "ดีขึ้น",
+              "percent": -87.5
+            }
+          },
+          "submittedAt": "2026-11-02T19:08:06Z",
+          "systemId": "SYS002",
+          "values": {
+            "paper": {
+              "after": null,
+              "before": null,
+              "status": "unknown"
+            },
+            "time": {
+              "after": 30.0,
+              "before": 240.0,
+              "status": "known"
+            }
+          }
+        },
+        {
+          "categoryId": "all",
+          "config": {
+            "after": [
+              {
+                "active": true,
+                "id": "a",
+                "name": "ออนไลน์",
+                "timed": true
+              }
+            ],
+            "before": [
+              {
+                "active": true,
+                "id": "b",
+                "name": "กระดาษ",
+                "timed": true
+              }
+            ],
+            "metrics": [
+              {
+                "active": true,
+                "basis": "ต่อคำขอ",
+                "direction": "decrease",
+                "id": "time",
+                "name": "เวลา",
+                "required": true,
+                "source": "time",
+                "unit": "นาที"
+              },
+              {
+                "active": true,
+                "basis": "ต่อคำขอ",
+                "direction": "decrease",
+                "id": "paper",
+                "name": "กระดาษ",
+                "required": false,
+                "source": "manual",
+                "unit": "แผ่น"
+              }
+            ],
+            "version": 3
+          },
+          "durationStatuses": {
+            "after": {
+              "a": "known"
+            },
+            "before": {
+              "b": "known"
+            }
+          },
+          "durations": {
+            "after": {
+              "a": 30
+            },
+            "before": {
+              "b": 240
+            }
+          },
+          "id": "9807ea4a31ee5b742657b8567a2b9ca2",
+          "kind": "backend-user-entry",
+          "profile": {
+            "department": "หน่วยงานจำลอง",
+            "name": "ทดสอบ",
+            "role": "staff"
+          },
+          "results": {
+            "paper": {
+              "available": false,
+              "status": "unknown"
+            },
+            "time": {
+              "available": true,
+              "delta": -210.0,
+              "outcome": "ดีขึ้น",
+              "percent": -87.5
+            }
+          },
+          "submittedAt": "2026-11-02T19:08:06Z",
+          "systemId": "SYS002",
+          "values": {
+            "paper": {
+              "after": null,
+              "before": null,
+              "status": "unknown"
+            },
+            "time": {
+              "after": 30.0,
+              "before": 240.0,
+              "status": "known"
+            }
+          }
+        },
+        {
+          "categoryId": "all",
+          "config": {
+            "after": [
+              {
+                "active": true,
+                "id": "a",
+                "name": "ออนไลน์",
+                "timed": true
+              }
+            ],
+            "before": [
+              {
+                "active": true,
+                "id": "b",
+                "name": "กระดาษ",
+                "timed": true
+              }
+            ],
+            "metrics": [
+              {
+                "active": true,
+                "basis": "ต่อคำขอ",
+                "direction": "decrease",
+                "id": "time",
+                "name": "เวลา",
+                "required": true,
+                "source": "time",
+                "unit": "นาที"
+              },
+              {
+                "active": true,
+                "basis": "ต่อคำขอ",
+                "direction": "decrease",
+                "id": "paper",
+                "name": "กระดาษ",
+                "required": false,
+                "source": "manual",
+                "unit": "แผ่น"
+              }
+            ],
+            "version": 4
+          },
+          "durationStatuses": {
+            "after": {
+              "a": "known"
+            },
+            "before": {
+              "b": "unknown"
+            }
+          },
+          "durations": {
+            "after": {
+              "a": 30
+            },
+            "before": {
+              "b": null
+            }
+          },
+          "id": "61f2cf216d2157e5dc136fbfb8899ad6",
+          "kind": "backend-user-entry",
+          "profile": {
+            "department": "หน่วยงานจำลอง",
+            "name": "ทดสอบ",
+            "role": "staff"
+          },
+          "results": {
+            "paper": {
+              "available": false,
+              "status": "unknown"
+            },
+            "time": {
+              "available": false,
+              "status": "unknown"
+            }
+          },
+          "submittedAt": "2026-11-02T19:08:06Z",
+          "systemId": "SYS002",
+          "values": {
+            "paper": {
+              "after": null,
+              "before": null,
+              "status": "unknown"
+            },
+            "time": {
+              "after": 30.0,
+              "before": null,
+              "status": "unknown"
+            }
+          }
+        },
+        {
+          "categoryId": "all",
+          "config": {
+            "after": [
+              {
+                "active": true,
+                "id": "a",
+                "name": "ออนไลน์",
+                "timed": true
+              }
+            ],
+            "before": [
+              {
+                "active": true,
+                "id": "b",
+                "name": "กระดาษ",
+                "timed": true
+              }
+            ],
+            "metrics": [
+              {
+                "active": true,
+                "basis": "ต่อคำขอ",
+                "direction": "decrease",
+                "id": "time",
+                "name": "เวลา",
+                "required": true,
+                "source": "time",
+                "unit": "นาที"
+              },
+              {
+                "active": true,
+                "basis": "ต่อคำขอ",
+                "direction": "decrease",
+                "id": "paper",
+                "name": "กระดาษ",
+                "required": false,
+                "source": "manual",
+                "unit": "แผ่น"
+              }
+            ],
+            "version": 5
+          },
+          "durationStatuses": {
+            "after": {
+              "a": "known"
+            },
+            "before": {
+              "b": "known"
+            }
+          },
+          "durations": {
+            "after": {
+              "a": 30
+            },
+            "before": {
+              "b": 0
+            }
+          },
+          "id": "bbb65bfe2fad8c0cabf66cbb6ebbcb5c",
+          "kind": "backend-user-entry",
+          "profile": {
+            "department": "หน่วยงานจำลอง",
+            "name": "ทดสอบ",
+            "role": "staff"
+          },
+          "results": {
+            "paper": {
+              "available": false,
+              "status": "unknown"
+            },
+            "time": {
+              "available": true,
+              "delta": 30.0,
+              "outcome": "แย่ลง",
+              "percent": null
+            }
+          },
+          "submittedAt": "2026-11-02T19:08:06Z",
+          "systemId": "SYS002",
+          "values": {
+            "paper": {
+              "after": null,
+              "before": null,
+              "status": "unknown"
+            },
+            "time": {
+              "after": 30.0,
+              "before": 0.0,
+              "status": "known"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
