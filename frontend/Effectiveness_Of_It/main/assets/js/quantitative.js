@@ -30,7 +30,7 @@
         let sending = false, submitted = false;
         const steps = ['ข้อมูลผู้ประเมิน','กระบวนการก่อนใช้ IT','กระบวนการหลังใช้ IT','ตัวชี้วัด','ตรวจสอบและส่ง'];
         if (!draft.profile.name) {
-            try { const profile = JSON.parse(sessionStorage.getItem('evaluatorProfile') || 'null'); if (profile) draft.profile = { name:profile.name || profile.evaluatorName || '', role:profile.role || profile.userRole || '', department:'' }; } catch (_) { /* Optional session profile. */ }
+            try { const profile = JSON.parse(sessionStorage.getItem('evaluatorProfile') || 'null'); if (profile) draft.profile = { id:profile.id || '', name:profile.name || profile.evaluatorName || '', role:profile.role || profile.userRole || '', department:'' }; } catch (_) { /* Optional session profile. */ }
         }
         function derived() {
             if (!draft.config) return;
@@ -52,7 +52,8 @@
         }
         function capture() {
             if (draft.step === 0) {
-                draft.profile = { name:document.getElementById('q-name').value.trim(), role:document.getElementById('q-role').value, department:document.getElementById('q-department').value.trim() };
+                const profile = window.EvaluatorAuth?.current() || {};
+                draft.profile = { id:profile.id || '', name:profile.name || '', role:profile.role || '', department:'' };
                 const id = document.getElementById('q-system').value;
                 if (id !== draft.systemId) { draft.systemId=id; draft.config=id ? Q.config(id) : null; draft.durations={before:{},after:{}}; draft.durationStatuses={before:{},after:{}}; draft.values={}; }
             } else if (draft.step === 1 || draft.step === 2) {
@@ -73,9 +74,7 @@
             let valid=true;
             const fail=(id,message) => { valid=false; error(id,message); };
             if (draft.step === 0) {
-                if (!draft.profile.name) fail('q-name','กรุณากรอกชื่อหรือนามสมมุติ');
-                if (!['student','teacher','staff'].includes(draft.profile.role)) fail('q-role','กรุณาเลือกประเภทผู้ประเมิน');
-                if (!draft.profile.department) fail('q-department','กรุณากรอกหน่วยงาน');
+                if (!draft.profile.id || !draft.profile.name) { document.getElementById('q-message').textContent='ไม่พบข้อมูลบัญชี กรุณาเข้าสู่ระบบใหม่'; return false; }
                 if (!systems.some(s => s.id === draft.systemId)) fail('q-system','กรุณาเลือกระบบ IT');
             }
             if (draft.step === 1 || draft.step === 2) {
@@ -97,7 +96,10 @@
         function render() {
             const step=draft.step;
             let body='';
-            if (step===0) body = field('q-name','ชื่อ–นามสกุล / นามสมมุติ',draft.profile.name) + `<label for="q-role">ประเภทผู้ประเมิน<select id="q-role" aria-describedby="q-role-error"><option value="">เลือกประเภท</option>${[['student','นิสิต'],['teacher','อาจารย์'],['staff','บุคลากร']].map(([v,l])=>`<option value="${v}" ${draft.profile.role===v?'selected':''}>${l}</option>`).join('')}</select></label><small class="q-error" id="q-role-error"></small>` + field('q-department','หน่วยงาน / สังกัด',draft.profile.department) + `<label for="q-system">ระบบ IT<select id="q-system" aria-describedby="q-system-error">${systemOptions(draft.systemId)}</select></label><small class="q-error" id="q-system-error"></small>`;
+            if (step===0) {
+                const profile=window.EvaluatorAuth?.current() || {};
+                body=`<p class="q-account-summary">ผู้ประเมิน: <strong>${user(profile.name || draft.profile.name)}</strong> · ID ${user(profile.id || draft.profile.id)} · ${user(profile.role || draft.profile.role)}</p><label for="q-system">ระบบ IT<select id="q-system" aria-describedby="q-system-error">${systemOptions(draft.systemId)}</select></label><small class="q-error" id="q-system-error"></small>`;
+            }
             if (step===1 || step===2) {
                 const phase=step===1?'before':'after', list=draft.config[phase].filter(s=>s.active);
                 body=`<p>ฐานการวัดเวลา: ${user(draft.config.metrics.find(m=>m.source==='time')?.basis || 'ต่อคำขอ')} ใช้ฐานเดียวกันก่อนและหลัง</p>`;
@@ -112,9 +114,7 @@
             }).join('');
             if (step===4) body=`<p>${user(draft.profile.name)} · ${{student:'นิสิต',teacher:'อาจารย์',staff:'บุคลากร'}[draft.profile.role]||esc(draft.profile.role)} · ${user(draft.profile.department)}</p><p>ระบบ ${user(draft.systemId)} · แบบประเมินเวอร์ชัน ${draft.config.version}</p>${['before','after'].map(phase=>`<h3>${phase==='before'?'ก่อน':'หลัง'}ใช้ IT</h3><ol>${draft.config[phase].filter(s=>s.active).map(s=>`<li>${user(s.name)} — ${user(s.description)} ${s.timed?fmt(draft.durations[phase][s.id])+' นาที':'ไม่เก็บเวลา'}</li>`).join('')}</ol>`).join('')}${resultTable(draft)}<p>ยังไม่บันทึกเป็นรายการที่ส่ง จนกว่าจะยืนยันในหน้าต่างถัดไป</p>`;
             if(step===0) {
-                body='<p class="ev-required-note">ข้อมูลที่มีเครื่องหมาย * จำเป็นต้องกรอก</p><div class="q-profile-grid">'+body.replace(/(<label[^>]*>[\s\S]*?<\/label><small class="q-error"[^>]*><\/small>)/g,'<div class="q-field">$1</div>')+'</div>';
-                body=body.replace(/(<label for="(?:q-name|q-role|q-department|q-system)">)([^<]+)/g,'$1$2 <span class="ev-required" aria-hidden="true">*</span>');
-                body=body.replace(/id="(q-name|q-role|q-department|q-system)"/g,'id="$1" required aria-required="true"');
+                body='<div class="q-profile-grid">'+body.replace(/(<label[^>]*>[\s\S]*?<\/label><small class="q-error"[^>]*><\/small>)/g,'<div class="q-field">$1</div>')+'</div>';
             }
             const previousStepper = document.getElementById('energy-stepper');
             const missingProcesses = (step===1 || step===2) && !draft.config[step===1?'before':'after'].some(s=>s.active);
@@ -140,8 +140,8 @@
             document.getElementById('q-cancel').onclick=()=>document.getElementById('confirm-dialog').close();
             document.getElementById('q-confirm').onclick=async()=>{
                 if(sending || submitted)return; sending=true; document.getElementById('q-confirm').disabled=true;
-                const ok=await safe(async()=>{await Q.submit({...draft, categoryId:systems.find(s=>s.id===draft.systemId)?.categoryId || 'all', submittedAt:new Date().toISOString(), kind:'prototype-user-entry'});submitted=true;return true;});
-                if(ok) app.innerHTML=`<section class="q-card"><h2>บันทึกข้อมูลทดลองในเบราว์เซอร์แล้ว</h2><p>ข้อมูลอยู่ในเบราว์เซอร์นี้ เปิด Dashboard ด้วยที่อยู่เว็บเดียวกันเพื่อดูผล</p><a class="q-button" href="../../Satisfaction_Survey/admin/dashboard.html?dataset=${draft.config.isDemo?'demo':'real'}#quantitative-results">ดูผลที่ส่งใน Dashboard</a><a class="q-button" href="evaluation.html">เริ่มแบบประเมินใหม่</a><a class="q-button" href="../../Satisfaction_Survey/user/index.html">ประเมินความพึงพอใจ</a></section>`;
+                const ok=await safe(async()=>{const record={...draft,categoryId:systems.find(s=>s.id===draft.systemId)?.categoryId||'all',submittedAt:new Date().toISOString(),kind:'prototype-user-entry'};await Q.submitToBackend(record);Q.submit(record);submitted=true;return true;});
+                if(ok) app.innerHTML=`<section class="q-card"><h2>บันทึกผลประเมินลงฐานข้อมูลแล้ว</h2><p>เปิด Dashboard เพื่อดูผลที่บันทึก</p><a class="q-button" href="../../Satisfaction_Survey/admin/dashboard.html?dataset=${draft.config.isDemo?'demo':'real'}#quantitative-results">ดูผลที่ส่งใน Dashboard</a><a class="q-button" href="evaluation.html">เริ่มแบบประเมินใหม่</a><a class="q-button" href="../../Satisfaction_Survey/user/index.html">ประเมินความพึงพอใจ</a></section>`;
                 else {sending=false;document.getElementById('q-confirm').disabled=false;document.getElementById('confirm-dialog').close();}
             };
             if(step===1||step===2) app.querySelectorAll('input[type=number]').forEach(input=>input.addEventListener('input',()=>{capture();const phase=step===1?'before':'after';const list=draft.config[phase].filter(s=>s.active&&s.timed);document.getElementById('duration-total').textContent='เวลารวม: '+(list.length&&list.every(s=>Q.finite(draft.durations[phase][s.id]))?fmt(list.reduce((sum,s)=>sum+draft.durations[phase][s.id],0))+' นาที':'ยังมีข้อมูลไม่ครบ');}));

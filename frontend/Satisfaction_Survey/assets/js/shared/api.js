@@ -1,7 +1,8 @@
 /** Shared API for the evaluator C++/SQLite backend. */
 const API_CONFIG = {
-    backendBaseUrl: (typeof window !== "undefined" && window.ENV?.API_BASE_URL) || "http://localhost:8080"
+    backendBaseUrl: (typeof window !== "undefined" && window.ENV?.API_BASE_URL) || "http://127.0.0.1:8080"
 };
+if (typeof window !== "undefined") window.API_CONFIG = API_CONFIG;
 
 /**
  * Standard Evaluation Record Schema:
@@ -23,6 +24,8 @@ const API_CONFIG = {
 
 const EvaluationAPI = {
     async request(path, options = {}) {
+        const token = typeof sessionStorage !== "undefined" ? sessionStorage.getItem("evaluatorToken") : null;
+        options.headers = { ...(options.headers || {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) };
         let response;
         try {
             response = await fetch(`${API_CONFIG.backendBaseUrl}${path}`, options);
@@ -43,6 +46,12 @@ const EvaluationAPI = {
         });
         if (saved.success !== true || saved.id !== payload.id) throw new Error("Backend ไม่ยืนยันการบันทึกผลประเมิน");
         return saved;
+    },
+
+    async getQuestions(systemId, assessmentType) {
+        const query = new URLSearchParams({ system_id: systemId, assessment_type: assessmentType });
+        const rows = await this.request(`/questions?${query}`);
+        return Array.isArray(rows) ? rows : [];
     },
 
     async getEvaluations() {
@@ -84,10 +93,8 @@ const EvaluationAPI = {
             const number = parseFloat(value);
             return !isNaN(number) && number >= 1 && number <= 5 ? number : null;
         };
-        const beforeAnswers = Array.isArray(raw.beforeAnswers) ? raw.beforeAnswers.slice(0, 10).map(toFloatOrNull) : Array(10).fill(null);
-        while (beforeAnswers.length < 10) beforeAnswers.push(null);
-        const afterAnswers = Array.isArray(raw.afterAnswers) ? raw.afterAnswers.slice(0, 10).map(toFloatOrNull) : Array(10).fill(null);
-        while (afterAnswers.length < 10) afterAnswers.push(null);
+        const beforeAnswers = Array.isArray(raw.beforeAnswers) ? raw.beforeAnswers.slice(0, 100).map(toFloatOrNull) : Array(10).fill(null);
+        const afterAnswers = Array.isArray(raw.afterAnswers) ? raw.afterAnswers.slice(0, 100).map(toFloatOrNull) : Array(10).fill(null);
 
         const satisfactionAnswers = Array.isArray(raw.satisfactionAnswers)
             ? raw.satisfactionAnswers.map(v => {

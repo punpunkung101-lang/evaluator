@@ -4,7 +4,7 @@
  * Stepped 2-Phase Before-After Assessment
  */
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
     // =====================================
     // 1. ค้นหาระบบ IT ที่ผู้ใช้เลือก
@@ -14,6 +14,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const systemId = params.get("system");
     if (new URLSearchParams(window.location.search).get("mode") !== "before-after") {
         window.location.replace(`satisfaction.html${window.location.search}`);
+        return;
+    }
+
+    const signedIn = window.EvaluatorAuth?.current();
+    if (!signedIn?.id) { window.location.replace(`index.html`); return; }
+    const accountDisplay = document.getElementById("evaluator-account");
+    if (accountDisplay) {
+        const roles = { student: "นิสิต", teacher: "อาจารย์ / นักวิจัย", staff: "บุคลากรสายสนับสนุน", admin: "Admin" };
+        accountDisplay.textContent = `${signedIn.name || signedIn.displayName} · ID ${signedIn.id} · ${roles[signedIn.role] || signedIn.role}`;
+    }
+    let databaseQuestions;
+    try {
+        databaseQuestions = await window.EvaluationAPI.getQuestions(systemId, "effectiveness");
+    } catch (error) {
+        alert(`โหลดคำถามจากฐานข้อมูลไม่สำเร็จ: ${error.message}`);
+        return;
+    }
+    databaseQuestions = databaseQuestions.filter(question => question.active !== false);
+    if (!databaseQuestions.length) {
+        alert("ระบบนี้ยังไม่มีคำถามประสิทธิผลที่เปิดใช้งานในฐานข้อมูล กรุณาติดต่อผู้ดูแล");
         return;
     }
 
@@ -42,20 +62,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================
 
     function getQuestions() {
-        const defaultQuestions = [
-            "สามารถดำเนินงานให้เสร็จได้อย่างรวดเร็ว",
-            "สามารถดำเนินงานได้สะดวก ไม่ยุ่งยาก",
-            "ขั้นตอนการดำเนินงานมีความกระชับ ไม่ซับซ้อน",
-            "สามารถดำเนินงานได้อย่างถูกต้อง",
-            "การดำเนินงานมีข้อผิดพลาดน้อย",
-            "สามารถดำเนินงานโดยใช้เอกสารกระดาษน้อย",
-            "สามารถตรวจสอบหรือติดตามสถานะงานได้ง่าย",
-            "สามารถค้นหาและเข้าถึงข้อมูลที่จำเป็นได้สะดวก",
-            "สามารถดำเนินงานจนบรรลุวัตถุประสงค์ที่ต้องการ",
-            "สามารถดำเนินงานได้อย่างมีประสิทธิภาพโดยรวม"
-        ];
-        if (!window.t) return defaultQuestions;
-        return Array.from({ length: 10 }, (_, i) => window.t(`eval_q${i + 1}`));
+        return databaseQuestions.map(question =>
+            document.documentElement.lang === "en" ? question.text_en || question.text : question.text
+        );
     }
 
     function getRatingLabels() {
@@ -76,9 +85,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const progressKey = `itEvaluationProgress:${systemId}`;
     const progress = JSON.parse(sessionStorage.getItem(progressKey) || "null");
     const evaluationId = progress?.id || `eval_${crypto.randomUUID?.() || Date.now() + "_" + Math.random().toString(36).slice(2)}`;
+    const questionTotal = getQuestions().length;
+    const savedAnswersMatch = progress?.before?.length === questionTotal && progress?.after?.length === questionTotal;
     const answers = {
-        before: progress?.before.map(value => value === "unanswered" ? undefined : value) || Array(10).fill(undefined),
-        after: progress?.after.map(value => value === "unanswered" ? undefined : value) || Array(10).fill(undefined)
+        before: savedAnswersMatch ? progress.before.map(value => value === "unanswered" ? undefined : value) : Array(questionTotal).fill(undefined),
+        after: savedAnswersMatch ? progress.after.map(value => value === "unanswered" ? undefined : value) : Array(questionTotal).fill(undefined)
     };
     let phase = progress?.phase || "before";
     let questionIndex = progress?.questionIndex || 0;
@@ -119,19 +130,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const startBtn = document.getElementById("start-btn");
     if (startBtn) {
         startBtn.addEventListener("click", () => {
-            const evaluatorName = document.getElementById("evaluator-name").value.trim();
-            const userRole = document.getElementById("user-role").value;
-
-            if (!userRole) {
-                alert(window.t ? window.t("evaluator_role_required") : "กรุณาเลือกประเภทผู้ใช้งาน");
+            if (!window.EvaluatorAuth?.current()?.id) {
+                window.location.replace(`index.html`);
                 return;
             }
-
-            const defaultName = window.t ? window.t("anonymous_evaluator") : "ผู้ใช้งานไม่ประสงค์ออกนาม";
-            sessionStorage.setItem("evaluatorProfile", JSON.stringify({
-                name: evaluatorName || defaultName,
-                role: userRole
-            }));
 
             profileSection.hidden = true;
             questionSection.hidden = false;
@@ -141,8 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Auto-start if evaluator profile already submitted from index.html
-    const existingProfile = sessionStorage.getItem("evaluatorProfile");
-    if (existingProfile && selectedSystem) {
+    if (signedIn?.id && selectedSystem) {
         if (profileSection) profileSection.hidden = true;
         if (questionSection) questionSection.hidden = false;
         renderQuestion();
@@ -179,14 +180,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 : (window.t ? window.t("phase_2_desc") : "โปรดพิจารณาความสะดวก รวดเร็ว และประสิทธิภาพในการปฏิบัติงานจริงผ่านระบบ IT นี้");
         }
 
-        const currentStep = (isBefore ? 0 : 10) + (questionIndex + 1);
+        const currentStep = (isBefore ? 0 : questionTotal) + (questionIndex + 1);
         if (questionCount) {
             questionCount.textContent = window.t
                 ? window.t("question_counter", { current: questionIndex + 1, total: currentQuestions.length })
                 : `ข้อที่ ${questionIndex + 1} / ${currentQuestions.length}`;
         }
         if (progressBar) {
-            progressBar.style.width = `${(currentStep / 20) * 100}%`;
+            progressBar.style.width = `${(currentStep / (questionTotal * 2)) * 100}%`;
         }
 
         if (questionText) {

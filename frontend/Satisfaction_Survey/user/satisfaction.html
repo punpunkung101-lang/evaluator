@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+<script src="../assets/js/shared/login-guard.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="sat_page_title">แบบประเมินความพึงพอใจการใช้งานระบบ IT | IT Evaluator</title>
@@ -19,7 +20,7 @@
         <div class="ev-topbar"><div class="ev-header-inner"><span data-i18n="admin_shell_label">ศูนย์ประเมินระบบสารสนเทศ (IT Evaluator)</span></div></div>
         <div class="ev-header-inner ev-university">
             <div class="ev-faculty">
-                <img src="../../Publice/Nu_bage.png" alt="ตรามหาวิทยาลัยนเรศวร" width="72" height="72">
+                <a href="../../Effectiveness_Of_It/main/index.html" aria-label="กลับหน้าหลัก"><img src="../../Publice/Nu_bage.png" alt="ตรามหาวิทยาลัยนเรศวร" width="72" height="72"></a>
                 <span><strong>คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</strong><small lang="en">Faculty of Allied Health Sciences, Naresuan University</small></span>
             </div>
             <div class="ev-controls">
@@ -136,11 +137,13 @@
 </main>
 
 <!-- JS: Shared Data, Shared API & User Page Logic -->
+<script src="../assets/js/shared/auth.js"></script>
 <script src="../assets/js/shared/systems-data.js"></script>
 <script src="../assets/js/shared/api.js"></script>
 <script src="../assets/js/shared/theme-lang.js"></script>
 <script src="../assets/js/user/satisfaction.js"></script>
 
     <script src="../../Effectiveness_Of_It/main/assets/js/sidebar.js"></script>
+<script src="../assets/js/shared/site-nav.js"></script>
 </body>
 </html>

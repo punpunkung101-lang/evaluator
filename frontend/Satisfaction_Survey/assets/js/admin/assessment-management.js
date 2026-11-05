@@ -494,7 +494,7 @@
        INITIALIZATION & EVENT BINDINGS
        ===================================================================== */
 
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
         // Add Topic / System Button
         const addTopicBtn = document.getElementById("mgmtAddTopicBtn");
         if (addTopicBtn) addTopicBtn.addEventListener("click", () => openTopicModal(null));
@@ -557,7 +557,12 @@
             render();
         });
 
-        // Initial Render
+        // Load each system's independent question rows from SQLite before editing.
+        try {
+            await Promise.all(getSystems().map(system => getCatalog().loadQuestionsFromDatabase(system.id)));
+        } catch (error) {
+            alert(`โหลดรายการคำถามจากฐานข้อมูลไม่สำเร็จ: ${error.message}`);
+        }
         render();
     });
 

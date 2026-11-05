@@ -52,6 +52,10 @@ const DEFAULT_ASSESSMENT_QUESTIONS = [
 
 const STORAGE_KEY_SYSTEMS = "it_eval_systems";
 const STORAGE_KEY_QUESTIONS = "it_eval_topic_questions";
+const databaseQuestionLoadState = new Map();
+const databaseApiBaseUrl = () => (typeof window !== "undefined" && window.API_CONFIG?.backendBaseUrl)
+    || (typeof window !== "undefined" && window.ENV?.API_BASE_URL)
+    || "http://127.0.0.1:8080";
 
 function loadStoredSystems() {
     if (typeof localStorage === "undefined") return JSON.parse(JSON.stringify(DEFAULT_SYSTEMS));
@@ -226,7 +230,35 @@ const AssessmentCatalog = {
         return JSON.parse(JSON.stringify(DEFAULT_ASSESSMENT_QUESTIONS));
     },
 
+    async loadQuestionsFromDatabase(systemId) {
+        databaseQuestionLoadState.set(systemId, "loading");
+        try {
+            const token = sessionStorage.getItem("evaluatorToken");
+            const response = await fetch(`${databaseApiBaseUrl()}/questions?system_id=${encodeURIComponent(systemId)}`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {}
+            });
+            const result = await response.json().catch(() => []);
+            if (!response.ok || !Array.isArray(result)) throw new Error(result.error || "โหลดคำถามจากฐานข้อมูลไม่สำเร็จ");
+            const questions = result.map(q => ({
+                id: q.id, order: q.order, type: q.assessmentType === "satisfaction" ? "satisfaction" : "efficiency",
+                text: q.text, text_en: q.text_en || "", scale: "likert5"
+            }));
+            const allQuestions = loadStoredQuestions();
+            allQuestions[systemId] = questions;
+            localStorage.setItem(STORAGE_KEY_QUESTIONS, JSON.stringify(allQuestions));
+            databaseQuestionLoadState.set(systemId, "loaded");
+            if (typeof document !== "undefined") document.dispatchEvent(new CustomEvent("assessmentquestionschange", { detail: { systemId, questions } }));
+            return questions;
+        } catch (error) {
+            databaseQuestionLoadState.set(systemId, "failed");
+            throw error;
+        }
+    },
+
     saveQuestionsForTopic(systemId, questions) {
+        if (databaseQuestionLoadState.get(systemId) !== "loaded") {
+            throw new Error("บันทึกไม่ได้เพราะยังโหลดคำถามจากฐานข้อมูลไม่สำเร็จ กรุณาโหลดหน้าใหม่และตรวจสอบการเชื่อมต่อ");
+        }
         const allQuestions = loadStoredQuestions();
         allQuestions[systemId] = questions;
         if (typeof localStorage !== "undefined") {
@@ -239,12 +271,28 @@ const AssessmentCatalog = {
         if (typeof document !== "undefined") {
             document.dispatchEvent(new CustomEvent("assessmentquestionschange", { detail: { systemId, questions } }));
         }
+        const token = typeof sessionStorage !== "undefined" ? sessionStorage.getItem("evaluatorToken") : null;
+        if (token) {
+            window.assessmentQuestionSave = fetch(`${databaseApiBaseUrl()}/questions/replace`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ systemId, questions })
+            }).then(async response => {
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(result.error || "บันทึกคำถามไม่สำเร็จ");
+                return result;
+            }).catch(error => {
+                console.error(error);
+                window.alert(error.message);
+                throw error;
+            });
+        }
     },
 
     addQuestion(systemId, { type, text, text_en, scale, order }) {
         const qList = this.getQuestionsForTopic(systemId);
         const nextOrder = order || (qList.length + 1);
-        const nextId = `Q${String(qList.length + 1).padStart(2, "0")}_${Date.now().toString(36).substr(-4)}`;
+        const nextId = `${systemId}-Q${String(qList.length + 1).padStart(2, "0")}-${Date.now().toString(36).slice(-6)}`;
 
         const newQ = {
             id: nextId,

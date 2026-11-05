@@ -188,5 +188,18 @@
     root.addEventListener('storage', event => {
         if (event.key === Q.keys.records || event.key === Q.keys.config || event.key === null) render();
     });
-    render();
+    (async () => {
+        try {
+            const token = sessionStorage.getItem('evaluatorToken');
+            const response = await fetch('http://localhost:8080/quantitative', {
+                headers: token ? { Authorization: `Bearer ${token}` } : {}
+            });
+            const records = await response.json().catch(() => []);
+            if (!response.ok) throw new Error(records.error || `HTTP ${response.status}`);
+            localStorage.setItem(Q.keys.records, JSON.stringify(Array.isArray(records) ? records : []));
+        } catch (error) {
+            el('qd-message').textContent = 'อ่านผลจากฐานข้อมูลไม่ได้: ' + error.message;
+        }
+        render();
+    })();
 })(typeof window !== 'undefined' ? window : globalThis);

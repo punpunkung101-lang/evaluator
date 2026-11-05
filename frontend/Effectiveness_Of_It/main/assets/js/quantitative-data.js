@@ -56,6 +56,17 @@
         draft: () => read(keys.draft, null),
         saveDraft: value => localStorage.setItem(keys.draft, JSON.stringify(value)),
         records: () => read(keys.records, []),
+        async submitToBackend(record) {
+            const token = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('evaluatorToken') : null;
+            if (!token) throw new Error('กรุณาเข้าสู่ระบบก่อนส่งแบบประเมิน');
+            const response = await fetch('http://localhost:8080/quantitative', {
+                method:'POST', headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},
+                body:JSON.stringify(record)
+            });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(result.error || 'บันทึกฐานข้อมูลไม่สำเร็จ');
+            return result;
+        },
         submit(record) {
             const records = api.records();
             if (!records.some(r => r.id === record.id)) {

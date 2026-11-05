@@ -75,7 +75,7 @@ for (const mode of ['configured', 'demo', 'refresh']) test(`wizard completes wit
     config.before=[{id:'b',name:'Before',active:true,timed:true}];
     config.after=[{id:'a',name:'After',active:true,timed:true}];
     if (mode === 'configured') Q.saveConfig('SYS002',config);
-    context.window={Quantitative:Q};
+    context.window={Quantitative:Q,EvaluatorAuth:{current:()=>({id:'00000001',name:'Test User',role:'staff'})}};
     vm.runInNewContext(fs.readFileSync(path.join(root,'frontend/Effectiveness_Of_It/main/assets/js/energy-stepper.js'),'utf8'),context);
     Q.systems=()=>[{id:'SYS002',name:'Leave'}];
     context.crypto={randomUUID:()=> 'wizard-test'};
@@ -83,7 +83,7 @@ for (const mode of ['configured', 'demo', 'refresh']) test(`wizard completes wit
     context.sessionStorage={getItem:()=>null};
     const nodes=new Map();
     const decode=s=>String(s??'').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,'&');
-    function node(id,value='') { return {id,value,textContent:'',attributes:{},disabled:false,focus(){},addEventListener(type,fn){this[type]=fn;},setAttribute(k,v){this.attributes[k]=v;},showModal(){this.open=true;},close(){this.open=false;}}; }
+    function node(id,value='') { return {id,value,textContent:'',attributes:{},disabled:false,listeners:{},focus(){},addEventListener(type,fn){this.listeners[type]=fn;},click(){this.listeners.click?.();},setAttribute(k,v){this.attributes[k]=v;},showModal(){this.open=true;},close(){this.open=false;}}; }
     const app=node('quant-app');
     Object.defineProperty(app,'innerHTML',{set(html){
         this.html=html;nodes.clear();nodes.set('quant-app',this);
@@ -101,8 +101,11 @@ for (const mode of ['configured', 'demo', 'refresh']) test(`wizard completes wit
     context.document={body:{dataset:{quantPage:'evaluation'}},getElementById:id=>id==='quant-app'?app:nodes.get(id)};
     const run=()=>vm.runInNewContext(fs.readFileSync(path.join(root,'frontend/Effectiveness_Of_It/main/assets/js/quantitative.js'),'utf8'),context);
     const submit=()=>nodes.get('wizard-form').onsubmit({preventDefault(){}});
-    run();submit();assert.equal(nodes.get('q-name').attributes['aria-invalid'],'true');
-    for(const [id,value] of [['q-name','Test'],['q-role','staff'],['q-department','Test dept'],['q-system','SYS002']])nodes.get(id).value=value;
+    run();
+    assert.ok(app.html.includes('Test User'));
+    assert.ok(!nodes.has('q-name')&&!nodes.has('q-role')&&!nodes.has('q-department'));
+    submit();assert.equal(nodes.get('q-system').attributes['aria-invalid'],'true');
+    nodes.get('q-system').value='SYS002';
     submit();
     if(mode!=='configured') {
         assert.ok(nodes.has('q-use-demo'));
@@ -125,6 +128,7 @@ for (const mode of ['configured', 'demo', 'refresh']) test(`wizard completes wit
     assert.ok(app.html.includes('-87.5%'));assert.equal(Q.records().length,0);
     submit();assert.equal(nodes.get('confirm-dialog').open,true);
     nodes.get('q-cancel').onclick();assert.equal(Q.records().length,0);
+    Q.submitToBackend=async()=>({success:true});
     submit();const confirm=nodes.get('q-confirm').onclick;await confirm();await confirm();
     assert.equal(Q.records().length,1);assert.equal(Q.records()[0].values.time.before,240);assert.equal(Q.draft(),null);
     assert.equal(!!Q.records()[0].config.isDemo,mode==='demo');

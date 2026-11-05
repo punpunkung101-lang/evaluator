@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+<script src="../assets/js/shared/admin-guard.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>จัดการแบบประเมิน | IT Evaluator</title>
@@ -24,13 +25,13 @@
         <div class="ev-topbar"><div class="ev-header-inner"><a href="../../Effectiveness_Of_It/main/index.html" style="color:inherit;text-decoration:none" aria-label="กลับหน้าหลัก">ศูนย์ประเมินระบบสารสนเทศ (IT Evaluator) · หน้าหลัก</a></div></div>
         <div class="ev-header-inner ev-university">
             <div class="ev-faculty">
-                <img src="../../Publice/Nu_bage.png" alt="ตรามหาวิทยาลัยนเรศวร" width="72" height="72">
+                <a href="../../Effectiveness_Of_It/main/index.html" aria-label="กลับหน้าหลัก"><img src="../../Publice/Nu_bage.png" alt="ตรามหาวิทยาลัยนเรศวร" width="72" height="72"></a>
                 <span><strong>คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</strong><small lang="en">Faculty of Allied Health Sciences, Naresuan University</small></span>
             </div>
             <div class="ev-controls">
 
                 <span id="admin-toolbar-mount"></span>
-                <button type="button" class="ev-signin" disabled data-i18n="admin_shell_signin">เข้าสู่ระบบ — ยังไม่พร้อมใช้งาน</button>
+                <button type="button" class="ev-signin">เข้าสู่ระบบ</button>
             </div>
         </div>
     </header>
@@ -253,8 +254,11 @@
         </div>
     </div>
 
+    <script src="../assets/js/shared/auth.js"></script>
+    <script src="../assets/js/shared/api.js"></script>
     <script src="../assets/js/shared/systems-data.js"></script>
     <script src="../assets/js/shared/theme-lang.js?v=20261103-assessment"></script>
     <script src="../assets/js/admin/assessment-management.js"></script>
+<script src="../assets/js/shared/site-nav.js"></script>
 </body>
 </html>

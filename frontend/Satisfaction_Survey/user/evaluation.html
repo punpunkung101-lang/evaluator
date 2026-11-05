@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+<script src="../assets/js/shared/login-guard.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="evaluation_page_title">แบบประเมินประสิทธิภาพระบบ IT | IT Evaluator</title>
@@ -34,28 +35,10 @@
     <!-- ขั้นตอนที่ 1: ข้อมูลผู้ประเมิน -->
     <section class="form-section profile-card" id="profile-section">
         <h2 data-i18n="evaluator_profile_title">ข้อมูลผู้ประเมิน</h2>
-        <p class="section-desc" data-i18n="evaluator_profile_desc">โปรดระบุข้อมูลเบื้องต้นเพื่อใช้ประกอบการวิเคราะห์ทางสถิติของหน่วยงาน</p>
-
+        <p class="section-desc" data-i18n="evaluator_profile_desc">ระบบจะใช้ชื่อและประเภทผู้ใช้จากบัญชีที่เข้าสู่ระบบ</p>
         <div class="form-group">
-            <label class="form-label" for="evaluator-name" data-i18n="evaluator_name_label">ชื่อ-นามสกุล หรือ รหัสผู้ใช้งาน</label>
-            <input
-                type="text"
-                id="evaluator-name"
-                class="form-control"
-                data-i18n-placeholder="evaluator_name_placeholder"
-                placeholder="กรอกชื่อ-นามสกุล หรือนามสมมุติ"
-                autocomplete="off"
-            >
-        </div>
-
-        <div class="form-group">
-            <label class="form-label" for="user-role" data-i18n="evaluator_role_label">ประเภทบุคลากร / ผู้ใช้งาน</label>
-            <select id="user-role" class="form-control">
-                <option value="" data-i18n="role_select_prompt">-- โปรดเลือกประเภทผู้ใช้งาน --</option>
-                <option value="student" data-i18n="role_student">นิสิต</option>
-                <option value="teacher" data-i18n="role_teacher">อาจารย์ / นักวิจัย</option>
-                <option value="staff" data-i18n="role_staff">บุคลากรสายสนับสนุน</option>
-            </select>
+            <span class="form-label" data-i18n="signed_in_account_label">บัญชีที่เข้าสู่ระบบ</span>
+            <p id="evaluator-account" class="form-control" aria-live="polite">กำลังตรวจสอบบัญชี...</p>
         </div>
 
         <button id="start-btn" class="btn btn-primary" type="button">
@@ -128,11 +111,13 @@
 </main>
 
 <!-- JS: Shared Data & User Page Logic -->
+<script src="../assets/js/shared/auth.js"></script>
 <script src="../assets/js/shared/systems-data.js"></script>
 <script src="../assets/js/shared/api.js"></script>
 <script src="../assets/js/shared/theme-lang.js"></script>
 <script src="../assets/js/user/evaluation.js"></script>
 
     <script src="../../Effectiveness_Of_It/main/assets/js/sidebar.js"></script>
+<script src="../assets/js/shared/site-nav.js"></script>
 </body>
 </html>

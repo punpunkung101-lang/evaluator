@@ -19,7 +19,7 @@
         <div class="ev-topbar"><div class="ev-header-inner"><span data-i18n="admin_shell_label">ศูนย์ประเมินระบบสารสนเทศ (IT Evaluator)</span></div></div>
         <div class="ev-header-inner ev-university">
             <div class="ev-faculty">
-                <img src="../../Publice/Nu_bage.png" alt="ตรามหาวิทยาลัยนเรศวร" width="72" height="72">
+                <a href="../../Effectiveness_Of_It/main/index.html" aria-label="กลับหน้าหลัก"><img src="../../Publice/Nu_bage.png" alt="ตรามหาวิทยาลัยนเรศวร" width="72" height="72"></a>
                 <span><strong>คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</strong><small lang="en">Faculty of Allied Health Sciences, Naresuan University</small></span>
             </div>
             <div class="ev-controls">
@@ -40,7 +40,7 @@
             <h2 id="survey-intro-title" data-i18n="survey_home_instructions">คำชี้แจง</h2>
             <p data-i18n="survey_home_purpose">แบบประเมินนี้มีวัตถุประสงค์เพื่อสำรวจความพึงพอใจของผู้ใช้งานต่อระบบสารสนเทศ</p>
             <ul>
-                <li data-i18n="survey_home_count">ชุดคำถามมาตรฐานมีทั้งหมด 15 ข้อ</li>
+                <li id="survey-question-count" aria-live="polite">เลือกระบบเพื่อแสดงจำนวนข้อคำถาม</li>
                 <li data-i18n="survey_home_scale">ใช้ระดับคะแนน 1–5</li>
                 <li data-i18n="survey_home_experience">โปรดตอบตามประสบการณ์การใช้งานจริง</li>
             </ul>
@@ -49,28 +49,10 @@
         <!-- ข้อมูลผู้ประเมินและการเลือกระบบสารสนเทศ -->
         <section class="form-section profile-card" id="profile-section">
             <h2 data-i18n="evaluator_profile_title">ข้อมูลผู้ประเมิน</h2>
-            <p class="section-desc" data-i18n="evaluator_profile_desc">โปรดระบุข้อมูลเบื้องต้นเพื่อใช้ประกอบการวิเคราะห์ทางสถิติของหน่วยงาน</p>
-
-            <div class="form-group">
-                <label class="form-label" for="evaluator-name" data-i18n="evaluator_name_label">ชื่อ-นามสกุล หรือ รหัสผู้ใช้งาน</label>
-                <input
-                    type="text"
-                    id="evaluator-name"
-                    class="form-control"
-                    data-i18n-placeholder="evaluator_name_placeholder"
-                    placeholder="กรอกชื่อ-นามสกุล หรือนามสมมุติ"
-                    autocomplete="off"
-                >
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="user-role" data-i18n="survey_home_role">ประเภทผู้ประเมิน</label>
-                <select id="user-role" class="form-control">
-                    <option value="" data-i18n="role_select_prompt">-- โปรดเลือกประเภทผู้ใช้งาน --</option>
-                    <option value="student" data-i18n="role_student">นิสิต</option>
-                    <option value="teacher" data-i18n="role_teacher">อาจารย์ / นักวิจัย</option>
-                    <option value="staff" data-i18n="role_staff">บุคลากรสายสนับสนุน</option>
-                </select>
+        <p class="section-desc" data-i18n="evaluator_profile_desc">ข้อมูลผู้ประเมินจะดึงจากบัญชีที่เข้าสู่ระบบโดยอัตโนมัติ</p>
+            <div class="form-group account-summary">
+                <span class="form-label">ผู้ประเมินจากบัญชีที่เข้าสู่ระบบ</span>
+            <p id="signed-in-profile" class="form-control" aria-live="polite">ยังไม่ได้เข้าสู่ระบบ</p>
             </div>
 
             <div class="form-group">
@@ -94,19 +76,63 @@
 
     <!-- JS: Shared Systems Data & Theme/Lang Logic -->
     <script src="../assets/js/shared/auth.js"></script>
+    <script src="../assets/js/shared/api.js"></script>
     <script src="../assets/js/shared/systems-data.js"></script>
     <script src="../assets/js/shared/theme-lang.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", async () => {
             const systemSelect = document.getElementById("system-select");
             const startBtn = document.getElementById("start-btn");
-            const evaluatorNameInput = document.getElementById("evaluator-name");
-            const userRoleSelect = document.getElementById("user-role");
-            const signedInUser = window.EvaluatorAuth && window.EvaluatorAuth.current();
-            if (signedInUser) {
-                evaluatorNameInput.value = signedInUser.name || signedInUser.username || "";
-                if (["student", "teacher", "staff"].includes(signedInUser.role)) userRoleSelect.value = signedInUser.role;
+            const profileDisplay = document.getElementById("signed-in-profile");
+            const questionCountDisplay = document.getElementById("survey-question-count");
+            let signedInUser = null;
+            let selectedQuestionCount = null;
+            const t = (key, params) => window.ThemeLang?.t ? window.ThemeLang.t(key, params) : key;
+            const renderQuestionCount = (messageKey = "survey_home_count_pending") => {
+                if (!questionCountDisplay) return;
+                questionCountDisplay.textContent = messageKey === "survey_home_count"
+                    ? t(messageKey, { count: selectedQuestionCount })
+                    : t(messageKey);
+            };
+            async function updateQuestionCount(systemId) {
+                selectedQuestionCount = null;
+                if (!systemId) {
+                    renderQuestionCount();
+                    return;
+                }
+                renderQuestionCount();
+                try {
+                    const [effectiveness, satisfaction] = await Promise.all([
+                        window.EvaluationAPI.getQuestions(systemId, "effectiveness"),
+                        window.EvaluationAPI.getQuestions(systemId, "satisfaction")
+                    ]);
+                    if (systemSelect.value !== systemId) return;
+                    selectedQuestionCount = effectiveness.filter(question => question.active !== false).length
+                        + satisfaction.filter(question => question.active !== false).length;
+                    renderQuestionCount("survey_home_count");
+                } catch (error) {
+                    console.error("[SurveyHome] Could not load active question count", { systemId, message: error.message });
+                    if (systemSelect.value === systemId) renderQuestionCount("survey_home_count_unavailable");
+                }
             }
+            const effectivenessUrl = systemId => `evaluation.html?mode=before-after&system=${encodeURIComponent(systemId)}`;
+            const setProfileDisplay = user => {
+                if (!profileDisplay) return;
+                const roles = { student: "นิสิต", teacher: "อาจารย์ / นักวิจัย", staff: "บุคลากรสายสนับสนุน", admin: "Admin" };
+                profileDisplay.textContent = user
+                    ? `${user.displayName || user.name} · ID ${user.id} · ${roles[user.role] || user.role}`
+                    : "ยังไม่ได้เข้าสู่ระบบ — ระบบจะขอเข้าสู่ระบบเมื่อเริ่มประเมิน";
+                document.querySelectorAll(".ev-signin").forEach(control => {
+                    control.textContent = user ? user.displayName || user.name : "เข้าสู่ระบบ / สร้างบัญชี";
+                });
+            };
+            if (sessionStorage.getItem("evaluatorToken")) {
+                try { signedInUser = await window.EvaluatorAuth.verify(); }
+                catch (error) {
+                    if (error.status !== 401) profileDisplay.textContent = `ตรวจสอบบัญชีไม่ได้: ${error.message}`;
+                }
+            }
+            setProfileDisplay(signedInUser);
 
             // Populate system options from shared data
             function populateSystems() {
@@ -130,24 +156,34 @@
             }
 
             populateSystems();
+            const requestedSystem = new URLSearchParams(location.search).get("system");
+            if (requestedSystem && systemSelect.querySelector(`option[value="${CSS.escape(requestedSystem)}"]`)) {
+                systemSelect.value = requestedSystem;
+            }
+            renderQuestionCount();
+            updateQuestionCount(systemSelect.value);
+            systemSelect.addEventListener("change", () => updateQuestionCount(systemSelect.value));
 
             // Language switch event
             document.addEventListener("langchange", () => {
                 populateSystems();
+                renderQuestionCount(selectedQuestionCount === null ? "survey_home_count_pending" : "survey_home_count");
+                if (selectedQuestionCount === null && systemSelect.value) updateQuestionCount(systemSelect.value);
             });
+
+            if (signedInUser && requestedSystem && new URLSearchParams(location.search).get("continue") === "1") {
+                sessionStorage.setItem("evaluatorProfile", JSON.stringify({
+                    id: signedInUser.id, evaluatorId: signedInUser.id, username: signedInUser.username,
+                    name: signedInUser.displayName || signedInUser.name, role: signedInUser.role, userRole: signedInUser.role
+                }));
+                location.replace(effectivenessUrl(requestedSystem));
+                return;
+            }
 
             // Start Assessment
             if (startBtn) {
-                startBtn.addEventListener("click", () => {
-                    const evaluatorName = (evaluatorNameInput.value || "").trim();
-                    const userRole = userRoleSelect.value;
+                startBtn.addEventListener("click", async () => {
                     const selectedSystem = systemSelect.value;
-
-                    if (!userRole) {
-                        alert(window.ThemeLang && window.ThemeLang.t ? window.ThemeLang.t("evaluator_role_required") : "กรุณาเลือกประเภทผู้ใช้งาน");
-                        userRoleSelect.focus();
-                        return;
-                    }
 
                     if (!selectedSystem) {
                         alert(window.ThemeLang && window.ThemeLang.t ? window.ThemeLang.t("system_required") : "กรุณาเลือกระบบสารสนเทศที่ต้องการประเมิน");
@@ -155,19 +191,38 @@
                         return;
                     }
 
-                    const defaultName = window.ThemeLang && window.ThemeLang.t ? window.ThemeLang.t("anonymous_evaluator") : "ผู้ใช้งานไม่ประสงค์ออกนาม";
-                    sessionStorage.setItem("evaluatorProfile", JSON.stringify({
-                        ...(signedInUser || {}),
-                        evaluatorId: signedInUser?.id || signedInUser?.username || "",
-                        name: evaluatorName || defaultName,
-                        role: userRole
-                    }));
+                    startBtn.disabled = true;
+                    try {
+                        // Always verify the server token before using this identity.
+                        signedInUser = await window.EvaluatorAuth.verify();
+                    } catch (error) {
+                        startBtn.disabled = false;
+                        if (error.status === 401) {
+                            const returnUrl = new URL(location.href);
+                            returnUrl.searchParams.set("system", selectedSystem);
+                            returnUrl.searchParams.set("continue", "1");
+                            const loginUrl = new URL("../../Effectiveness_Of_It/main/index.html", location.href);
+                            loginUrl.searchParams.set("login", "1");
+                            loginUrl.searchParams.set("returnTo", returnUrl.pathname + returnUrl.search + returnUrl.hash);
+                            location.assign(loginUrl.href);
+                        } else {
+                            profileDisplay.textContent = `ตรวจสอบบัญชีไม่ได้: ${error.message}`;
+                        }
+                        return;
+                    }
 
-                    window.location.href = `satisfaction.html?system=${encodeURIComponent(selectedSystem)}`;
+                    sessionStorage.setItem("evaluatorProfile", JSON.stringify({
+                        id: signedInUser.id, evaluatorId: signedInUser.id, username: signedInUser.username,
+                        name: signedInUser.displayName || signedInUser.name, role: signedInUser.role, userRole: signedInUser.role
+                    }));
+                    setProfileDisplay(signedInUser);
+
+                    window.location.href = effectivenessUrl(selectedSystem);
                 });
             }
         });
     </script>
     <script src="../../Effectiveness_Of_It/main/assets/js/sidebar.js"></script>
+<script src="../assets/js/shared/site-nav.js"></script>
 </body>
 </html>

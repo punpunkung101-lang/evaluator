@@ -3,11 +3,12 @@
  * Faculty of Allied Health Sciences, Naresuan University
  */
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
     // อ่านรหัสระบบจาก URL
     const params = new URLSearchParams(window.location.search);
     const systemId = params.get("system");
+    const requestedId = params.get("assessment");
 
     // ค้นหาชื่อระบบ
     let selectedSystem = null;
@@ -26,9 +27,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     updateSystemName();
 
-    const questions = selectedSystem
-        ? window.AssessmentCatalog.getQuestionsForTopic(systemId).slice().sort((a, b) => a.order - b.order)
-        : [];
+    if (selectedSystem && !requestedId) {
+        try {
+            const effectivenessQuestions = await window.EvaluationAPI.getQuestions(systemId, "effectiveness");
+            if (effectivenessQuestions.some(question => question.active !== false)) {
+                window.location.replace(`evaluation.html?mode=before-after&system=${encodeURIComponent(systemId)}`);
+                return;
+            }
+        } catch (error) {
+            const errorBox = document.getElementById("submit-error");
+            if (errorBox) errorBox.textContent = `ตรวจสอบคำถามประสิทธิผลจากฐานข้อมูลไม่สำเร็จ: ${error.message}`;
+            return;
+        }
+    }
+
+    let questions = [];
+    if (selectedSystem) {
+        try {
+            questions = await window.EvaluationAPI.getQuestions(systemId, "satisfaction");
+            questions = questions.filter(question => question.active !== false).sort((a, b) => a.order - b.order);
+        } catch (error) {
+            const errorBox = document.getElementById("submit-error");
+            if (errorBox) errorBox.textContent = `โหลดคำถามจากฐานข้อมูลไม่สำเร็จ: ${error.message}`;
+            return;
+        }
+    }
     function questionTextFor(question) {
         return document.documentElement.lang === "en" ? question.text_en || question.text : question.text;
     }
@@ -41,7 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const SVG_STAR = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
 
-    const requestedId = params.get("assessment");
     const draftKey = requestedId ? `itEvaluationDraft:${requestedId}` : "itEvaluationDraft";
     const draft = requestedId ? JSON.parse(sessionStorage.getItem(draftKey) || "null") : null;
     const standaloneKey = `itSatisfactionSession:${systemId}`;

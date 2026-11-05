@@ -32,7 +32,7 @@
                     <span class="control-icon" aria-hidden="true">☾</span><span data-i18n="theme">โหมดมืด</span>
                 </button>
                 <button class="control-button" id="language-toggle" type="button" aria-label="Switch language">TH / EN</button>
-                <button class="login-button" type="button" data-open-dialog="login-dialog"><span aria-hidden="true">◉</span><span data-i18n="login">เข้าสู่ระบบ</span></button>
+                <button class="login-button" type="button"><span aria-hidden="true">◉</span><span data-auth-label data-i18n="login">เข้าสู่ระบบ</span></button>
                 <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav"><span></span><span></span><span></span><span class="sr-only">Menu</span></button>
             </div>
         </div>
@@ -104,7 +104,24 @@
     <footer class="site-footer"><div class="shell"><span data-i18n="footer">คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</span><span>© <span id="year"></span> AHS IT Evaluation</span></div></footer>
 
     <dialog id="contact-dialog" class="dialog"><button class="dialog-close" type="button" data-close-dialog aria-label="Close">×</button><p class="eyebrow" data-i18n="contact">ติดต่อเรา</p><h2 data-i18n="contactTitle">ศูนย์เทคโนโลยีสารสนเทศ</h2><p data-i18n="contactText">หากต้องการความช่วยเหลือเกี่ยวกับการประเมิน โปรดติดต่อผู้ดูแลระบบของคณะสหเวชศาสตร์</p><a href="https://github.com/punpunkung101-lang">The Dev for this wed site</a></dialog>
-    <dialog id="login-dialog" class="dialog"><button class="dialog-close" type="button" data-close-dialog aria-label="Close">×</button><p class="eyebrow" data-i18n="login">บัญชีผู้ใช้งาน</p><h2 id="account-title">เข้าสู่ระบบ</h2><form id="login-form"><label><span>ชื่อผู้ใช้</span><input id="account-username" required autocomplete="username" type="text"></label><label id="display-name-wrap" hidden><span>ชื่อที่ใช้แสดง</span><input id="account-display-name" autocomplete="name" type="text"></label><label id="account-role-wrap" hidden><span>ประเภทผู้ใช้งาน</span><select id="account-role"><option value="student">นิสิต</option><option value="teacher">อาจารย์ / นักวิจัย</option><option value="staff">บุคลากรสายสนับสนุน</option></select></label><label><span>รหัสผ่าน (อย่างน้อย 8 ตัวอักษร)</span><input id="account-password" required minlength="8" autocomplete="current-password" type="password"></label><button class="submit-button" id="account-submit" type="submit">เข้าสู่ระบบ</button><button class="control-button" id="account-mode" type="button">สร้างบัญชีใหม่</button><p class="form-note" id="login-note" aria-live="polite"></p></form></dialog>
+    <dialog id="login-dialog" class="dialog login-dialog" aria-labelledby="account-title">
+        <button class="dialog-close" type="button" data-close-dialog aria-label="ปิดหน้าต่าง">×</button>
+        <p class="eyebrow" data-i18n="login">บัญชีผู้ใช้งาน</p>
+        <h2 id="account-title">เข้าสู่ระบบ</h2>
+        <p class="login-intro">กรอกชื่อผู้ใช้และรหัสผ่านเพื่อเข้าใช้งานระบบประเมิน</p>
+        <form id="login-form" autocomplete="on" novalidate>
+            <label for="account-username"><span>ชื่อผู้ใช้หรือ ID 8 หลัก</span><input id="account-username" required maxlength="20" autocomplete="username" type="text" placeholder="กรอกชื่อผู้ใช้หรือ ID"></label>
+            <label id="display-name-wrap" for="account-display-name" hidden><span>ชื่อที่ใช้แสดง (ไม่เกิน 20 ตัวอักษร)</span><input id="account-display-name" maxlength="20" autocomplete="name" type="text" placeholder="กรอกชื่อที่ใช้แสดง"></label>
+            <label id="account-id-wrap" for="account-id" hidden><span>ID ผู้ใช้ 8 หลัก (ระบบกำหนดให้อัตโนมัติ)</span><input id="account-id" value="00000001" readonly></label>
+            <label id="account-role-wrap" for="account-role" hidden><span>ประเภทผู้ใช้งาน</span><select id="account-role"><option value="student">นิสิต</option><option value="teacher">อาจารย์ / นักวิจัย</option><option value="staff">บุคลากรสายสนับสนุน</option></select></label>
+            <label for="account-password"><span>รหัสผ่าน</span></label>
+            <div class="password-field"><input id="account-password" required minlength="8" autocomplete="current-password" type="password" placeholder="กรอกรหัสผ่าน" aria-describedby="login-validation login-note"><button id="password-visibility" type="button" aria-label="แสดงรหัสผ่าน" aria-pressed="false"><span aria-hidden="true">◉</span></button></div>
+            <p class="login-validation" id="login-validation" aria-live="polite"></p>
+            <button class="submit-button login-submit" id="account-submit" type="submit">เข้าสู่ระบบ</button>
+            <button class="login-mode-toggle" id="account-mode" type="button">สร้างบัญชีใหม่</button>
+            <p class="form-note" id="login-note" aria-live="polite"></p>
+        </form>
+    </dialog>
     <details class="shell"><summary>เครื่องมือทดสอบ Prototype สำหรับผู้พัฒนา</summary><p>โหมดผู้ดูแลจำลอง ยังไม่มีการตรวจสอบสิทธิ์จาก Server</p><a href="admin.html">จัดการกระบวนการและตัวชี้วัด</a> · <a href="../../Satisfaction_Survey/admin/dashboard.html#quantitative-results">ตรวจสอบผลทดลองเชิงปริมาณ</a></details>
     <script src="../../Satisfaction_Survey/assets/js/shared/auth.js"></script><script src="assets/js/app.js"></script>
 </body>

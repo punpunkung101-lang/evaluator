@@ -21,29 +21,6 @@ INSERT OR IGNORE INTO systems(id, name, name_en, sort_order) VALUES
 ('SYS020','ระบบลูกหนี้เงินยืม','Loan Debtors System',20),
 ('SYS021','ระบบ AHS e-donation','AHS e-Donation System',21);
 
-INSERT OR IGNORE INTO assessment_questions(id, system_id, assessment_type, section, text, text_en, answer_type, sort_order) VALUES
-('EFF001',NULL,'effectiveness','ก่อน–หลังใช้ระบบ','สามารถดำเนินงานให้เสร็จได้อย่างรวดเร็ว','Speed of work completion','likert5',1),
-('EFF002',NULL,'effectiveness','ก่อน–หลังใช้ระบบ','สามารถดำเนินงานได้สะดวก ไม่ยุ่งยาก','Convenient and smooth operation','likert5',2),
-('EFF003',NULL,'effectiveness','ก่อน–หลังใช้ระบบ','ขั้นตอนการดำเนินงานมีความกระชับ ไม่ซับซ้อน','Concise and non-redundant steps','likert5',3),
-('EFF004',NULL,'effectiveness','ก่อน–หลังใช้ระบบ','สามารถดำเนินงานได้อย่างถูกต้อง','Accurate execution of work','likert5',4),
-('EFF005',NULL,'effectiveness','ก่อน–หลังใช้ระบบ','การดำเนินงานมีข้อผิดพลาดน้อย','Low rate of errors','likert5',5),
-('EFF006',NULL,'effectiveness','ก่อน–หลังใช้ระบบ','สามารถดำเนินงานโดยใช้เอกสารกระดาษน้อย','Reduced paper usage','likert5',6),
-('EFF007',NULL,'effectiveness','ก่อน–หลังใช้ระบบ','สามารถตรวจสอบหรือติดตามสถานะงานได้ง่าย','Easy tracking and auditing of status','likert5',7),
-('EFF008',NULL,'effectiveness','ก่อน–หลังใช้ระบบ','สามารถค้นหาและเข้าถึงข้อมูลที่จำเป็นได้สะดวก','Convenient search and access to data','likert5',8),
-('EFF009',NULL,'effectiveness','ก่อน–หลังใช้ระบบ','สามารถดำเนินงานจนบรรลุวัตถุประสงค์ที่ต้องการ','Achieved intended operational goals','likert5',9),
-('EFF010',NULL,'effectiveness','ก่อน–หลังใช้ระบบ','สามารถดำเนินงานได้อย่างมีประสิทธิภาพโดยรวม','Overall operational efficiency','likert5',10),
-('Q01',NULL,'satisfaction','ความพึงพอใจ','ความสะดวกในการเข้าใช้งานและการดำเนินงานผ่านระบบ','Ease of access and usage through system','likert5',1),
-('Q02',NULL,'satisfaction','ความพึงพอใจ','ความรวดเร็วในการประมวลผลและการตอบสนองของระบบ','System processing and response speed','likert5',2),
-('Q03',NULL,'satisfaction','ความพึงพอใจ','ความถูกต้องและความน่าเชื่อถือของข้อมูลและผลลัพธ์','Accuracy and reliability of data outputs','likert5',3),
-('Q04',NULL,'satisfaction','ความพึงพอใจ','ความชัดเจนของหน้าจอ เมนูคำสั่ง และคู่มือการใช้งาน','Clarity of UI, menus, and user guides','likert5',4),
-('Q05',NULL,'satisfaction','ความพึงพอใจ','ความพึงพอใจต่อภาพรวมของการใช้งานระบบ IT นี้','Overall satisfaction with this IT system','likert5',5),
-('Q06',NULL,'satisfaction','ความพึงพอใจ','สามารถดำเนินงานโดยใช้เอกสารกระดาษน้อย','Reduced paper usage','likert5',6),
-('Q07',NULL,'satisfaction','ความพึงพอใจ','สามารถตรวจสอบหรือติดตามสถานะงานได้ง่าย','Easy tracking and auditing of status','likert5',7),
-('Q08',NULL,'satisfaction','ความพึงพอใจ','สามารถค้นหาและเข้าถึงข้อมูลที่จำเป็นได้สะดวก','Convenient search and access to data','likert5',8),
-('Q09',NULL,'satisfaction','ความพึงพอใจ','สามารถดำเนินงานจนบรรลุวัตถุประสงค์ที่ต้องการ','Achieved intended operational goals','likert5',9),
-('Q10',NULL,'satisfaction','ความพึงพอใจ','สามารถดำเนินงานได้อย่างมีประสิทธิภาพโดยรวม','Overall operational efficiency','likert5',10),
-('Q11',NULL,'satisfaction','ความพึงพอใจ','ความสะดวกในการเข้าใช้งานและการดำเนินงานผ่านระบบ','Ease of access and usage through system','likert5',11),
-('Q12',NULL,'satisfaction','ความพึงพอใจ','ความรวดเร็วในการประมวลผลและการตอบสนองของระบบ','System processing and response speed','likert5',12),
-('Q13',NULL,'satisfaction','ความพึงพอใจ','ความถูกต้องและความน่าเชื่อถือของข้อมูลและผลลัพธ์','Accuracy and reliability of data outputs','likert5',13),
-('Q14',NULL,'satisfaction','ความพึงพอใจ','ความชัดเจนของหน้าจอ เมนูคำสั่ง และคู่มือการใช้งาน','Clarity of UI, menus, and user guides','likert5',14),
-('Q15',NULL,'satisfaction','ความพึงพอใจ','ความพึงพอใจต่อภาพรวมของการใช้งานระบบ IT นี้','Overall satisfaction with this IT system','likert5',15);
+-- Bootstrap administrator account requested for initial access.
+INSERT OR IGNORE INTO users(id, username, display_name, role, password_hash, password_salt, password_iterations)
+VALUES ('00000000', 'Admin', 'Admin', 'admin', 'cc3de12561d96c61e93402757182d018495425e492dd7f6934fd79158aa23cdd', '00000000000000000000000000000000', 120000);

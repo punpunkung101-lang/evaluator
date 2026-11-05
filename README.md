@@ -32,4 +32,6 @@ g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evalu
 
 ตรวจสอบ backend ที่ `http://localhost:8080/health` ทดสอบ JavaScript ด้วย `node --test tests/frontend/*.test.cjs`.
 
-ระบบลงทะเบียนจะกำหนด role เริ่มต้นเป็น `student`; ผู้ดูแลระบบต้องกำหนด role `admin` ให้บัญชีที่ได้รับอนุญาตโดยตรงในฐานข้อมูล
+บัญชีผู้ดูแลเริ่มต้น: username `Admin`, password `00000000`, ID `00000000` (role `admin`) ส่วนการสมัครทั่วไปกำหนด ID 8 หลักอัตโนมัติ โดยเริ่มจาก `00000001`; username และชื่อที่ใช้แสดงรองรับไม่เกิน 20 ตัวอักษร
+
+```
