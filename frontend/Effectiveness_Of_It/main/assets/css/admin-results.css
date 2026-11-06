@@ -110,12 +110,31 @@
 #quantitative-results [data-tone="neutral"] { color: var(--text-secondary); }
 .qd-main-chart .qd-bar-row:first-of-type i { background: #24458b; }
 .qd-report-table { border: 1px solid var(--qd-line); border-radius: 12px; overflow: hidden; background: var(--bg-surface); }
-.qd-report-table > header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; background: var(--qd-navy); color: white; }
+.qd-report-table > header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--bg-surface, #ffffff);
+    color: var(--text-primary, #0f172a);
+    border-bottom: 1px solid var(--border, #e2e8f0);
+}
+.qd-report-table > header h3 { margin: 0 0 4px; font-size: 16px; color: var(--text-primary); }
+.qd-report-table > header p { margin: 0; font-size: 13px; color: var(--text-muted); }
 .qd-report-table > header p { color: #dce9fa; }
 .qd-report-table > header span { border: 1px solid #9bb4d6; border-radius: 999px; padding: 3px 10px; }
 #quantitative-results .qd-report-table .qd-table { overflow-x: auto; margin: 0; }
 .qd-report-table table { min-width: 760px; }
-#quantitative-results .qd-report-table thead th { background: var(--qd-blue); color: white; font-weight: 600; }
+#quantitative-results .qd-report-table thead th {
+    background: var(--bg-subtle, #f8fafc);
+    color: var(--text-secondary, #475569);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 14px 16px;
+    border-bottom: 2px solid var(--border, #e2e8f0);
+}
 #quantitative-results .qd-report-table tbody tr:hover { background: var(--qd-hover); }
 #quantitative-results .qd-report-table td, #quantitative-results .qd-report-table th { border-color: var(--qd-line); }
 .qd-report-table :is(th, td):nth-child(2) { text-align: center; }
@@ -127,4 +146,162 @@
 
 :root:not([data-theme="dark"]) #quantitative-results .qd-report-table > header :is(h3, p, span) {
     color: #fff;
+}
+
+/* ==========================================================================
+   EFFECTIVENESS RESULTS ENHANCEMENTS
+   ========================================================================== */
+
+.section-summary-line {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--primary, #1e3a8a);
+    margin: 8px 0 0;
+    line-height: 1.5;
+}
+
+.qd-status-note {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 10px 0 16px;
+}
+
+/* KPI Cards Typography */
+.qd-stats strong,
+#quantitative-results .qd-stats strong {
+    font-size: clamp(32px, 2.2rem, 36px);
+    font-weight: 700;
+    line-height: 1.2;
+    display: block;
+    margin: 4px 0 6px;
+}
+
+.qd-stats h3,
+#quantitative-results .qd-stats h3 {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    min-height: auto;
+    margin: 0;
+}
+
+.qd-stat-desc,
+.qd-stats p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 2px 0 0;
+}
+
+.qd-stat-sub {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 2px 0;
+}
+
+/* Empty KPI Card: Single Clean Card when no comparison data */
+.qd-empty-kpi-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px 24px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin: 20px 0;
+    gap: 12px;
+}
+
+.empty-kpi-icon svg {
+    width: 48px;
+    height: 48px;
+    fill: var(--text-disabled);
+}
+
+.empty-kpi-text h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 6px;
+}
+
+.empty-kpi-text p {
+    font-size: 14px;
+    color: var(--text-muted);
+    max-width: 520px;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Table Enhancements */
+.qd-table-wrapper {
+    overflow-x: auto;
+}
+
+.qd-report-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.qd-report-table td {
+    padding: 14px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+.qd-report-table tbody tr:nth-child(even) {
+    background: var(--bg-subtle, #f8fafc);
+}
+
+.qd-report-table .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm, 6px);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.badge-light {
+    background: var(--bg-subtle);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+}
+
+/* Dark mode for effectiveness section */
+[data-theme="dark"] .qd-report-table > header {
+    background: var(--bg-surface, #1e293b);
+    border-bottom-color: var(--border, #334155);
+}
+
+[data-theme="dark"] #quantitative-results .qd-report-table thead th {
+    background: var(--bg-surface, #1e293b);
+    color: var(--text-primary, #f1f5f9);
+    border-bottom-color: var(--border, #334155);
+}
+
+[data-theme="dark"] .qd-report-table tbody tr:nth-child(even) {
+    background: var(--bg-page, #0f172a);
+}
+
+/* Responsive <= 760px */
+@media (max-width: 760px) {
+    #quantitative-results .qd-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    .qd-heading {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    #quantitative-results .qd-stats {
+        grid-template-columns: 1fr;
+    }
 }

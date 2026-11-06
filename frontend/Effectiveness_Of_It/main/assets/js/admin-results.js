@@ -89,14 +89,18 @@
 
     section.innerHTML = `
         <div class="qd-heading">
-            <div><p class="qd-eyebrow">EFFICIENCY &amp; EFFECTIVENESS</p><h2>ผลประเมินประสิทธิภาพและประสิทธิผล</h2></div>
+            <div>
+                <p class="qd-eyebrow">EFFICIENCY &amp; EFFECTIVENESS</p>
+                <h2>ผลประเมินประสิทธิภาพและประสิทธิผล</h2>
+                <p class="section-summary-line" id="qdSummaryLine" aria-live="polite">กำลังตรวจสอบข้อมูลประสิทธิผล...</p>
+            </div>
             <a class="btn btn-primary btn-sm" href="../../Effectiveness_Of_It/main/admin.html">จัดการกระบวนการและตัวชี้วัด</a>
         </div>
-        <div class="qd-filters">
-            <label>ระบบ IT<select id="qd-system"></select></label>
-            <label>เวอร์ชัน<select id="qd-version"></select></label>
+        <div class="qd-filters" role="search" aria-label="ตัวกรองข้อมูลประสิทธิภาพ">
+            <div class="filter-field"><label for="qd-system">ระบบ IT</label><select id="qd-system" class="filter-select"></select></div>
+            <div class="filter-field"><label for="qd-version">เวอร์ชัน</label><select id="qd-version" class="filter-select"></select></div>
         </div>
-        <p id="qd-message" role="status"></p>
+        <p id="qd-message" class="qd-status-note" role="status"></p>
         <div id="qd-content"></div>
         <dialog id="qd-details" aria-labelledby="qd-details-title">
             <h3 id="qd-details-title"></h3>
@@ -149,38 +153,114 @@
             const systemIds = [...new Set(filtered.map(record => record.systemId))];
             const time = comparable(filtered, 'time');
             const steps = comparable(filtered, 'steps');
-            const cards = [
-                ['ระบบ IT ที่มีผลประเมิน', systemIds.length, 'ระบบ'],
-                ['ผลประเมินทั้งหมด', filtered.length, 'รายการ'],
-                ['การเปลี่ยนแปลงเวลา', percent(time), note(time), time, 'นาที'],
-                ['การเปลี่ยนแปลงจำนวนขั้นตอน', percent(steps), note(steps), steps, 'ขั้นตอน']
-            ];
+            const qdSummary = el('qdSummaryLine');
+            if (qdSummary) {
+                qdSummary.textContent = filtered.length
+                    ? `ประเมินแล้ว ${systemIds.length} ระบบ · ผลประเมินที่ยืนยันแล้ว ${filtered.length} รายการ (จากฐานข้อมูลจริง)`
+                    : `ยังไม่มีผลประเมินจริงตามเงื่อนไขตัวกรองที่เลือก (${catalog.length} ระบบในแคตตาล็อก)`;
+            }
+
             el('qd-message').textContent = filtered.length
-                ? 'ใช้เฉพาะผลที่ยืนยันแล้วในเบราว์เซอร์นี้ ค่าเป็นลบหมายถึงลดลง'
+                ? 'ข้อมูลจากระบบฐานข้อมูล (Backend REST API) · ค่าเป็นลบหมายถึงประสิทธิภาพดีขึ้น (เวลา/ขั้นตอนลดลง)'
                 : 'ยังไม่มีผลประเมินจริงตามตัวกรองที่เลือก';
-            const chart = time.count ? `
-                <p>${esc(time.basis)} · เวอร์ชัน ${time.version} · ${time.count} รายการ</p>
-                ${[['ก่อนใช้ IT',time.before],['หลังใช้ IT',time.after]].map(([title,value]) => `
-                    <div class="qd-bar-row"><span>${title}</span><div><i style="width:${value / (Math.max(time.before,time.after) || 1) * 100}%"></i></div><strong>${fmt(value)} นาที</strong></div>`).join('')}`
-                : `<p class="qd-empty">${esc(time.reason)}</p>`;
+
+            // KPI: If no comparable data, show single clean card with next step
+            let statsHtml = '';
+            if (!time.count && !steps.count && filtered.length === 0) {
+                statsHtml = `<div class="qd-empty-kpi-card">
+                    <div class="empty-kpi-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg></div>
+                    <div class="empty-kpi-text">
+                        <h3>ยังไม่มีข้อมูลเปรียบเทียบก่อน–หลัง</h3>
+                        <p>เปิดแบบประเมินประสิทธิผลเพื่อบันทึกข้อมูลขั้นตอนและระยะเวลาการปฏิบัติงานจริง</p>
+                    </div>
+                    <a href="../../Effectiveness_Of_It/main/evaluation.html" class="btn btn-primary btn-sm">ทำแบบประเมินประสิทธิผล →</a>
+                </div>`;
+            } else {
+                const cards = [
+                    ['ระบบ IT ที่มีผลประเมิน', systemIds.length, 'ระบบ'],
+                    ['ผลประเมินทั้งหมด', filtered.length, 'รายการ']
+                ];
+                if (time.count) {
+                    cards.push(['การเปลี่ยนแปลงเวลา', percent(time), note(time), time, 'นาที']);
+                }
+                if (steps.count) {
+                    cards.push(['การเปลี่ยนแปลงขั้นตอน', percent(steps), note(steps), steps, 'ขั้นตอน']);
+                }
+                if (!time.count && !steps.count) {
+                    cards.push(['ข้อมูลเปรียบเทียบก่อน–หลัง', 'รอข้อมูลครบถ้วน', 'ต้องมีข้อมูลที่ใช้ฐานการวัดเดียวกันทั้ง 2 ช่วง']);
+                }
+                statsHtml = `<div class="qd-stats">${cards.map(([title,value,detail,group,unit]) => `
+                    <div class="qd-stat-card">
+                        <h3>${title}</h3>
+                        <strong data-tone="${group ? tone(group) : 'count'}">${value}</strong>
+                        ${group?.count ? `<p class="qd-stat-sub">${comparison(group,unit)}</p>` : ''}
+                        <p class="qd-stat-desc">${esc(detail)}</p>
+                    </div>`).join('')}</div>`;
+            }
+
+            // Chart: Hide completely if no data (no empty dashed box)
+            const chartHtml = time.count ? `
+                <figure class="qd-main-chart">
+                    <figcaption>เวลาเฉลี่ยก่อนและหลังใช้ IT (${esc(time.basis)} · เวอร์ชัน ${time.version} · ${time.count} รายการ)</figcaption>
+                    ${[['ก่อนใช้ IT',time.before],['หลังใช้ IT',time.after]].map(([title,value]) => `
+                        <div class="qd-bar-row">
+                            <span class="bar-label">${title}</span>
+                            <div class="bar-track"><i style="width:${value / (Math.max(time.before,time.after) || 1) * 100}%"></i></div>
+                            <strong class="bar-value">${fmt(value)} นาที</strong>
+                        </div>`).join('')}
+                </figure>` : '';
+
+            // Table: 6 columns, light header, badges, button
             const rows = systemIds.map(id => {
                 const entries = filtered.filter(record => record.systemId === id);
                 const rowTime = comparable(entries, 'time');
                 const rowSteps = comparable(entries, 'steps');
-                return `<tr><th scope="row">${esc(names.get(id) || id)}<br><small>${esc(id)}</small></th><td>${entries.length}</td>
-                    <td><strong data-tone="${tone(rowTime)}">${percent(rowTime)}</strong><br><small>${comparison(rowTime, 'นาที')}</small><small>${esc(note(rowTime))}</small></td>
-                    <td><strong data-tone="${tone(rowSteps)}">${percent(rowSteps)}</strong><br><small>${comparison(rowSteps, 'ขั้นตอน')}</small><small>${esc(note(rowSteps))}</small></td>
-                    <td><span class="qd-status" title="${insufficient}">ข้อมูลไม่เพียงพอ</span></td><td><button type="button" class="btn btn-secondary btn-sm" data-qd-details="${esc(id)}">ดูรายละเอียด →</button></td></tr>`;
+
+                let statusBadge = '<span class="status-badge status-neutral">ข้อมูลไม่เพียงพอ</span>';
+                if (rowTime.count && rowSteps.count) {
+                    const improved = (rowTime.percent !== null && rowTime.percent < 0) || (rowSteps.percent !== null && rowSteps.percent < 0);
+                    statusBadge = improved
+                        ? '<span class="status-badge status-good">ประสิทธิผลดีขึ้น</span>'
+                        : '<span class="status-badge status-neutral">คงเดิมหรือใกล้เคียง</span>';
+                }
+
+                return `<tr>
+                    <td class="col-system"><strong>${esc(names.get(id) || id)}</strong><br><small class="text-muted">${esc(id)}</small></td>
+                    <td class="col-count">${entries.length} รายการ</td>
+                    <td class="col-metric"><strong data-tone="${tone(rowTime)}">${percent(rowTime)}</strong>${rowTime.count ? `<br><small class="text-muted">${comparison(rowTime, 'นาที')}</small>` : ''}</td>
+                    <td class="col-metric"><strong data-tone="${tone(rowSteps)}">${percent(rowSteps)}</strong>${rowSteps.count ? `<br><small class="text-muted">${comparison(rowSteps, 'ขั้นตอน')}</small>` : ''}</td>
+                    <td class="col-status">${statusBadge}</td>
+                    <td class="col-action"><button type="button" class="btn btn-secondary btn-sm" data-qd-details="${esc(id)}">ดูรายละเอียด →</button></td>
+                </tr>`;
             });
+
             el('qd-content').innerHTML = `
-                <div class="qd-stats">${cards.map(([title,value,detail,group,unit]) => `<div><h3>${title}</h3><strong data-tone="${group ? tone(group) : 'count'}">${value}</strong>${group?.count ? `<p>${comparison(group,unit)}</p>` : ''}<p>${esc(detail)}</p></div>`).join('')}</div>
-                <figure class="qd-main-chart"><figcaption>เวลาเฉลี่ยก่อนและหลังใช้ IT</figcaption>${chart}</figure>
+                ${statsHtml}
+                ${chartHtml}
                 <section class="qd-report-table">
-                    <header><div><h3>ตารางสรุปผลรายระบบ</h3><p>สรุปผลการเปลี่ยนแปลงประสิทธิภาพและสถานะประสิทธิผลของระบบสารสนเทศ</p></div><span>${systemIds.length} ระบบ</span></header>
-                <div class="qd-table" tabindex="0" role="region" aria-label="ตารางสรุปผลรายระบบ">
-                    <table><thead><tr><th>ระบบ IT</th><th>จำนวนผลประเมิน</th><th>การเปลี่ยนแปลงเวลา</th><th>การเปลี่ยนแปลงขั้นตอน</th><th>สถานะประสิทธิผล</th><th>รายละเอียด</th></tr></thead>
-                    <tbody>${rows.join('') || '<tr><td colspan="6">ยังไม่มีข้อมูล</td></tr>'}</tbody></table>
-                </div></section>`;
+                    <header class="table-header">
+                        <div>
+                            <h3>ตารางสรุปผลรายระบบ</h3>
+                            <p>เปรียบเทียบการเปลี่ยนแปลงระยะเวลา ขั้นตอน และสถานะประสิทธิผล</p>
+                        </div>
+                        <span class="badge badge-light">${systemIds.length} ระบบ</span>
+                    </header>
+                    <div class="qd-table-wrapper" tabindex="0" role="region" aria-label="ตารางสรุปผลรายระบบ">
+                        <table class="systems-table">
+                            <thead>
+                                <tr>
+                                    <th>ระบบ IT</th>
+                                    <th>จำนวนผลประเมิน</th>
+                                    <th>การเปลี่ยนแปลงเวลา</th>
+                                    <th>การเปลี่ยนแปลงขั้นตอน</th>
+                                    <th>สถานะประสิทธิผล</th>
+                                    <th>รายละเอียด</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows.join('') || '<tr><td colspan="6" style="text-align:center; padding:24px;">ยังไม่มีข้อมูลผลประเมิน</td></tr>'}</tbody>
+                        </table>
+                    </div>
+                </section>`;
             section.querySelectorAll('[data-qd-details]').forEach(button => {
                 button.onclick = () => {
                     const id = button.dataset.qdDetails;

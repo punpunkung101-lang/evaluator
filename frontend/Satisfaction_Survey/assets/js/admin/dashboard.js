@@ -307,6 +307,19 @@ document.addEventListener("DOMContentLoaded", async () => {
             .filter(v => typeof v === "number" && !isNaN(v));
 
         const overallSatisfactionAvg = average(allSatisfactionScores);
+        const hasRecords = records.length > 0;
+
+        const evaluatedSystemIds = new Set(records.map(r => r.systemId));
+        const evaluatedCount = visibleSystems.filter(s => evaluatedSystemIds.has(s.id)).length;
+        const pendingCount = visibleSystems.length - evaluatedCount;
+
+        // Section Summary Line (Real Data)
+        const satSummary = document.getElementById("satSummaryLine");
+        if (satSummary) {
+            satSummary.textContent = hasRecords
+                ? `ประเมินแล้ว ${evaluatedCount} จาก ${visibleSystems.length} ระบบ · คะแนนเฉลี่ย ${overallSatisfactionAvg !== null ? overallSatisfactionAvg.toFixed(2) : "-"}/5 จากผู้ประเมิน ${uniqueEvaluators.size} คน (${records.length} ชุดข้อมูล)`
+                : `ยังไม่มีชุดข้อมูลประเมินความพึงพอใจในระบบ (${visibleSystems.length} ระบบที่เปิดให้ประเมิน)`;
+        }
 
         setText("totalSystems", visibleSystems.length);
         setText("totalUsers", uniqueEvaluators.size);
@@ -322,67 +335,85 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (maxLabel) maxLabel.style.display = "none";
         }
 
-        const hasRecords = records.length > 0;
-
+        // 2. Rating Counts Chart (1-5 Stars with units and labels)
         const ratingCounts = [0, 0, 0, 0, 0];
         for (const record of records) {
             for (const score of record.satisfactionAnswers.filter(isRating)) ratingCounts[score - 1]++;
         }
         setText("ratingCounts", ratingCounts.map((count, index) => `${index + 1} ดาว: ${count}`).join(" · "));
-        drawChart("ratingCountsChart", {
-            type: "bar",
-            data: {
-                labels: ["1", "2", "3", "4", "5"],
-                datasets: [{ label: "จำนวนคำตอบ", data: ratingCounts, backgroundColor: "#2563eb" }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
-        });
+        
+        const ratingCard = document.getElementById("cardRatingCounts");
+        if (ratingCard) ratingCard.style.display = hasRecords ? "block" : "none";
 
-        // 3. Evaluation Status Doughnut Chart
-        const statusCanvas = document.getElementById("evaluationStatusChart");
-        const statusEmpty = document.getElementById("statusEmpty");
-        const statusLegend = document.getElementById("statusLegend");
-
-        const evaluatedSystemIds = new Set(records.map(r => r.systemId));
-        const evaluatedCount = visibleSystems.filter(s => evaluatedSystemIds.has(s.id)).length;
-        const pendingCount = visibleSystems.length - evaluatedCount;
-
-        if (visibleSystems.length === 0) {
-            if (statusCanvas) statusCanvas.style.display = "none";
-            if (statusEmpty) statusEmpty.style.display = "flex";
-            if (statusLegend) statusLegend.style.display = "none";
-            destroyChart("evaluationStatusChart");
-        } else {
-            if (statusCanvas) statusCanvas.style.display = "block";
-            if (statusEmpty) statusEmpty.style.display = "none";
-            if (statusLegend) statusLegend.style.display = "flex";
-
-            drawChart("evaluationStatusChart", {
-                type: "doughnut",
+        if (hasRecords) {
+            drawChart("ratingCountsChart", {
+                type: "bar",
                 data: {
-                    labels: ["มีผลการประเมิน", "ยังไม่มีการประเมิน"],
+                    labels: ["1 ดาว", "2 ดาว", "3 ดาว", "4 ดาว", "5 ดาว"],
                     datasets: [{
-                        data: [evaluatedCount, pendingCount],
-                        backgroundColor: [colorPrimary, "#e2e8f0"],
-                        borderWidth: 0
+                        label: "จำนวนคำตอบ (ครั้ง)",
+                        data: ratingCounts,
+                        backgroundColor: "#1e3a8a",
+                        borderRadius: 4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: "70%",
                     plugins: {
-                        legend: { display: false }
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => `จำนวน ${ctx.raw} คำตอบ`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { font: { size: 12, family: '"Kanit", sans-serif' } },
+                            grid: { display: false }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0, font: { size: 12, family: '"Kanit", sans-serif' } },
+                            grid: { color: colorGrid }
+                        }
                     }
                 }
             });
         }
 
-        // 4. Satisfaction Breakdown
+        // 3. Evaluation Status Progress Bar (Clean Accessible Progress Bar)
+        const coveragePercent = visibleSystems.length ? Math.round((evaluatedCount / visibleSystems.length) * 100) : 0;
+        const progressFill = document.getElementById("coverageProgressFill");
+        const progressBar = document.getElementById("coverageProgressBar");
+        if (progressFill) progressFill.style.width = `${coveragePercent}%`;
+        if (progressBar) progressBar.setAttribute("aria-valuenow", coveragePercent);
+        setText("coveragePercent", `${coveragePercent}%`);
+        setText("coverageDetailEvaluated", `ประเมินแล้ว ${evaluatedCount} จาก ${visibleSystems.length} ระบบ`);
+        setText("coverageDetailPending", `ยังไม่มีการประเมิน ${pendingCount} ระบบ`);
+
+        // Hidden doughnut kept for backward safety
+        const statusCanvas = document.getElementById("evaluationStatusChart");
+        if (statusCanvas) {
+            drawChart("evaluationStatusChart", {
+                type: "doughnut",
+                data: {
+                    labels: ["มีผลการประเมิน", "ยังไม่มีการประเมิน"],
+                    datasets: [{ data: [evaluatedCount, pendingCount], backgroundColor: [colorPrimary, "#e2e8f0"] }]
+                },
+                options: { responsive: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        // 4. Satisfaction Breakdown (3 rows with real counts)
         if (!hasRecords || allSatisfactionScores.length === 0) {
             setText("happyPercent", "0%");
             setText("neutralPercent", "0%");
             setText("unhappyPercent", "0%");
+            setText("happyCount", "0 จาก 0 ชุดข้อมูล");
+            setText("neutralCount", "0 จาก 0 ชุดข้อมูล");
+            setText("unhappyCount", "0 จาก 0 ชุดข้อมูล");
         } else {
             let happy = 0, neutral = 0, unhappy = 0;
             allSatisfactionScores.forEach(score => {
@@ -394,17 +425,21 @@ document.addEventListener("DOMContentLoaded", async () => {
             setText("happyPercent", ((happy / total) * 100).toFixed(1) + "%");
             setText("neutralPercent", ((neutral / total) * 100).toFixed(1) + "%");
             setText("unhappyPercent", ((unhappy / total) * 100).toFixed(1) + "%");
+            setText("happyCount", `${happy} จาก ${total} ชุดข้อมูล`);
+            setText("neutralCount", `${neutral} จาก ${total} ชุดข้อมูล`);
+            setText("unhappyCount", `${unhappy} จาก ${total} ชุดข้อมูล`);
         }
 
-        // 5. Satisfaction Trend Chart
+        // 5. Satisfaction Trend Chart (Hidden if no records)
         const trendCanvas = document.getElementById("satisfactionTrendChart");
         const trendEmpty = document.getElementById("trendEmpty");
+        const trendCard = document.getElementById("cardSatisfactionTrend");
 
         if (!hasRecords) {
-            if (trendCanvas) trendCanvas.style.display = "none";
-            if (trendEmpty) trendEmpty.style.display = "flex";
+            if (trendCard) trendCard.style.display = "none";
             destroyChart("satisfactionTrendChart");
         } else {
+            if (trendCard) trendCard.style.display = "block";
             if (trendCanvas) trendCanvas.style.display = "block";
             if (trendEmpty) trendEmpty.style.display = "none";
 
@@ -456,29 +491,34 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (visibleSystems.length === 0) {
             const row = document.createElement("tr");
             row.className = "table-empty-row";
-            row.innerHTML = `<td colspan="6">ไม่พบระบบสารสนเทศตามหมวดหมู่ที่เลือก</td>`;
+            row.innerHTML = `<td colspan="6" style="text-align: center; padding: 24px;">ไม่พบระบบสารสนเทศตามเงื่อนไขที่เลือก</td>`;
             tableBody.appendChild(row);
             return;
         }
 
         visibleSystems.forEach((system, index) => {
             const sysRecords = records.filter(r => r.systemId === system.id);
-
             const satAvg = average(sysRecords.map(r => r.satisfactionAverage ?? average(r.satisfactionAnswers)));
-
             const uniqueSysUsers = new Set(sysRecords.map(r => r.evaluatorId || r.evaluatorName)).size;
+
+            let statusBadge = '<span class="status-badge status-none">ยังไม่มีผลประเมิน</span>';
+            if (satAvg !== null) {
+                if (satAvg >= 3.5) statusBadge = `<span class="status-badge status-good">${formatScore(satAvg)} · พึงพอใจสูง</span>`;
+                else if (satAvg >= 2.5) statusBadge = `<span class="status-badge status-neutral">${formatScore(satAvg)} · ปานกลาง</span>`;
+                else statusBadge = `<span class="status-badge status-bad">${formatScore(satAvg)} · ควรปรับปรุง</span>`;
+            }
 
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td>${index + 1}</td>
+                <td style="text-align: center;">${index + 1}</td>
                 <td><strong>${system.id}</strong></td>
                 <td>${system.name}</td>
-                <td>${uniqueSysUsers} คน</td>
-                <td><strong>${formatScore(satAvg)}</strong></td>
-                <td>
-                    <a href="evaluation-detail.html?system=${encodeURIComponent(system.id)}" class="detail-btn">
-                        รายละเอียด
-                    </a>
+                <td style="text-align: center;">${uniqueSysUsers} คน (${sysRecords.length} ชุด)</td>
+                <td>${statusBadge}</td>
+                <td style="text-align: center;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="location.href='evaluation-detail.html?system=${encodeURIComponent(system.id)}'">
+                        ดูรายละเอียด →
+                    </button>
                 </td>
             `;
             tableBody.appendChild(tr);

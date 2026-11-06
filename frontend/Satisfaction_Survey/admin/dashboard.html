@@ -86,7 +86,7 @@
         <!-- ========== MAIN CONTENT ========== -->
         <main class="main-content" id="overview">
 
-            <!-- HEADER -->
+                        <!-- HEADER -->
             <header class="dashboard-header">
                 <div>
                     <h1>Dashboard ความพึงพอใจระบบ IT</h1>
@@ -98,35 +98,53 @@
                         กำลังตรวจสอบการเชื่อมต่อข้อมูล...
                     </span>
 
-                    <select id="systemFilter" class="header-select" aria-label="กรองตามระบบ IT">
-                        <option value="">ทุกระบบ IT</option>
-                    </select>
-                    <select id="periodFilter" class="header-select" aria-label="กรองข้อมูลตามช่วงเวลา">
-                        <option value="all">ข้อมูลทุกช่วงเวลา</option>
-                        <option value="month">ข้อมูลประจำเดือนนี้</option>
-                        <option value="year">ข้อมูลประจำปีนี้</option>
-                    </select>
-
-                    <button id="importJsonBtn" class="btn btn-secondary btn-sm" type="button" title="นำเข้าไฟล์ JSON ผลการประเมิน">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
-                        นำเข้า JSON
-                    </button>
-
-                    <button id="exportHtmlBtn" class="btn btn-secondary btn-sm" type="button" title="ส่งออกรายงานในรูปแบบเอกสาร HTML">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/></svg>
-                        ส่งออก HTML
-                    </button>
-
-                    <button id="exportPdfBtn" class="btn btn-primary btn-sm" type="button" title="ส่งออกรายงานในรูปแบบเอกสาร PDF">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
-                        ส่งออก PDF
-                    </button>
+                    <div class="action-btn-group" role="group" aria-label="เครื่องมือจัดการข้อมูล">
+                        <button id="importJsonBtn" class="btn btn-secondary btn-sm" type="button" title="นำเข้าไฟล์ JSON ผลการประเมิน">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                            นำเข้า JSON
+                        </button>
+                        <button id="exportHtmlBtn" class="btn btn-secondary btn-sm" type="button" title="ส่งออกรายงานในรูปแบบเอกสาร HTML">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/></svg>
+                            ส่งออก HTML
+                        </button>
+                        <button id="exportPdfBtn" class="btn btn-primary btn-sm" type="button" title="ส่งออกรายงานในรูปแบบเอกสาร PDF">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
+                            ส่งออก PDF
+                        </button>
+                    </div>
                 </div>
             </header>
 
             <section id="quantitative-results" hidden aria-label="ผลประเมินประสิทธิภาพและประสิทธิผล"></section>
 
-            <div class="qd-legacy-heading"><h2>คะแนนความคิดเห็นและความพึงพอใจเดิม</h2><p>ข้อมูลส่วนนี้แยกจากผลเชิงปริมาณด้านบน ปุ่มนำเข้าและส่งออก HTML เดิมใช้กับรายงานส่วนนี้</p></div>
+            <section class="section-overview-lead" aria-label="บทสรุปภาพรวมความพึงพอใจ">
+                <p class="section-summary-line" id="satSummaryLine" aria-live="polite">กำลังรวบรวมข้อมูลสรุปผลการประเมิน...</p>
+                <div class="section-filters-bar" role="search" aria-label="ตัวกรองข้อมูลความพึงพอใจ">
+                    <div class="filter-field">
+                        <label for="systemFilter">ระบบ IT</label>
+                        <select id="systemFilter" class="filter-select" aria-label="กรองตามระบบ IT">
+                            <option value="">ทุกระบบ IT</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label for="periodFilter">ช่วงเวลา</label>
+                        <select id="periodFilter" class="filter-select" aria-label="กรองข้อมูลตามช่วงเวลา">
+                            <option value="all">ข้อมูลทุกช่วงเวลา</option>
+                            <option value="month">ข้อมูลประจำเดือนนี้</option>
+                            <option value="year">ข้อมูลประจำปีนี้</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label for="userTypeFilter">กลุ่มผู้ประเมิน</label>
+                        <select id="userTypeFilter" class="filter-select" aria-label="กรองตามกลุ่มผู้ใช้งาน">
+                            <option value="all">ผู้ประเมินทุกกลุ่ม</option>
+                            <option value="student">นิสิต</option>
+                            <option value="teacher">อาจารย์ / นักวิจัย</option>
+                            <option value="staff">บุคลากรสายสนับสนุน</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
 
             <!-- ERROR OR EMPTY STATE BANNER -->
             <div id="stateBanner" class="state-banner" style="display: none;">
@@ -186,39 +204,53 @@
 
             </section>
 
-            <!-- ========== MAIN CHARTS ========== -->
+            <!-- ========== MAIN CHARTS (2 per row) ========== -->
             <section class="dashboard-grid">
 
-                <div class="dashboard-card chart-large">
-                    <h3>จำนวนคำตอบแยกตามคะแนน 1–5</h3>
-                    <p id="ratingCounts" aria-live="polite"></p>
-                    <div class="chart-container"><canvas id="ratingCountsChart" aria-hidden="true"></canvas></div>
+                <!-- 1. Bar Chart: Rating Counts (1-5 Stars) -->
+                <div class="dashboard-card chart-card" id="cardRatingCounts">
+                    <div class="card-header">
+                        <div>
+                            <h3>การกระจายคะแนนความพึงพอใจ (จำนวนคำตอบ)</h3>
+                            <p>จำแนกตามระดับคะแนน 1 ดาว ถึง 5 ดาว</p>
+                        </div>
+                    </div>
+                    <p id="ratingCounts" class="sr-only" aria-live="polite"></p>
+                    <div class="chart-container"><canvas id="ratingCountsChart" aria-label="กราฟแท่งแสดงการกระจายคะแนน 1 ถึง 5 ดาว"></canvas></div>
                 </div>
 
-                <!-- EVALUATION STATUS -->
-                <div class="dashboard-card">
+                <!-- 2. Evaluation Status Progress Bar (Replaces Doughnut) -->
+                <div class="dashboard-card status-card" id="cardEvaluationCoverage">
                     <div class="card-header">
                         <div>
                             <h3>สัดส่วนระบบที่ได้รับการประเมิน</h3>
-                            <p>ความครอบคลุมของการประเมินระบบ</p>
+                            <p id="coverageSubtitle">ความครอบคลุมของการประเมินระบบทั้งหมด</p>
                         </div>
                     </div>
 
-                    <div class="chart-container" id="statusContainer">
+                    <div class="coverage-progress-box">
+                        <div class="coverage-stat-row">
+                            <span class="coverage-title">ความครอบคลุมภาพรวม</span>
+                            <strong class="coverage-percent" id="coveragePercent">0%</strong>
+                        </div>
+                        <div class="progress-track" role="progressbar" id="coverageProgressBar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="สัดส่วนระบบที่ได้รับการประเมิน">
+                            <div class="progress-fill" id="coverageProgressFill" style="width: 0%;"></div>
+                        </div>
+                        <div class="coverage-detail-row">
+                            <span id="coverageDetailEvaluated">ประเมินแล้ว 0 ระบบ</span>
+                            <span id="coverageDetailPending">ยังไม่มีการประเมิน 0 ระบบ</span>
+                        </div>
+                    </div>
+
+                    <!-- Hidden legacy chart container to preserve canvas id for test/code safety -->
+                    <div class="chart-container" id="statusContainer" style="display: none;">
                         <canvas id="evaluationStatusChart"></canvas>
-                        <div class="chart-empty-state" id="statusEmpty" style="display: none;">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-                            <span>ไม่มีข้อมูลสถานะการประเมิน</span>
-                        </div>
+                        <div class="chart-empty-state" id="statusEmpty" style="display: none;"></div>
                     </div>
-
-                    <div class="chart-legend" id="statusLegend">
-                        <span class="legend-item"><span class="legend-indicator" style="background: #1e3a8a;"></span> มีผลการประเมิน</span>
-                        <span class="legend-item"><span class="legend-indicator" style="background: #e2e8f0;"></span> ยังไม่มีการประเมิน</span>
-                    </div>
+                    <div class="chart-legend" id="statusLegend" style="display: none;"></div>
                 </div>
 
-                <!-- SATISFACTION LEVEL BREAKDOWN -->
+                <!-- 3. Satisfaction Level Breakdown (3 Rows with Icons + Text + Real Counts) -->
                 <div class="dashboard-card satisfaction-card" id="satisfaction">
                     <div class="card-header">
                         <div>
@@ -229,57 +261,73 @@
 
                     <div class="emotion-list">
                         <div class="emotion-item">
-                            <div class="emotion-icon happy">
-                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                            <div class="emotion-icon happy" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
                             </div>
                             <div class="emotion-info">
-                                <h2 id="happyPercent">0%</h2>
-                                <p>ระดับพึงพอใจสูง (3.50 – 5.00)</p>
+                                <div class="emotion-header-row">
+                                    <span class="emotion-label">ระดับพึงพอใจสูง</span>
+                                    <span class="emotion-range">(3.50 – 5.00 คะแนน)</span>
+                                </div>
+                                <div class="emotion-metrics-row">
+                                    <h2 id="happyPercent">0%</h2>
+                                    <span class="emotion-count" id="happyCount">0 จาก 0 ชุดข้อมูล</span>
+                                </div>
                             </div>
                         </div>
 
                         <div class="emotion-item">
-                            <div class="emotion-icon neutral">
-                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg>
+                            <div class="emotion-icon neutral" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg>
                             </div>
                             <div class="emotion-info">
-                                <h2 id="neutralPercent">0%</h2>
-                                <p>ระดับปานกลาง (2.50 – 3.49)</p>
+                                <div class="emotion-header-row">
+                                    <span class="emotion-label">ระดับปานกลาง</span>
+                                    <span class="emotion-range">(2.50 – 3.49 คะแนน)</span>
+                                </div>
+                                <div class="emotion-metrics-row">
+                                    <h2 id="neutralPercent">0%</h2>
+                                    <span class="emotion-count" id="neutralCount">0 จาก 0 ชุดข้อมูล</span>
+                                </div>
                             </div>
                         </div>
 
                         <div class="emotion-item">
-                            <div class="emotion-icon unhappy">
-                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                            <div class="emotion-icon unhappy" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
                             </div>
                             <div class="emotion-info">
-                                <h2 id="unhappyPercent">0%</h2>
-                                <p>ควรปรับปรุงแก้ไข (&lt; 2.50)</p>
+                                <div class="emotion-header-row">
+                                    <span class="emotion-label">ควรปรับปรุงแก้ไข</span>
+                                    <span class="emotion-range">(&lt; 2.50 คะแนน)</span>
+                                </div>
+                                <div class="emotion-metrics-row">
+                                    <h2 id="unhappyPercent">0%</h2>
+                                    <span class="emotion-count" id="unhappyCount">0 จาก 0 ชุดข้อมูล</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-            </section>
-
-            <!-- ========== TREND CHART ========== -->
-            <section class="dashboard-grid" style="grid-template-columns: 1fr; margin-bottom: 24px;">
-                <div class="dashboard-card">
+                <!-- 4. Trend Chart (Average Satisfaction Trend) -->
+                <div class="dashboard-card trend-card" id="cardSatisfactionTrend">
                     <div class="card-header">
                         <div>
-                            <h3>แนวโน้มความพึงพอใจย้อนหลัง</h3>
-                            <p>การเปลี่ยนแปลงของคะแนนเฉลี่ยตามช่วงเวลา</p>
+                            <h3>แนวโน้มความพึงพอใจย้อนหลัง (คะแนนเฉลี่ย 1–5)</h3>
+                            <p>การเปลี่ยนแปลงของคะแนนเฉลี่ยรายเดือน</p>
                         </div>
                     </div>
 
                     <div class="chart-container" id="trendContainer">
-                        <canvas id="satisfactionTrendChart"></canvas>
+                        <canvas id="satisfactionTrendChart" aria-label="กราฟเส้นแสดงแนวโน้มคะแนนเฉลี่ยความพึงพอใจ"></canvas>
                         <div class="chart-empty-state" id="trendEmpty" style="display: none;">
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
                             <span>ไม่มีข้อมูลแนวโน้มคะแนน</span>
                         </div>
                     </div>
                 </div>
+
             </section>
 
             <!-- ========== SYSTEM TABLE ========== -->
@@ -289,15 +337,6 @@
                     <div>
                         <h3>ตารางสรุปผลการประเมินความพึงพอใจรายระบบ</h3>
                         <p>ข้อมูลสถิติที่คำนวณจากชุดข้อมูลการประเมินจริง</p>
-                    </div>
-
-                    <div class="table-actions">
-                        <select id="userTypeFilter" class="filter-select" aria-label="กรองตามกลุ่มผู้ใช้งาน">
-                            <option value="all">ผู้ประเมินทุกกลุ่ม</option>
-                            <option value="student">นิสิต</option>
-                            <option value="teacher">อาจารย์ / นักวิจัย</option>
-                            <option value="staff">บุคลากรสายสนับสนุน</option>
-                        </select>
                     </div>
                 </div>
 
