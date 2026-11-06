@@ -168,13 +168,13 @@ test('local HTML scripts and styles resolve to existing files, and user navigati
             assert.ok(!html.includes('assets/js/sidebar.js'));
             assert.ok(html.includes('id="primary-nav"'));
         } else if (file === 'frontend/Effectiveness_Of_It/main/evaluation.html') {
-            assert.ok(html.includes('assets/js/evaluation-shell.js'));
+            assert.ok(html.includes('shared/js/site-header.js'));
             assert.ok(html.includes('assets/js/evaluation-locale.js'));
         } else if (file === 'frontend/Satisfaction_Survey/admin/dashboard.html') {
             assert.ok(html.includes('id="quantitative-results"'));
             assert.ok(html.includes('assets/js/admin-results.js'));
         } else {
-            assert.ok(html.includes('assets/js/sidebar.js'));
+            assert.ok(html.includes('shared/js/site-header.js'));
         }
     }
 });

@@ -29,7 +29,7 @@
 .it-sidebar strong { display:block; padding:12px; color:var(--primary,#1e3a8a); }
 .it-sidebar a { display:block; padding:12px; margin:6px 0; color:inherit; text-decoration:none; border-radius:6px; }
 .it-sidebar a.active { border-left:3px solid #1e3a8a; background:var(--primary-light,#eff6ff); color:var(--primary,#1e3a8a); }
-body.it-has-sidebar { padding-left:250px; }
+body.it-has-sidebar { padding-left:0; }
 .it-sidebar details { margin-top:20px; padding:10px; }
 .q-process-admin-layout > .main-content {
     flex: 1;
