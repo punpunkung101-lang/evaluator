@@ -59,6 +59,7 @@
     }
 
     if (typeof module !== 'undefined') module.exports = {summarize, initialDataSet, presentation, comparable};
+    if (root) root.AdminResults = {summarize, initialDataSet, presentation, comparable};
     if (typeof document === 'undefined') return;
     if (!root.AdminGuard?.ready) return;
     root.AdminGuard.ready.then(initializeDashboard, () => {});

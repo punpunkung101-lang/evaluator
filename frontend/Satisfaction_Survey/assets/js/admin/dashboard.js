@@ -627,140 +627,130 @@ document.addEventListener("DOMContentLoaded", async () => {
     const exportHtmlBtn = document.getElementById("exportHtmlBtn");
     const exportPdfBtn = document.getElementById("exportPdfBtn");
 
-    /**
-     * Export Standalone Academic HTML Document
-     */
+    function collectReportData() {
+        const isEffectiveness = window.location.hash === "#quantitative-results";
+        const visibleSystems = systems.filter(system => !systemFilter.value || system.id === systemFilter.value);
+        const selectedRole = roleFilter?.value || "all";
+        const selectedPeriod = periodFilter?.value || "all";
+        const today = new Date();
+        const currentMonth = today.toISOString().slice(0, 7);
+        const currentYear = today.toISOString().slice(0, 4);
+
+        const records = rawEvaluations.filter(record => {
+            const matchSystem = visibleSystems.some(s => s.id === record.systemId);
+            const matchRole = selectedRole === "all" || record.userRole === selectedRole;
+            let matchPeriod = true;
+            if (selectedPeriod === "month") {
+                matchPeriod = getMonthKey(record.submittedAt) === currentMonth;
+            } else if (selectedPeriod === "year") {
+                matchPeriod = getYearKey(record.submittedAt) === currentYear;
+            }
+            return matchSystem && matchRole && matchPeriod && record.satisfactionAnswers.some(isRating);
+        });
+
+        const uniqueEvaluators = new Set(records.map(r => r.evaluatorId || r.evaluatorName));
+        const allSatisfactionScores = records
+            .map(r => r.satisfactionAverage ?? average(r.satisfactionAnswers))
+            .filter(v => typeof v === "number" && !isNaN(v));
+        const overallSatisfactionAvg = average(allSatisfactionScores);
+
+        const ratingCounts = [0, 0, 0, 0, 0];
+        for (const record of records) {
+            for (const score of record.satisfactionAnswers.filter(isRating)) ratingCounts[score - 1]++;
+        }
+
+        const chartImages = {};
+        if (charts.ratingCountsChart?.toBase64Image) {
+            try { chartImages.ratingCounts = charts.ratingCountsChart.toBase64Image(); } catch (e) {}
+        }
+        if (charts.satisfactionTrendChart?.toBase64Image) {
+            try { chartImages.trend = charts.satisfactionTrendChart.toBase64Image(); } catch (e) {}
+        }
+
+        const systemStats = visibleSystems.map(system => {
+            const sysRecords = records.filter(r => r.systemId === system.id);
+            const satAvg = average(sysRecords.map(r => r.satisfactionAverage ?? average(r.satisfactionAnswers)));
+            const userCount = new Set(sysRecords.map(r => r.evaluatorId || r.evaluatorName)).size;
+            return {
+                id: system.id,
+                name: system.name,
+                evaluatorCount: userCount,
+                evaluationCount: sysRecords.length,
+                averageSatisfaction: satAvg
+            };
+        });
+
+        let effectiveness = null;
+        if (window.Quantitative) {
+            try {
+                const qRecords = JSON.parse(localStorage.getItem(window.Quantitative.keys.records) || "[]");
+                const qSys = document.getElementById("qd-system")?.value || "";
+                const qVer = document.getElementById("qd-version")?.value || "";
+                const summarizeFn = window.AdminResults?.summarize || (typeof summarize !== "undefined" ? summarize : null);
+                if (summarizeFn) {
+                    const summary = summarizeFn(qRecords, {
+                        system: qSys
+                    });
+                    effectiveness = {
+                        records: qRecords,
+                        summary,
+                        filters: { system: qSys, version: qVer }
+                    };
+                }
+            } catch (e) {
+                console.warn("Could not collect effectiveness data for report", e);
+            }
+        }
+
+        const selectedSystemObj = systems.find(s => s.id === systemFilter.value);
+        const systemFilterLabel = selectedSystemObj ? selectedSystemObj.name : "ทุกระบบ IT";
+        const periodFilterLabel = periodFilter?.options[periodFilter.selectedIndex]?.text || "ทั้งหมด";
+        const roleFilterLabel = roleFilter?.options[roleFilter.selectedIndex]?.text || "ทุกกลุ่มผู้ใช้";
+
+        const sourceLabel = activeDataSource === "supabase" ? "Supabase Cloud"
+            : activeDataSource === "backend" ? "Backend REST API"
+            : activeDataSource === "local" ? "Local Storage (ชุดข้อมูลออฟไลน์)"
+            : activeDataSource === "mock" ? "Mock Data (ชุดข้อมูลจำลอง)"
+            : "ระบบประเมิน";
+
+        return {
+            systems: visibleSystems,
+            records,
+            systemStats,
+            totalSystems: visibleSystems.length,
+            totalUsers: uniqueEvaluators.size,
+            totalEvaluations: records.length,
+            overallSatisfactionAvg,
+            ratingCounts,
+            chartImages,
+            effectiveness,
+            filters: {
+                system: systemFilterLabel,
+                period: periodFilterLabel,
+                role: roleFilterLabel,
+                version: document.getElementById("qd-version")?.value || ""
+            },
+            source: sourceLabel,
+            activeSection: isEffectiveness ? "effectiveness" : "satisfaction"
+        };
+    }
+
     if (exportHtmlBtn) {
         exportHtmlBtn.addEventListener("click", () => {
-            const timestamp = new Date().toLocaleString("th-TH", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit"
-            });
-            const totalSys = document.getElementById("totalSystems")?.textContent || "0";
-            const totalUsers = document.getElementById("totalUsers")?.textContent || "0";
-            const totalEvals = document.getElementById("totalEvaluations")?.textContent || "0";
-            const avgSat = document.getElementById("averageSatisfaction")?.textContent || "-";
-
-            const happy = document.getElementById("happyPercent")?.textContent || "0%";
-            const neutral = document.getElementById("neutralPercent")?.textContent || "0%";
-            const unhappy = document.getElementById("unhappyPercent")?.textContent || "0%";
-
-            const categoryImg = charts["categoryChart"]?.toBase64Image() || "";
-            const statusImg = charts["evaluationStatusChart"]?.toBase64Image() || "";
-            const trendImg = charts["satisfactionTrendChart"]?.toBase64Image() || "";
-
-            const tableRowsHtml = Array.from(tableBody.querySelectorAll("tr")).map(tr => {
-                const tds = Array.from(tr.querySelectorAll("td"));
-                if (tds.length < 9) return tr.outerHTML;
-                return `<tr>${tds.slice(0, 9).map(td => td.outerHTML).join("")}</tr>`;
-            }).join("");
-
-            const hasData = rawEvaluations.length > 0;
-
-            const htmlContent = `<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <title>รายงานผลการประเมินประสิทธิภาพระบบ IT - ${timestamp}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Kanit', sans-serif; margin: 40px auto; max-width: 1080px; color: #0f172a; background: #ffffff; padding: 0 24px; line-height: 1.5; }
-        .header { border-bottom: 2px solid #1e3a8a; padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .header h1 { margin: 0; font-size: 22px; color: #1e3a8a; font-weight: 600; }
-        .header p { margin: 4px 0 0; color: #475569; font-size: 13px; }
-        .badge { background: #ecfdf5; color: #065f46; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; border: 1px solid #a7f3d0; }
-        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
-        .stat-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: center; background: #f8fafc; }
-        .stat-card h3 { font-size: 12px; color: #64748b; margin: 0 0 6px; font-weight: 500; }
-        .stat-card h2 { font-size: 24px; color: #0f172a; margin: 0; font-weight: 700; }
-        .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px; }
-        .chart-box { border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
-        .chart-box h3 { margin: 0 0 12px; font-size: 14px; color: #0f172a; font-weight: 600; }
-        .chart-img { width: 100%; height: auto; max-height: 240px; object-fit: contain; }
-        .table-box { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        th { background: #f8fafc; padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; color: #475569; font-weight: 600; }
-        td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; }
-        .empty-state { text-align: center; padding: 48px; color: #64748b; border: 1px dashed #cbd5e1; border-radius: 8px; margin: 24px 0; }
-        .footer { margin-top: 36px; border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 11px; color: #94a3b8; text-align: center; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div>
-            <h1>รายงานผลการประเมินประสิทธิภาพและประสิทธิผลระบบ IT</h1>
-            <p>คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร | วันที่ออกรายงาน: ${timestamp}</p>
-        </div>
-        <div>
-            <span class="badge">${hasData ? "ชุดข้อมูลการประเมินจริง (Live Report)" : "ไม่มีข้อมูลการประเมิน"}</span>
-        </div>
-    </div>
-
-    ${!hasData ? `
-    <div class="empty-state">
-        <h2 style="font-size: 16px; margin-bottom: 8px; color: #0f172a;">ไม่พบข้อมูลการประเมินในระบบ (No evaluation records available)</h2>
-        <p>ยังไม่มีการบันทึกผลการประเมินสำหรับระบบสารสนเทศตามเงื่อนไขที่กำหนด</p>
-    </div>
-    ` : `
-    <div class="summary-grid">
-        <div class="stat-card"><h3>ระบบสารสนเทศทั้งหมด</h3><h2>${totalSys}</h2></div>
-        <div class="stat-card"><h3>จำนวนผู้ร่วมประเมิน</h3><h2>${totalUsers}</h2></div>
-        <div class="stat-card"><h3>ชุดข้อมูลการประเมิน</h3><h2>${totalEvals}</h2></div>
-        <div class="stat-card"><h3>ความพึงพอใจเฉลี่ย</h3><h2>${avgSat} <small style="font-size:13px;color:#64748b;">/ 5</small></h2></div>
-    </div>
-
-    <div class="charts-grid">
-        <div class="chart-box">
-        </div>
-        <div class="chart-box">
-            <h3>ระดับความพึงพอใจของผู้ใช้งาน</h3>
-            <p style="margin: 10px 0; font-size: 13px;">ระดับพึงพอใจสูง (≥ 3.50): <strong>${happy}</strong></p>
-            <p style="margin: 10px 0; font-size: 13px;">ระดับปานกลาง (2.50 – 3.49): <strong>${neutral}</strong></p>
-            <p style="margin: 10px 0; font-size: 13px;">ควรปรับปรุงแก้ไข (&lt; 2.50): <strong>${unhappy}</strong></p>
-            ${statusImg ? `<img src="${statusImg}" class="chart-img" style="max-height: 130px; margin-top: 8px;" alt="Status Proportion Chart">` : ""}
-        </div>
-    </div>
-
-    <div class="charts-grid" style="grid-template-columns: 1fr;">
-        <div class="chart-box">
-            <h3>แนวโน้มความพึงพอใจย้อนหลัง</h3>
-            ${trendImg ? `<img src="${trendImg}" class="chart-img" alt="Satisfaction Trend Chart">` : `<p style="font-size:12px;color:#64748b;">ไม่มีข้อมูลกราฟ</p>`}
-        </div>
-    </div>
-
-    <h3 style="margin-top: 24px; font-size: 14px; font-weight: 600;">ตารางสรุปผลการประเมินความพึงพอใจรายระบบ</h3>
-    <div class="table-box">
-        <table>
-            <thead>
-                <tr>
-                    <th>ลำดับ</th>
-                    <th>รหัสระบบ</th>
-                    <th>ชื่อระบบสารสนเทศ</th>
-                    <th>จำนวนผู้ประเมิน</th>
-                    <th>ความพึงพอใจ / 5</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${tableRowsHtml}
-            </tbody>
-        </table>
-    </div>
-    `}
-
-    <div class="footer">
-        ระบบประเมินประสิทธิภาพ IT © 2026 | คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร (Faculty of Allied Health Sciences, Naresuan University)
-    </div>
-</body>
-</html>`;
-
-            const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
+            const data = collectReportData();
+            const section = (window.location.hash === "#quantitative-results") ? "effectiveness" : "satisfaction";
+            const builder = window.ReportBuilder?.buildReportHtml || (typeof buildReportHtml !== "undefined" ? buildReportHtml : null);
+            if (!builder) {
+                alert("ไม่พบโมดูลสร้างรายงาน (ReportBuilder)");
+                return;
+            }
+            const html = builder(data, { section });
+            const dateStr = new Date().toISOString().slice(0, 10);
+            const blob = new Blob([html], { type: "text/html;charset=utf-8" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = `it-evaluator-report-${new Date().toISOString().slice(0, 10)}.html`;
+            a.download = `it-evaluator-report-${dateStr}.html`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -768,12 +758,39 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    /**
-     * Export to PDF via Browser Print
-     */
     if (exportPdfBtn) {
         exportPdfBtn.addEventListener("click", () => {
-            window.print();
+            const data = collectReportData();
+            const section = (window.location.hash === "#quantitative-results") ? "effectiveness" : "satisfaction";
+            const builder = window.ReportBuilder?.buildReportHtml || (typeof buildReportHtml !== "undefined" ? buildReportHtml : null);
+            if (!builder) {
+                alert("ไม่พบโมดูลสร้างรายงาน (ReportBuilder)");
+                return;
+            }
+            const html = builder(data, { section });
+            const iframe = document.createElement("iframe");
+            iframe.style.position = "fixed";
+            iframe.style.right = "0";
+            iframe.style.bottom = "0";
+            iframe.style.width = "0";
+            iframe.style.height = "0";
+            iframe.style.border = "0";
+            document.body.appendChild(iframe);
+            const doc = iframe.contentWindow.document;
+            doc.open();
+            doc.write(html);
+            doc.close();
+            iframe.contentWindow.focus();
+            setTimeout(() => {
+                try {
+                    iframe.contentWindow.print();
+                } catch (e) {
+                    console.error("Print error:", e);
+                }
+                setTimeout(() => {
+                    iframe.remove();
+                }, 1000);
+            }, 350);
         });
     }
 
