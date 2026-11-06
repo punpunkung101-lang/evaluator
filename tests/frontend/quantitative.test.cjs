@@ -59,11 +59,34 @@ test('admin configuration updates new forms while snapshots and other systems re
     assert.equal(Q.config('SYS003').before.length,0);
 });
 test('draft resumes separately from submitted records and confirmation is idempotent',()=>{
-    const {Q,store}=setup(), draft={id:'one',step:2,values:{paper:{status:'unknown'}}};
-    Q.saveDraft(draft); assert.equal(Q.draft().step,2); assert.equal(Q.records().length,0);
-    Q.submit(draft);Q.submit(draft);
-    assert.equal(Q.records().length,1);assert.equal(Q.draft(),null);
+    const {Q,store}=setup(), draft={id:'one',step:2,values:{paper:{status:'unknown'}}}, userId='00000001';
+    Q.saveDraft(draft,userId); assert.equal(Q.draft(userId).step,2); assert.equal(Q.records().length,0);
+    Q.submit(draft,userId);Q.submit(draft,userId);
+    assert.equal(Q.records().length,1);assert.equal(Q.draft(userId),null);
+    assert.ok(!store.has(Q.keys.draft));
     assert.ok(!store.has('it_evaluations_store'));
+});
+test('drafts are isolated by authenticated user and legacy unscoped drafts are ignored',()=>{
+    const {Q,store}=setup();
+    const userA='00000001',userB='00000002';
+    store.set(Q.keys.draft,JSON.stringify({id:'legacy',step:3,systemId:'SYS013'}));
+    Q.saveDraft({id:'a-draft',step:1,systemId:'SYS013'},userA);
+    assert.equal(Q.draft(userA).id,'a-draft');
+    assert.equal(Q.draft(userB),null);
+    assert.equal(Q.draft(),null);
+    Q.clearDraft(userB);
+    assert.equal(Q.draft(userA).id,'a-draft');
+    Q.clearDraft(userA);
+    assert.equal(Q.draft(userA),null);
+});
+test('?system overrides a different draft, while opening without it asks before resuming',()=>{
+    const source=fs.readFileSync(path.join(root,'frontend/Effectiveness_Of_It/main/assets/js/quantitative.js'),'utf8');
+    assert.match(source,/if \(requested && draft\?\.systemId !== requested\) \{\s*Q\.clearDraft\(userId\);\s*draft = null;/);
+    assert.match(source,/draft \|\|= \{ id:uid\(\), userId, step:0/);
+    assert.match(source,/draft\.systemId = requested;\s*draft\.config = Q\.config\(requested\)/);
+    assert.match(source,/!requested && draft/);
+    assert.match(source,/window\.confirm\(`มีแบบร่างที่ค้างอยู่/);
+    assert.match(source,/if \(!resume\) \{\s*Q\.clearDraft\(userId\)/);
 });
 test('storage errors propagate rather than reporting success',()=>{
     const {Q,store}=setup();store.set(Q.keys.records,'invalid JSON');
@@ -75,11 +98,11 @@ for (const mode of ['configured', 'demo', 'refresh']) test(`wizard completes wit
     config.before=[{id:'b',name:'Before',active:true,timed:true}];
     config.after=[{id:'a',name:'After',active:true,timed:true}];
     if (mode === 'configured') Q.saveConfig('SYS002',config);
-    context.window={Quantitative:Q,EvaluatorAuth:{current:()=>({id:'00000001',name:'Test User',role:'staff'})}};
+    context.window={Quantitative:Q,confirm:()=>true,EvaluatorAuth:{current:()=>({id:'00000001',name:'Test User',role:'staff'}),verify:async()=>({id:'00000001',name:'Test User',displayName:'Test User',role:'staff'})}};
     vm.runInNewContext(fs.readFileSync(path.join(root,'frontend/Effectiveness_Of_It/main/assets/js/energy-stepper.js'),'utf8'),context);
     Q.systems=()=>[{id:'SYS002',name:'Leave'}];
     context.crypto={randomUUID:()=> 'wizard-test'};
-    context.URLSearchParams=URLSearchParams;context.location={search:''};
+    context.URLSearchParams=URLSearchParams;context.location={search:'',href:'http://127.0.0.1:5500/frontend/Effectiveness_Of_It/main/evaluation.html',pathname:'/frontend/Effectiveness_Of_It/main/evaluation.html',hash:'',replace(){}};
     context.sessionStorage={getItem:()=>null};
     const nodes=new Map();
     const decode=s=>String(s??'').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,'&');
@@ -101,7 +124,7 @@ for (const mode of ['configured', 'demo', 'refresh']) test(`wizard completes wit
     context.document={body:{dataset:{quantPage:'evaluation'}},getElementById:id=>id==='quant-app'?app:nodes.get(id)};
     const run=()=>vm.runInNewContext(fs.readFileSync(path.join(root,'frontend/Effectiveness_Of_It/main/assets/js/quantitative.js'),'utf8'),context);
     const submit=()=>nodes.get('wizard-form').onsubmit({preventDefault(){}});
-    run();
+    run();await new Promise(resolve=>setTimeout(resolve,0));
     assert.ok(app.html.includes('Test User'));
     assert.ok(!nodes.has('q-name')&&!nodes.has('q-role')&&!nodes.has('q-department'));
     submit();assert.equal(nodes.get('q-system').attributes['aria-invalid'],'true');
@@ -122,15 +145,15 @@ for (const mode of ['configured', 'demo', 'refresh']) test(`wizard completes wit
     submit();assert.ok(nodes.has(firstAfter));
     nodes.get('q-back').onclick();assert.equal(nodes.get(firstBefore).value,String(240/beforeIds.length));submit();
     afterIds.forEach(id=>nodes.get(`duration-${id}`).value=String(30/afterIds.length));nodes.get('q-save').onclick();
-    assert.equal(Q.draft().step,2);assert.equal(Q.records().length,0);
-    run();assert.equal(nodes.get(firstAfter).value,String(30/afterIds.length));submit();
+    assert.equal(Q.draft('00000001').step,2);assert.equal(Q.records().length,0);
+    run();await new Promise(resolve=>setTimeout(resolve,0));assert.equal(nodes.get(firstAfter).value,String(30/afterIds.length));submit();
     nodes.get('status-paper').value='unknown';nodes.get('status-errors').value='na';submit();
     assert.ok(app.html.includes('-87.5%'));assert.equal(Q.records().length,0);
     submit();assert.equal(nodes.get('confirm-dialog').open,true);
     nodes.get('q-cancel').onclick();assert.equal(Q.records().length,0);
     Q.submitToBackend=async()=>({success:true});
     submit();const confirm=nodes.get('q-confirm').onclick;await confirm();await confirm();
-    assert.equal(Q.records().length,1);assert.equal(Q.records()[0].values.time.before,240);assert.equal(Q.draft(),null);
+    assert.equal(Q.records().length,1);assert.equal(Q.records()[0].values.time.before,240);assert.equal(Q.draft('00000001'),null);
     assert.equal(!!Q.records()[0].config.isDemo,mode==='demo');
 });
 test('local HTML scripts and styles resolve to existing files, and user navigation contains no admin links',()=>{

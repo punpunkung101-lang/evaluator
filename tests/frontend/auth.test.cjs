@@ -127,10 +127,13 @@ test('all admin pages use the shared auth control and backend-verified admin gua
     }
     const guard = fs.readFileSync(path.join(root, 'frontend/Satisfaction_Survey/assets/js/shared/admin-guard.js'), 'utf8');
     assert.match(guard, /fetch\(`\$\{base\}\/auth\/me`/);
-    assert.match(guard, /result\.user\.role !== "admin"/);
+    assert.match(guard, /user\.role !== "admin"/);
+    assert.match(guard, /window\.AdminGuard = \{ ready \}/);
     assert.doesNotMatch(guard, /sessionStorage\.getItem\("evaluatorProfile"\).*role/);
     const nav = fs.readFileSync(path.join(root, 'frontend/Satisfaction_Survey/assets/js/shared/site-nav.js'), 'utf8');
     assert.match(nav, /class="ev-signin"/);
+    assert.match(nav, /site-wide-nav-admin" aria-label="เมนูผู้ดูแล" hidden/);
+    assert.match(nav, /user\?\.role === "admin"/);
 });
 
 test('dashboard API endpoints distinguish missing sessions from non-admin sessions using DB role checks', () => {

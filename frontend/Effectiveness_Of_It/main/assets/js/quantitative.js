@@ -20,12 +20,27 @@
         }).join('');
         return `${record.config.isDemo ? '<p class="prototype">ข้อมูลจำลองจากกระบวนการตัวอย่าง ไม่ใช่ผลประเมินจริงของระบบ IT</p>' : ''}<div class="q-table-wrap"><table><caption>ผลต่าง = ค่าใหม่ − ค่าเดิม · เปอร์เซ็นต์ติดลบหมายถึงค่าลดลง</caption><thead><tr><th>ตัวชี้วัด</th><th>ก่อน</th><th>หลัง</th><th>ผลต่าง</th><th>การเปลี่ยนแปลง</th><th>ผล</th></tr></thead><tbody>${rows}</tbody></table></div>${record.config.metrics.some(m => m.active && m.direction === 'target') ? '' : '<p>ยังไม่ได้กำหนดเกณฑ์ประสิทธิผล</p>'}`;
     }
-    function wizard() {
-        let draft = Q.draft() || { id:uid(), step:0, profile:{}, systemId:'', config:null, durations:{before:{},after:{}}, values:{} };
+    async function wizard(signedInUser) {
+        const userId = String(signedInUser.id);
+        const requested = new URLSearchParams(location.search).get('system');
+        let draft = Q.draft(userId);
+        if (requested && draft?.systemId !== requested) {
+            Q.clearDraft(userId);
+            draft = null;
+        } else if (!requested && draft) {
+            const stepNumber = Math.min(5, Math.max(1, Number(draft.step || 0) + 1));
+            const resume = window.confirm(`มีแบบร่างที่ค้างอยู่ (${draft.systemId || 'ยังไม่เลือกระบบ'}, ขั้นที่ ${stepNumber})\nตกลง: ทำต่อ · ยกเลิก: เริ่มใหม่`);
+            if (!resume) {
+                Q.clearDraft(userId);
+                draft = null;
+            }
+        }
+        const draftWasCreated = !draft;
+        draft ||= { id:uid(), userId, step:0, profile:{}, systemId:'', config:null, durations:{before:{},after:{}}, values:{} };
         draft.durationStatuses ||= { before:{}, after:{} };
-        if (!draft.systemId) {
-            const requested = new URLSearchParams(location.search).get('system');
-            if (systems.some(s => s.id === requested)) { draft.systemId = requested; draft.config = Q.config(requested); }
+        if (requested && systems.some(s => s.id === requested) && (draftWasCreated || !draft.systemId)) {
+            draft.systemId = requested;
+            draft.config = Q.config(requested);
         }
         let sending = false, submitted = false;
         const steps = ['ข้อมูลผู้ประเมิน','กระบวนการก่อนใช้ IT','กระบวนการหลังใช้ IT','ตัวชี้วัด','ตรวจสอบและส่ง'];
@@ -127,20 +142,20 @@
             document.getElementById('q-use-demo')?.addEventListener('click',()=>safe(()=>{
                 draft.config=Q.demoConfig(); draft.step=1;
                 draft.durations={before:{},after:{}}; draft.durationStatuses={before:{},after:{}}; draft.values={};
-                render(); Q.saveDraft(draft);
+                render(); Q.saveDraft(draft,userId);
             }));
             document.getElementById('q-refresh-config')?.addEventListener('click',()=>safe(async()=>{
                 const latest=Q.config(draft.systemId);
                 if(!['before','after'].every(phase=>latest[phase].some(s=>s.active))){document.getElementById('q-message').textContent='ยังไม่มีการตั้งค่าครบทั้งก่อนและหลัง ใช้กระบวนการตัวอย่างเพื่อทดลอง หรือรอผู้ดูแลตั้งค่า';return;}
-                draft.config=latest;draft.step=1;draft.durations={before:{},after:{}};draft.durationStatuses={before:{},after:{}};draft.values={};render();Q.saveDraft(draft);
+                draft.config=latest;draft.step=1;draft.durations={before:{},after:{}};draft.durationStatuses={before:{},after:{}};draft.values={};render();Q.saveDraft(draft,userId);
             }));
             document.getElementById('q-back').onclick=()=>{capture(); draft.step--; render();};
-            document.getElementById('q-save').onclick=()=>safe(()=>{capture(); Q.saveDraft(draft); document.getElementById('q-message').textContent='บันทึกแบบร่างในเบราว์เซอร์แล้ว';});
-            document.getElementById('wizard-form').onsubmit=e=>{e.preventDefault();safe(()=>{capture(); if(!validate()) return; if(step<4){Q.saveDraft({...draft,step:draft.step+1});draft.step++;render();document.getElementById('step-heading').focus();} else {Q.saveDraft(draft);document.getElementById('confirm-dialog').showModal();}});};
+            document.getElementById('q-save').onclick=()=>safe(()=>{capture(); Q.saveDraft(draft,userId); document.getElementById('q-message').textContent='บันทึกแบบร่างในเบราว์เซอร์แล้ว';});
+            document.getElementById('wizard-form').onsubmit=e=>{e.preventDefault();safe(()=>{capture(); if(!validate()) return; if(step<4){Q.saveDraft({...draft,step:draft.step+1},userId);draft.step++;render();document.getElementById('step-heading').focus();} else {Q.saveDraft(draft,userId);document.getElementById('confirm-dialog').showModal();}});};
             document.getElementById('q-cancel').onclick=()=>document.getElementById('confirm-dialog').close();
             document.getElementById('q-confirm').onclick=async()=>{
                 if(sending || submitted)return; sending=true; document.getElementById('q-confirm').disabled=true;
-                const ok=await safe(async()=>{const record={...draft,categoryId:systems.find(s=>s.id===draft.systemId)?.categoryId||'all',submittedAt:new Date().toISOString(),kind:'prototype-user-entry'};await Q.submitToBackend(record);Q.submit(record);submitted=true;return true;});
+                const ok=await safe(async()=>{const record={...draft,evaluatorId:userId,categoryId:systems.find(s=>s.id===draft.systemId)?.categoryId||'all',submittedAt:new Date().toISOString(),kind:'prototype-user-entry'};await Q.submitToBackend(record);Q.submit(record,userId);submitted=true;return true;});
                 if(ok) app.innerHTML=`<section class="q-card"><h2>บันทึกผลประเมินลงฐานข้อมูลแล้ว</h2><p>เปิด Dashboard เพื่อดูผลที่บันทึก</p><a class="q-button" href="../../Satisfaction_Survey/admin/dashboard.html?dataset=${draft.config.isDemo?'demo':'real'}#quantitative-results">ดูผลที่ส่งใน Dashboard</a><a class="q-button" href="evaluation.html">เริ่มแบบประเมินใหม่</a><a class="q-button" href="../../Satisfaction_Survey/user/index.html">ประเมินความพึงพอใจ</a></section>`;
                 else {sending=false;document.getElementById('q-confirm').disabled=false;document.getElementById('confirm-dialog').close();}
             };
@@ -406,8 +421,24 @@
         }
         app.querySelectorAll('input,select').forEach(el=>el.onchange=render);render();
     }
-    safe(()=>{
+    (async()=>{
+        if(page==='admin') {
+            try { await window.AdminGuard.ready; }
+            catch (_) { return; }
+        }
         systems=Q.systems();
-        if(page==='evaluation')wizard();else if(page==='admin')admin();else dashboard();
-    });
+        if(page==='evaluation') {
+            let signedInUser;
+            try { signedInUser=await window.EvaluatorAuth.verify(); }
+            catch (_) {
+                const loginUrl=new URL('index.html',location.href);
+                loginUrl.searchParams.set('login','1');
+                loginUrl.searchParams.set('returnTo',location.pathname+location.search+location.hash);
+                location.replace(loginUrl.href);
+                return;
+            }
+            await wizard(signedInUser);
+        } else if(page==='admin') admin();
+        else dashboard();
+    })().catch(reportError);
 })();

@@ -495,6 +495,9 @@
        ===================================================================== */
 
     document.addEventListener("DOMContentLoaded", async () => {
+        try { await window.AdminGuard.ready; }
+        catch (_) { return; }
+
         // Add Topic / System Button
         const addTopicBtn = document.getElementById("mgmtAddTopicBtn");
         if (addTopicBtn) addTopicBtn.addEventListener("click", () => openTopicModal(null));

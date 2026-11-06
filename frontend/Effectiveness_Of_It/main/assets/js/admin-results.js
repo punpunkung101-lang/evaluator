@@ -60,6 +60,10 @@
 
     if (typeof module !== 'undefined') module.exports = {summarize, initialDataSet, presentation, comparable};
     if (typeof document === 'undefined') return;
+    if (!root.AdminGuard?.ready) return;
+    root.AdminGuard.ready.then(initializeDashboard, () => {});
+
+    function initializeDashboard() {
     const section = document.getElementById('quantitative-results');
     if (!section) return;
     const syncSectionVisibility = () => { section.hidden = root.location.hash !== '#quantitative-results'; };
@@ -67,6 +71,8 @@
     root.addEventListener('hashchange', syncSectionVisibility);
 
     const Q = root.Quantitative;
+    let backendReady = false;
+    let backendError = null;
     const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const fmt = value => Number(value).toLocaleString('th-TH', {maximumFractionDigits:2});
     const insufficient = 'ยังไม่มีข้อมูลเพียงพอสำหรับประเมินประสิทธิผล';
@@ -122,6 +128,13 @@
     }
 
     function render() {
+        if (!backendReady) {
+            el('qd-message').textContent = backendError
+                ? `อ่านผลจากฐานข้อมูลไม่ได้: ${backendError.message}`
+                : 'กำลังโหลดผลประเมินจากฐานข้อมูล...';
+            el('qd-content').replaceChildren();
+            return;
+        }
         try {
             const records = Q.records().filter(record => record?.systemId && typeof record.submittedAt === 'string' &&
                 record.submittedAt && !record.config?.isDemo && record.config?.version !== 'demo-1');
@@ -191,15 +204,18 @@
     (async () => {
         try {
             const token = sessionStorage.getItem('evaluatorToken');
-            const response = await fetch('http://localhost:8080/quantitative', {
+            const base = root.EvaluatorAPIBaseUrl || root.API_CONFIG?.backendBaseUrl || root.ENV?.API_BASE_URL || 'http://127.0.0.1:8080';
+            const response = await fetch(`${base}/quantitative`, {
                 headers: token ? { Authorization: `Bearer ${token}` } : {}
             });
             const records = await response.json().catch(() => []);
             if (!response.ok) throw new Error(records.error || `HTTP ${response.status}`);
             localStorage.setItem(Q.keys.records, JSON.stringify(Array.isArray(records) ? records : []));
+            backendReady = true;
         } catch (error) {
-            el('qd-message').textContent = 'อ่านผลจากฐานข้อมูลไม่ได้: ' + error.message;
+            backendError = error;
         }
         render();
     })();
+    }
 })(typeof window !== 'undefined' ? window : globalThis);

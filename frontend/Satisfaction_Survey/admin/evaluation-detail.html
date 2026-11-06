@@ -141,6 +141,9 @@
     <script src="../assets/js/shared/theme-lang.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
+            try { await window.AdminGuard.ready; }
+            catch (_) { return; }
+
             const params = new URLSearchParams(window.location.search);
             const systemId = params.get("system");
 

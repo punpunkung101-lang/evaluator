@@ -1,8 +1,11 @@
 /** Shared API for the evaluator C++/SQLite backend. */
 const API_CONFIG = {
-    backendBaseUrl: (typeof window !== "undefined" && window.ENV?.API_BASE_URL) || "http://127.0.0.1:8080"
+    backendBaseUrl: (typeof window !== "undefined" && (window.EvaluatorAPIBaseUrl || window.ENV?.API_BASE_URL)) || "http://127.0.0.1:8080"
 };
-if (typeof window !== "undefined") window.API_CONFIG = API_CONFIG;
+if (typeof window !== "undefined") {
+    window.API_CONFIG = API_CONFIG;
+    window.EvaluatorAPIBaseUrl = API_CONFIG.backendBaseUrl;
+}
 
 /**
  * Standard Evaluation Record Schema:

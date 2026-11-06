@@ -1,6 +1,7 @@
 (function (root) {
     "use strict";
     const base = root.ENV?.API_BASE_URL || "http://127.0.0.1:8080";
+    root.EvaluatorAPIBaseUrl = base;
     let activeUser = null;
     const auth = {
         async request(path, values = {}, method = "POST") {

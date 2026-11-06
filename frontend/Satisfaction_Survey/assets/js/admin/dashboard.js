@@ -13,6 +13,8 @@
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
+    try { await window.AdminGuard.ready; }
+    catch (_) { return; }
 
     // ==========================================
     // 1. DATA SOURCES & SYSTEMS DEFINITION

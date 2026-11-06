@@ -1,6 +1,8 @@
 (function (root) {
     'use strict';
     const keys = { config: 'it_quant_config_v1', records: 'it_quant_records_v1', draft: 'it_quant_draft_v1' };
+    const apiBaseUrl = () => root.EvaluatorAPIBaseUrl || root.API_CONFIG?.backendBaseUrl || root.ENV?.API_BASE_URL || 'http://127.0.0.1:8080';
+    const draftKey = userId => userId ? `${keys.draft}:${encodeURIComponent(String(userId))}` : null;
     const clone = value => JSON.parse(JSON.stringify(value));
     function read(key, fallback) {
         const raw = localStorage.getItem(key);
@@ -53,13 +55,24 @@
             localStorage.setItem(keys.config, JSON.stringify(configs));
             return saved;
         },
-        draft: () => read(keys.draft, null),
-        saveDraft: value => localStorage.setItem(keys.draft, JSON.stringify(value)),
+        draft(userId) {
+            if (!userId) return null;
+            const value = read(draftKey(userId), null);
+            return value?.userId === String(userId) ? value : null;
+        },
+        saveDraft(value, userId) {
+            if (!userId) throw new Error('ไม่สามารถบันทึกแบบร่างโดยไม่ระบุบัญชีผู้ใช้');
+            const scopedDraft = { ...clone(value), userId: String(userId) };
+            localStorage.setItem(draftKey(userId), JSON.stringify(scopedDraft));
+        },
+        clearDraft(userId) {
+            if (userId) localStorage.removeItem(draftKey(userId));
+        },
         records: () => read(keys.records, []),
         async submitToBackend(record) {
             const token = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('evaluatorToken') : null;
             if (!token) throw new Error('กรุณาเข้าสู่ระบบก่อนส่งแบบประเมิน');
-            const response = await fetch('http://localhost:8080/quantitative', {
+            const response = await fetch(`${apiBaseUrl()}/quantitative`, {
                 method:'POST', headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},
                 body:JSON.stringify(record)
             });
@@ -67,13 +80,13 @@
             if (!response.ok) throw new Error(result.error || 'บันทึกฐานข้อมูลไม่สำเร็จ');
             return result;
         },
-        submit(record) {
+        submit(record, userId) {
             const records = api.records();
             if (!records.some(r => r.id === record.id)) {
                 records.push(clone(record));
                 localStorage.setItem(keys.records, JSON.stringify(records));
             }
-            localStorage.removeItem(keys.draft);
+            this.clearDraft(userId || record.userId || record.evaluatorId);
         }
     };
     root.Quantitative = api;
