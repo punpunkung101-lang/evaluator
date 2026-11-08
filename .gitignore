@@ -1,6 +1,7 @@
 
 # Editor settings (all projects)
-**/.vscode/
+.vscode/*
+!.vscode/extensions.json
 
 # Environment variables / ข้อมูลลับ
 .env
