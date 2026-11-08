@@ -166,13 +166,13 @@ test('local HTML scripts and styles resolve to existing files, and user navigati
             assert.ok(fs.existsSync(path.resolve(path.dirname(absolute),url)),`${file}: ${url}`);
         }
         if (file === 'frontend/user/index.html') {
-            assert.ok(!html.includes('assets/js/sidebar.js'));
             assert.ok(html.includes('id="primary-nav"'));
         } else if (file === 'frontend/user/effectiveness/evaluation.html') {
             assert.ok(html.includes('assets/js/layout/site-header.js'));
             assert.ok(html.includes('assets/js/user/evaluation-locale.js'));
         } else if (file === 'frontend/admin/dashboard.html') {
             assert.ok(html.includes('id="quantitative-results"'));
+            assert.ok(html.includes('id="app-sidebar"'));
             assert.ok(html.includes('assets/js/admin/admin-results.js'));
         } else {
             assert.ok(html.includes('assets/js/layout/site-header.js'));

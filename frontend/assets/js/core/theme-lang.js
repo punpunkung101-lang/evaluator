@@ -15,6 +15,7 @@
 
 (function () {
     "use strict";
+    const translationOnly = document.currentScript?.dataset.translationOnly === "true";
 
     /* =====================================================================
        CENTRALIZED TRANSLATION DICTIONARY
@@ -37,7 +38,6 @@
             lang_toggle: "EN",
             back_to_categories: "กลับสู่หน้ารายการหมวดหมู่",
             back_to_systems: "กลับสู่หน้ารายการระบบ IT",
-            nav_management_back: "ย้อนกลับ",
             back_to_dashboard: "กลับสู่แดชบอร์ดหลัก",
             back_to_user_portal: "กลับสู่หน้าผู้ใช้งานทั่วไป",
             next: "ข้อถัดไป",
@@ -220,10 +220,14 @@
             // Dashboard (admin/dashboard.html)
             dash_page_title: "ระบบบริหารจัดการและสรุปผลการประเมิน IT | IT Evaluator Admin Dashboard",
             dash_brand_sub: "ระบบบริหารจัดการข้อมูล",
+            nav_home: "หน้าหลัก",
+            nav_effectiveness: "ประเมินประสิทธิผลระบบ IT",
+            nav_satisfaction_survey: "ประเมินความพึงพอใจ",
+            nav_guide: "คู่มือการใช้งาน",
+            nav_contact: "ติดต่อเรา",
+            nav_user_evaluation: "ไปยังหน้าประเมิน",
+            nav_temp_effectiveness_results: "ผลประเมินประสิทธิผล",
             nav_overview: "ภาพรวมระบบ",
-            nav_evaluation: "เปรียบเทียบก่อน–หลัง",
-            nav_satisfaction: "ระดับความพึงพอใจ",
-            nav_reports: "รายงานตามหมวดหมู่",
             nav_systems: "ผลประเมินรายระบบ",
             dash_header_title: "ระบบรายงานผลการประเมินประสิทธิภาพระบบ IT",
             dash_header_sub: "สรุปผลการวิเคราะห์ข้อมูลความพึงพอใจและประสิทธิผลการปฏิบัติงาน คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร",
@@ -338,8 +342,6 @@
             sys_SYS021: "ระบบ AHS e-donation",
 
             // Assessment Management
-            nav_assessment_mgmt: "การจัดการแบบประเมิน",
-            nav_system_management: "การจัดการระบบ",
             nav_manage_assessments: "จัดการแบบประเมิน",
             nav_manage_processes: "จัดการกระบวนการและตัวชี้วัด",
             mgmt_title: "การจัดการหัวข้อและแบบประเมิน",
@@ -412,7 +414,6 @@
             lang_toggle: "ไทย",
             back_to_categories: "Back to Categories",
             back_to_systems: "Back to Systems Directory",
-            nav_management_back: "Back",
             back_to_dashboard: "Back to Main Dashboard",
             back_to_user_portal: "Back to User Portal",
             next: "Next",
@@ -595,10 +596,14 @@
             // Dashboard (admin/dashboard.html)
             dash_page_title: "IT Evaluation Analytics & Management System | IT Evaluator Admin Dashboard",
             dash_brand_sub: "Data Management System",
+            nav_home: "Home",
+            nav_effectiveness: "IT effectiveness evaluation",
+            nav_satisfaction_survey: "Satisfaction evaluation",
+            nav_guide: "User guide",
+            nav_contact: "Contact us",
+            nav_user_evaluation: "Go to evaluations",
+            nav_temp_effectiveness_results: "Effectiveness results",
             nav_overview: "System Overview",
-            nav_evaluation: "Before-After Comparison",
-            nav_satisfaction: "Satisfaction Levels",
-            nav_reports: "Category Reports",
             nav_systems: "System-by-System Results",
             dash_header_title: "IT Systems Performance Evaluation Report",
             dash_header_sub: "Summary analytics of user satisfaction and operational effectiveness, Faculty of Allied Health Sciences, Naresuan University",
@@ -713,8 +718,6 @@
             sys_SYS021: "AHS e-Donation System",
 
             // Assessment Management
-            nav_assessment_mgmt: "Assessment Management",
-            nav_system_management: "System management",
             nav_manage_assessments: "Manage assessments",
             nav_manage_processes: "Manage processes and indicators",
             mgmt_title: "Assessment Management",
@@ -1009,7 +1012,7 @@
     function init() {
         applyTheme(getTheme());
         applyLang(getLang());
-        injectToolbar();
+        if (!translationOnly) injectToolbar();
     }
 
     if (document.readyState === "loading") {

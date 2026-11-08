@@ -31,57 +31,7 @@
     <div class="admin-layout ev-admin-layout">
 
         <!-- ========== SIDEBAR ========== -->
-        <aside class="sidebar">
-            <div class="sidebar-brand">
-                <div class="brand-icon">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
-                </div>
-                <div class="brand-info">
-                    <h2>IT Evaluator</h2>
-                    <p>ระบบบริหารจัดการข้อมูล</p>
-                </div>
-            </div>
-
-            <nav class="sidebar-nav">
-                <a href="#overview" class="nav-link active">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-                    <span data-i18n="nav_overview">ภาพรวมระบบ</span>
-                </a>
-                <a href="#quantitative-results" class="nav-link">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h2v16h16v2H3zm4 8h3v6H7zm5-4h3v10h-3zm5-4h3v14h-3z"/></svg>
-                    <span>ประสิทธิภาพและประสิทธิผล</span></a>
-
-                <button type="button" id="management-toggle" class="nav-link management-toggle" aria-expanded="false" aria-controls="management-menu">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H2v16h20V6H12z"/></svg>
-                    <span data-i18n="nav_system_management">การจัดการระบบ</span>
-                    <span class="management-chevron" aria-hidden="true">›</span>
-                </button>
-                <div id="management-menu" class="management-menu" inert>
-                    <div>
-                        <a href="./manage/assessment-management.html" id="manage-assessments" class="nav-link" data-i18n="nav_manage_assessments">จัดการแบบประเมิน</a>
-                        <a href="./manage/processes.html" id="manage-processes" class="nav-link" data-i18n="nav_manage_processes">จัดการกระบวนการและตัวชี้วัด</a>
-                    </div>
-                </div>
-
-
-                <a href="#satisfaction" class="nav-link">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm4.59-12.42L10 14.17l-2.59-2.58L6 13l4 4 8-8z"/></svg>
-                    <span data-i18n="nav_satisfaction">ระดับความพึงพอใจ</span>
-                </a>
-
-                <a href="#systems" class="nav-link">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v10H4V6zm18-2H2v14h7v2H7v2h10v-2h-2v-2h7V4z"/></svg>
-                    <span data-i18n="nav_systems">ผลประเมินรายระบบ</span>
-                </a>
-            </nav>
-
-            <div class="sidebar-footer">
-                <a href="../user/satisfaction/index.html" class="nav-link" style="padding: 10px 14px; text-decoration: none; display: flex; align-items: center; gap: 10px; color: var(--text-secondary);">
-                    <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor;" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-                    <span>หน้าแรก / ภาพรวม</span>
-                </a>
-            </div>
-        </aside>
+        <div id="app-sidebar"></div>
 
         <!-- ========== MAIN CONTENT ========== -->
         <main class="main-content" id="overview">
@@ -112,6 +62,11 @@
                             ส่งออก PDF
                         </button>
                     </div>
+                    <nav class="header-actions" aria-label="ทางลัดผู้ดูแล">
+                        <a class="btn btn-secondary btn-sm" href="dashboard.html#quantitative-results" data-i18n="nav_temp_effectiveness_results">ผลประเมินประสิทธิผล</a>
+                        <a class="btn btn-secondary btn-sm" href="manage/assessment-management.html" data-i18n="nav_manage_assessments">จัดการแบบประเมิน</a>
+                        <a class="btn btn-secondary btn-sm" href="manage/processes.html" data-i18n="nav_manage_processes">จัดการกระบวนการและตัวชี้วัด</a>
+                    </nav>
                 </div>
             </header>
 
@@ -399,10 +354,12 @@
     <script src="../assets/js/core/systems-data.js"></script>
     <script src="../assets/js/core/api.js"></script>
     <script src="../assets/js/core/theme-lang.js?v=20261103-management"></script>
+    <script src="../assets/js/layout/nav-config.js"></script>
+    <script src="../assets/js/layout/site-header.js"></script>
     <script src="../assets/js/user/quantitative-data.js"></script>
     <script src="../assets/js/admin/admin-results.js"></script>
     <script src="../assets/js/admin/report-builder.js"></script>
     <script src="../assets/js/admin/dashboard.js"></script>
-<script src="../assets/js/layout/site-header.js"></script>
+
 </body>
 </html>

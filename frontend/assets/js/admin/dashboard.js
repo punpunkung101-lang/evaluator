@@ -800,68 +800,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 8. SIDEBAR NAVIGATION
     // ==========================================
 
-    const navLinks = [...document.querySelectorAll(".sidebar-nav a.nav-link")];
-    const managementToggle = document.getElementById("management-toggle");
-    const managementMenu = document.getElementById("management-menu");
-    const processLink = document.getElementById("manage-processes");
-    const managementLinks = new Map([
-        ["#assessment-management", document.getElementById("manage-assessments")],
-        ["#process-management", processLink]
-    ]);
-    const returnUrl = new URL(window.location.href);
-    returnUrl.hash = "#process-management";
-    const processUrl = new URL(processLink.href);
-    processUrl.searchParams.set("returnTo", returnUrl.pathname + returnUrl.search + returnUrl.hash);
-    processLink.href = processUrl.href;
-
-    function setManagementOpen(open) {
-        managementMenu.inert = !open;
-        managementToggle.setAttribute("aria-expanded", String(open));
-        managementToggle.classList.toggle("active", open || Boolean(managementMenu.querySelector(".active")));
+    function syncDashboardSections() {
+        document.getElementById("quantitative-results").hidden = window.location.hash !== "#quantitative-results";
     }
-
-    function selectLink(link) {
-        for (const item of navLinks) {
-            item.classList.toggle("active", item === link);
-            if (item === link) item.setAttribute("aria-current", managementMenu.contains(item) ? "page" : "location");
-            else item.removeAttribute("aria-current");
-        }
-        setManagementOpen(managementMenu.contains(link));
-    }
-
-    function restoreNavigation(scroll = true) {
-        const hash = window.location.hash || "#overview";
-        document.getElementById("quantitative-results").hidden = hash !== "#quantitative-results";
-        const link = managementLinks.get(hash) || navLinks.find(item => item.getAttribute("href") === hash);
-        selectLink(link || navLinks.find(item => item.hash === "#overview"));
-        if (!scroll || !link || managementMenu.contains(link)) return;
-        if (hash === "#overview") window.scrollTo({ top: 0, behavior: "smooth" });
-        else document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-
-    managementToggle.addEventListener("click", () => setManagementOpen(managementMenu.inert));
-    navLinks.forEach(link => {
-        link.addEventListener("click", event => {
-            if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-            if (managementMenu.contains(link)) {
-                const [hash] = [...managementLinks].find(([, item]) => item === link);
-                history.replaceState(null, "", hash);
-                selectLink(link);
-                return;
-            }
-            const hash = link.getAttribute("href");
-            if (!hash.startsWith("#") || !document.getElementById(hash.slice(1))) return;
-            event.preventDefault();
-            if (window.location.hash !== hash) history.pushState(null, "", hash);
-            restoreNavigation();
-        });
-    });
-    window.addEventListener("hashchange", () => restoreNavigation());
-    restoreNavigation(Boolean(window.location.hash));
-
-    window.addEventListener("pageshow", event => {
-        if (event.persisted && window.location.hash === "#assessment-management") window.location.reload();
-    });
+    window.addEventListener("hashchange", syncDashboardSections);
+    syncDashboardSections();
 
     // Initial Data Fetch
     await loadData();
