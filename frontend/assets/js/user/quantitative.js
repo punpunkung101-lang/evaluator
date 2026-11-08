@@ -1,5 +1,7 @@
 (() => {
     'use strict';
+    const scriptUrl = document.currentScript?.src;
+    const appUrl = path => window.EvaluatorRuntimeUrl.fromScript(`../../../${path}`, scriptUrl);
     const Q = window.Quantitative, app = document.getElementById('quant-app');
     const page = document.body.dataset.quantPage;
     const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -156,7 +158,7 @@
             document.getElementById('q-confirm').onclick=async()=>{
                 if(sending || submitted)return; sending=true; document.getElementById('q-confirm').disabled=true;
                 const ok=await safe(async()=>{const record={...draft,evaluatorId:userId,categoryId:systems.find(s=>s.id===draft.systemId)?.categoryId||'all',submittedAt:new Date().toISOString(),kind:'prototype-user-entry'};await Q.submitToBackend(record);Q.submit(record,userId);submitted=true;return true;});
-                if(ok) app.innerHTML=`<section class="q-card"><h2>บันทึกผลประเมินลงฐานข้อมูลแล้ว</h2><p>เปิด Dashboard เพื่อดูผลที่บันทึก</p><a class="q-button" href="../../admin/dashboard.html?dataset=${draft.config.isDemo?'demo':'real'}#quantitative-results">ดูผลที่ส่งใน Dashboard</a><a class="q-button" href="evaluation.html">เริ่มแบบประเมินใหม่</a><a class="q-button" href="../../user/satisfaction/index.html">ประเมินความพึงพอใจ</a></section>`;
+                if(ok) app.innerHTML=`<section class="q-card"><h2>บันทึกผลประเมินลงฐานข้อมูลแล้ว</h2><p>เปิด Dashboard เพื่อดูผลที่บันทึก</p><a class="q-button" href="${appUrl(`admin/dashboard.html?dataset=${draft.config.isDemo?'demo':'real'}#quantitative-results`)}">ดูผลที่ส่งใน Dashboard</a><a class="q-button" href="${appUrl('user/effectiveness/evaluation.html')}">เริ่มแบบประเมินใหม่</a><a class="q-button" href="${appUrl('user/satisfaction/index.html')}">ประเมินความพึงพอใจ</a></section>`;
                 else {sending=false;document.getElementById('q-confirm').disabled=false;document.getElementById('confirm-dialog').close();}
             };
             if(step===1||step===2) app.querySelectorAll('input[type=number]').forEach(input=>input.addEventListener('input',()=>{capture();const phase=step===1?'before':'after';const list=draft.config[phase].filter(s=>s.active&&s.timed);document.getElementById('duration-total').textContent='เวลารวม: '+(list.length&&list.every(s=>Q.finite(draft.durations[phase][s.id]))?fmt(list.reduce((sum,s)=>sum+draft.durations[phase][s.id],0))+' นาที':'ยังมีข้อมูลไม่ครบ');}));
@@ -252,7 +254,7 @@
             readiness.className = 'q-card';
             const activeBefore = config.before.filter(s=>s.active).length;
             const activeAfter = config.after.filter(s=>s.active).length;
-            readiness.innerHTML = `<h2>ความพร้อมของแบบประเมิน ${esc(selected)}</h2><div class="q-admin-summary" aria-live="polite"></div><p>${activeBefore && activeAfter ? 'มีกระบวนการครบทั้งสองช่วง สามารถเปิดแบบประเมินเพื่อตรวจสอบได้' : 'ยังไม่พร้อมประเมิน กรุณาเพิ่มและเปิดใช้งานกระบวนการอย่างน้อยช่วงละ 1 ขั้นตอน แล้วบันทึก'}</p><p>เมื่อบันทึกแล้ว ให้เปิดแบบประเมินใหม่ หากมีแบบร่างเดิมที่ไม่มีกระบวนการ ให้กดโหลดการตั้งค่าล่าสุดในขั้นที่ 2</p><a class="q-button" href="evaluation.html?system=${encodeURIComponent(selected)}">เปิดแบบประเมินของระบบนี้</a><a class="q-button" href="../../admin/dashboard.html#quantitative-results">ตรวจสอบผลที่ส่งแล้ว</a>`;
+            readiness.innerHTML = `<h2>ความพร้อมของแบบประเมิน ${esc(selected)}</h2><div class="q-admin-summary" aria-live="polite"></div><p>${activeBefore && activeAfter ? 'มีกระบวนการครบทั้งสองช่วง สามารถเปิดแบบประเมินเพื่อตรวจสอบได้' : 'ยังไม่พร้อมประเมิน กรุณาเพิ่มและเปิดใช้งานกระบวนการอย่างน้อยช่วงละ 1 ขั้นตอน แล้วบันทึก'}</p><p>เมื่อบันทึกแล้ว ให้เปิดแบบประเมินใหม่ หากมีแบบร่างเดิมที่ไม่มีกระบวนการ ให้กดโหลดการตั้งค่าล่าสุดในขั้นที่ 2</p><a class="q-button" href="${appUrl(`user/effectiveness/evaluation.html?system=${encodeURIComponent(selected)}`)}">เปิดแบบประเมินของระบบนี้</a><a class="q-button" href="${appUrl('admin/dashboard.html#quantitative-results')}">ตรวจสอบผลที่ส่งแล้ว</a>`;
             function updateSummary() {
                 const before=editor.querySelectorAll('[data-phase="before"] [data-prop="active"]:checked').length;
                 const after=editor.querySelectorAll('[data-phase="after"] [data-prop="active"]:checked').length;
@@ -431,7 +433,7 @@
             let signedInUser;
             try { signedInUser=await window.EvaluatorAuth.verify(); }
             catch (_) {
-                const loginUrl=new URL('index.html',location.href);
+                const loginUrl=new URL(appUrl('user/index.html'));
                 loginUrl.searchParams.set('login','1');
                 loginUrl.searchParams.set('returnTo',location.pathname+location.search+location.hash);
                 location.replace(loginUrl.href);

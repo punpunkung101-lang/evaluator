@@ -121,7 +121,8 @@ for (const mode of ['configured', 'demo', 'refresh']) test(`wizard completes wit
     }});
     app.querySelector=selector=>[...nodes.values()].find(n=>n.attributes['aria-invalid']==='true');
     app.querySelectorAll=selector=>selector==='input[type=number]'?[...nodes.values()].filter(n=>/^(duration-|before-|after-)/.test(n.id)&&!n.id.includes('status')&&!n.id.endsWith('error')):selector==='[aria-invalid=true]'?[...nodes.values()].filter(n=>n.attributes['aria-invalid']==='true'):selector==='.q-error'?[...nodes.values()].filter(n=>n.id.endsWith('-error')):[];
-    context.document={body:{dataset:{quantPage:'evaluation'}},getElementById:id=>id==='quant-app'?app:nodes.get(id)};
+    context.document={currentScript:{src:'http://127.0.0.1:5500/frontend/assets/js/user/quantitative.js'},body:{dataset:{quantPage:'evaluation'}},getElementById:id=>id==='quant-app'?app:nodes.get(id)};
+    context.window.EvaluatorRuntimeUrl={fromScript:(path,script)=>new URL(path,script).href};
     const run=()=>vm.runInNewContext(fs.readFileSync(path.join(root,'frontend/assets/js/user/quantitative.js'),'utf8'),context);
     const submit=()=>nodes.get('wizard-form').onsubmit({preventDefault(){}});
     run();await new Promise(resolve=>setTimeout(resolve,0));

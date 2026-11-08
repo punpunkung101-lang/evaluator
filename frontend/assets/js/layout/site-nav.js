@@ -1,8 +1,9 @@
 (function () {
     "use strict";
+    const scriptUrl = document.currentScript?.src;
     function initialize() {
     if (document.querySelector(".site-wide-nav")) return;
-    const frontendBase = new URL("../../", location.href);
+    const frontendBase = new URL(window.EvaluatorRuntimeUrl.fromScript("../../../", scriptUrl));
     const url = path => new URL(path, frontendBase).href;
     const nav = document.createElement("nav");
     nav.className = "site-wide-nav";

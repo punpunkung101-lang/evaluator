@@ -1,5 +1,6 @@
 (function(root) {
     'use strict';
+    const scriptUrl = root.document?.currentScript?.src;
     const finite=v=>typeof v==='number'&&Number.isFinite(v)&&v>=0;
     function summarize(records,filters={}) {
         const list=records.filter(r=>r&&r.config&&Array.isArray(r.config.metrics)&&r.values&&typeof r.systemId==='string'&&typeof r.submittedAt==='string')
@@ -95,7 +96,7 @@
                 <h2>ผลประเมินประสิทธิภาพและประสิทธิผล</h2>
                 <p class="section-summary-line" id="qdSummaryLine" aria-live="polite">กำลังตรวจสอบข้อมูลประสิทธิผล...</p>
             </div>
-            <a class="btn btn-primary btn-sm" href="manage/processes.html">จัดการกระบวนการและตัวชี้วัด</a>
+            <a class="btn btn-primary btn-sm" href="${window.EvaluatorRuntimeUrl.fromScript('../../../admin/manage/processes.html', scriptUrl)}">จัดการกระบวนการและตัวชี้วัด</a>
         </div>
         <div class="qd-filters" role="search" aria-label="ตัวกรองข้อมูลประสิทธิภาพ">
             <div class="filter-field"><label for="qd-system">ระบบ IT</label><select id="qd-system" class="filter-select"></select></div>
@@ -174,7 +175,7 @@
                         <h3>ยังไม่มีข้อมูลเปรียบเทียบก่อน–หลัง</h3>
                         <p>เปิดแบบประเมินประสิทธิผลเพื่อบันทึกข้อมูลขั้นตอนและระยะเวลาการปฏิบัติงานจริง</p>
                     </div>
-                    <a href="../user/effectiveness/evaluation.html" class="btn btn-primary btn-sm">ทำแบบประเมินประสิทธิผล →</a>
+                    <a href="${window.EvaluatorRuntimeUrl.fromScript('../../../user/effectiveness/evaluation.html', scriptUrl)}" class="btn btn-primary btn-sm">ทำแบบประเมินประสิทธิผล →</a>
                 </div>`;
             } else {
                 const cards = [

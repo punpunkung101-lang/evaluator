@@ -28,7 +28,7 @@ function setup(fetch, withToken = true, staleProfile = false) {
     }
     const document = {
         documentElement: new Element('html'), head: new Element('head'), body: new Element('body'),
-        readyState: 'complete', createElement: tag => new Element(tag), addEventListener() {}
+        readyState: 'complete', currentScript: { src: 'http://127.0.0.1:5500/frontend/assets/js/core/admin-guard.js' }, createElement: tag => new Element(tag), addEventListener() {}
     };
     document.body.append(new Element('admin-dashboard-content'));
     const location = {
@@ -37,7 +37,7 @@ function setup(fetch, withToken = true, staleProfile = false) {
         origin: 'http://127.0.0.1:5500',
         replaced: '', replace(url) { this.replaced = url; }
     };
-    const window = {};
+    const window = { EvaluatorRuntimeUrl: { fromScript: (path, script) => new URL(path, script).href } };
     vm.runInNewContext(source, { window, document, sessionStorage, location, URL, fetch, console, setTimeout });
     return { guard: window.AdminGuard, sessionStorage, document, location };
 }

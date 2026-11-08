@@ -12,6 +12,8 @@
  * - 100% Zero-Emoji Architecture
  */
 
+const dashboardScriptUrl = document.currentScript?.src;
+
 document.addEventListener("DOMContentLoaded", async () => {
     try { await window.AdminGuard.ready; }
     catch (_) { return; }
@@ -516,7 +518,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <td style="text-align: center;">${uniqueSysUsers} คน (${sysRecords.length} ชุด)</td>
                 <td>${statusBadge}</td>
                 <td style="text-align: center;">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="location.href='evaluation-detail.html?system=${encodeURIComponent(system.id)}'">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="location.href='${window.EvaluatorRuntimeUrl.fromScript(`../../../admin/evaluation-detail.html?system=${encodeURIComponent(system.id)}`, dashboardScriptUrl)}'">
                         ดูรายละเอียด →
                     </button>
                 </td>

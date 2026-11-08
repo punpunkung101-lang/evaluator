@@ -1,14 +1,14 @@
 (function () {
     "use strict";
+    const scriptUrl = document.currentScript?.src;
+    const fromScript = path => window.EvaluatorRuntimeUrl.fromScript(path, scriptUrl);
 
     function initialize() {
         if (document.querySelector(".site-shared-masthead[data-site-header]")) return;
 
-        const script = document.currentScript;
-        const scriptUrl = script ? script.src : location.href;
-        const frontendBase = new URL("../../../", scriptUrl);
+        const frontendBase = new URL(fromScript("../../../", scriptUrl));
         const url = rel => new URL(rel, frontendBase).href;
-        const logoUrl = new URL("../../../assets/img/Nu_bage.png", scriptUrl).href;
+        const logoUrl = fromScript("../../../assets/img/Nu_bage.png");
 
         // Clean up legacy inline/duplicate headers & sidebars if present
         document.querySelectorAll(".site-shared-masthead:not([data-site-header]), .ev-header, .site-wide-nav:not([data-site-header])")

@@ -1,5 +1,6 @@
 (function (root) {
     "use strict";
+    const scriptUrl = document.currentScript?.src;
     const base = root.ENV?.API_BASE_URL || "http://127.0.0.1:8080";
     root.EvaluatorAPIBaseUrl = base;
     let activeUser = null;
@@ -148,8 +149,7 @@
                         const dialog = document.getElementById("login-dialog");
                         if (dialog?.showModal) dialog.showModal();
                         else {
-                            const rootPath = location.pathname.match(/^(.*?\/frontend\/)/)?.[1] || "/frontend/";
-                            const loginUrl = new URL(`${rootPath}user/index.html`, location.origin);
+                            const loginUrl = new URL(root.EvaluatorRuntimeUrl.fromScript("../../../user/index.html", scriptUrl));
                             loginUrl.searchParams.set("login", "1");
                             loginUrl.searchParams.set("returnTo", location.pathname + location.search + location.hash);
                             location.assign(loginUrl.href);

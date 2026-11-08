@@ -1,9 +1,9 @@
 (function () {
     "use strict";
+    const scriptUrl = document.currentScript?.src;
     const base = window.ENV?.API_BASE_URL || "http://127.0.0.1:8080";
     const page = `${location.pathname}${location.search}${location.hash}`;
-    const rootPath = location.pathname.match(/^(.*?\/frontend\/)/)?.[1] || "/frontend/";
-    const home = new URL(`${rootPath}user/index.html`, location.origin);
+    const home = new URL(window.EvaluatorRuntimeUrl.fromScript("../../../user/index.html", scriptUrl));
     const pendingClass = "auth-pending";
     let domReady = document.readyState === "complete";
     document.addEventListener("DOMContentLoaded", () => { domReady = true; }, { once: true });
