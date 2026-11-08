@@ -1,7 +1,6 @@
 # AGENTS.md — NUAHS IT Evaluation
 
 > Single source of truth for AI coding agents. Replaces `Skill.md` and `infomation.md`.
-> After this file is in place, delete those two files (grep for references first).
 
 ## 1. Role
 
@@ -32,6 +31,7 @@ The frontend is organized **by role (user / admin) and shared assets**, not by e
 ```text
 evaluator/
 ├── AGENTS.md
+├── index.html                      # root redirect to frontend/user/index.html
 ├── frontend/
 │   ├── user/
 │   │   ├── index.html              # main portal
@@ -44,7 +44,7 @@ evaluator/
 │   └── assets/
 │       ├── css/                    # tokens, base, components, pages
 │       ├── js/
-│       │   ├── core/               # api, auth, guards, theme, i18n
+│       │   ├── core/               # api, auth, guards, theme, i18n, runtime-url
 │       │   ├── layout/             # site-header, sidebar (ONE implementation)
 │       │   ├── user/
 │       │   ├── admin/
@@ -63,6 +63,7 @@ Rules for the structure:
 4. Colors, spacing and typography come from `tokens.css`. No raw hex colors in page CSS.
 5. Test files (`*.test.cjs`) must be excluded from deployment/serving.
 6. Always verify the real tree before editing; this section describes the target, not necessarily the current state.
+7. **Runtime URLs:** every URL built in JavaScript (images, links, redirects, fetch targets) must use the helper in `frontend/assets/js/core/runtime-url.js`, which resolves from the script's own location. Never write a second path calculator and never use paths starting with `/`. Pages must work whether the server root is the repo root or `frontend/`.
 
 ## 4. Navigation (must match Header)
 
@@ -143,7 +144,7 @@ For every task:
 2. State the plan briefly (for deletions/moves, list them first).
 3. Make the smallest suitable change.
 4. Run tests; never claim a test passed unless it actually ran and passed.
-5. **Commit once per phase** with a clear message.
+5. **Do NOT run `git commit`, `git push`, `git reset`, `git checkout --`, `git stash`, `git clean`, or any other history-changing or work-discarding command unless the user explicitly asks.** At the end of a phase: show `git status` and `git diff --stat`, propose a commit message, and wait for approval. Never `git add` unrelated files (`.gitignore` edits, legacy folders, binaries) on your own.
 6. Report: files changed, behavior changed, tests run + results, remaining issues.
 
 Do not add dependencies, features or refactors outside the current phase.
@@ -151,15 +152,16 @@ Do not add dependencies, features or refactors outside the current phase.
 ## 10. Common Mistakes to Avoid
 
 1. **Doing several phases in one task.** File moves and UI edits get mixed and cannot be undone cleanly.
-2. **Fixing paths only in HTML.** Also check `url()` in CSS, `fetch`, `import`/`require`, `location.href`, redirects and `<script>`/`<link>` tags.
+2. **Fixing paths only in HTML.** Also check `url()` in CSS, `fetch`, `import`/`require`, `location.href`, redirects, `<script>`/`<link>` tags, and URLs built at runtime in JS.
 3. **Leaving old rules behind.** Keep shared frontend code in the shared asset tree instead of duplicating it by system.
 4. **Hardcoding the step count** (e.g. "ขั้นที่ 2 จาก 5") or breaking old drafts.
 5. **Hover-only interaction.** Tooltips must work on keyboard and touch.
 6. **Duplicating header/sidebar markup** or CSS per page instead of using the shared implementation.
 7. **Deleting files without proof.** Grep for references before every deletion and list them for approval.
 8. **Touching backend/database without being asked**, or overwriting `evaluator.db`.
-9. **Not committing between phases**, which removes the ability to roll back.
+9. **Committing or discarding work without approval**, or starting a new phase while the previous phase's changes are still unreviewed and uncommitted.
 10. **Committing binaries**: `.exe`, `*.bak`, and `.db` files belong in `.gitignore`.
+11. **Relying on per-machine editor settings** (e.g. `.vscode/settings.json`) to make the site open. The documented URL in `README.md` must work for anyone who clones the repo.
 
 ## 11. Testing
 
@@ -179,5 +181,5 @@ Do not add dependencies, features or refactors outside the current phase.
 - Scope limited to the phase.
 - Tests pass (reported honestly), no broken links or 404s.
 - No leftover references to removed paths (`grep` clean).
-- Committed.
+- Changes are ready to commit: `git status` and `git diff --stat` shown, commit message proposed, awaiting user approval (not committed by the agent).
 - Report delivered in the format from §9.
