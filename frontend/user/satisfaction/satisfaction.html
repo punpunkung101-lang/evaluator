@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<script src="../../assets/js/core/login-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="sat_page_title">แบบประเมินความพึงพอใจการใช้งานระบบ IT | IT Evaluator</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS: Common Master Stylesheet & Page Styles -->
+    <link rel="stylesheet" href="../../assets/css/tokens.css">
+    <link rel="stylesheet" href="../../assets/css/layouts/site-header.css">
+    <link rel="stylesheet" href="../../assets/css/common.css">
+    <link rel="stylesheet" href="../../assets/css/pages/satisfaction.css">
+    <link rel="stylesheet" href="../../assets/css/pages/effectiveness/evaluation-shell.css">
+</head>
+<body class="survey-home survey-question-page">
+
+<main class="container">
+    <p id="survey-part">ส่วนที่ 2/2 — ความพึงพอใจ</p>
+
+    <header class="page-header">
+        <h1 data-i18n="sat_header">แบบประเมินความพึงพอใจต่อระบบ IT</h1>
+        <div class="system-badge">
+            <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v10H4V6zm18-2H2v14h7v2H7v2h10v-2h-2v-2h7V4z"/></svg>
+            <span id="system-name" data-i18n="checking_system">กำลังตรวจสอบข้อมูลระบบ...</span>
+        </div>
+    </header>
+
+    <!-- คำถามวัดความพึงพอใจ 5 ข้อ -->
+    <section class="satisfaction-card">
+        <div class="question-top">
+            <span data-i18n="sat_subtitle">ความพึงพอใจหลังการใช้งานระบบ</span>
+            <span id="question-number">ข้อที่ 1 / 5</span>
+        </div>
+
+        <div class="progress-track" aria-hidden="true">
+            <div id="progress-bar" class="progress-bar" style="width: 20%;"></div>
+        </div>
+
+        <h2 id="question-text">ข้อคำถามความพึงพอใจ</h2>
+
+        <div id="rating-stars" class="rating-stars" role="radiogroup" aria-label="ระดับความพึงพอใจ"></div>
+
+        <p id="rating-label" data-i18n="sat_prompt">โปรดเลือกระดับความพึงพอใจ</p>
+
+        <div class="question-actions">
+            <button id="prev-btn" class="btn btn-secondary" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 11H7.14l5.43-5.43L11.15 4.15 2.86 12.43l8.29 8.28 1.42-1.42-5.43-5.43H19v-2.86z"/></svg>
+                <span data-i18n="previous">ย้อนกลับ</span>
+            </button>
+
+            <button id="next-btn" class="btn btn-primary" type="button" disabled>
+                <span id="next-btn-text">ข้อถัดไป</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42 5.43 5.43H5v2z"/></svg>
+            </button>
+        </div>
+    </section>
+
+    <!-- ส่วนข้อเสนอแนะเพิ่มเติม -->
+    <section id="feedback-section" class="feedback-section" hidden>
+        <h2 data-i18n="feedback_title">ข้อเสนอแนะเพื่อการพัฒนาระบบ</h2>
+        <p data-i18n="feedback_desc">ท่านมีข้อคิดเห็นหรือข้อเสนอแนะเพิ่มเติมเพื่อปรับปรุงระบบ IT นี้หรือไม่</p>
+
+        <textarea
+            id="feedback"
+            maxlength="250"
+            rows="5"
+            data-i18n-placeholder="feedback_placeholder"
+            placeholder="พิมพ์ข้อเสนอแนะของท่านที่นี่ (ไม่บังคับระบุ)"
+        ></textarea>
+
+        <p id="char-count" class="char-counter">0 / 250 ตัวอักษร</p>
+
+        <button id="edit-satisfaction" class="btn btn-secondary" type="button">ย้อนกลับไปแก้คะแนน</button>
+        <p id="submit-error" role="alert"></p>
+        <button id="submit-btn" class="btn btn-primary" type="button">
+            <span>ส่งแบบประเมินและดูผลสรุป</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        </button>
+    </section>
+
+    <!-- ส่วนสรุปผลการประเมินความพึงพอใจ -->
+    <section id="result-section" class="result-section" hidden>
+        <header class="summary-header">
+            <span class="summary-check" aria-hidden="true">✓</span>
+            <h2 tabindex="-1">ส่งแบบประเมินสำเร็จ</h2>
+            <p id="summary-system"></p>
+            <time id="summary-date"></time>
+        </header>
+        <div class="summary-cards">
+            <div class="summary-card">
+                <h3 id="summary-average-title">คะแนนความพึงพอใจเฉลี่ย</h3>
+                <strong id="summary-average"></strong>
+                <p id="summary-level"></p>
+            </div>
+            <div class="summary-card">
+                <h3 id="summary-count-title">จำนวนคำถามที่ตอบ</h3>
+                <strong id="summary-count"></strong>
+                <p id="summary-count-note"></p>
+            </div>
+        </div>
+        <section class="summary-details" aria-labelledby="summary-details-title">
+            <h3 id="summary-details-title">รายละเอียดผลการประเมินรายข้อ</h3>
+            <ol id="summary-satisfaction"></ol>
+        </section>
+        <a href="./index.html" class="btn btn-primary" id="summary-home">กลับหน้าหลัก</a>
+    </section>
+
+    <dialog id="submit-confirmation" aria-labelledby="submit-confirmation-title">
+        <form method="dialog">
+            <h2 id="submit-confirmation-title">ยืนยันการส่งแบบประเมินความพึงพอใจ</h2>
+            <button class="btn btn-secondary" value="cancel" autofocus>ยกเลิก</button>
+            <button class="btn btn-primary" value="confirm">ยืนยันส่ง</button>
+        </form>
+    </dialog>
+
+    <footer class="site-footer" data-i18n="footer_text">
+        ระบบประเมินประสิทธิภาพ IT © 2026 | คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร
+    </footer>
+
+</main>
+
+<!-- JS: Shared Data, Shared API & User Page Logic -->
+<script src="../../assets/js/core/auth.js"></script>
+<script src="../../assets/js/core/systems-data.js"></script>
+<script src="../../assets/js/core/api.js"></script>
+<script src="../../assets/js/core/theme-lang.js"></script>
+<script src="../../assets/js/user/satisfaction.js"></script>
+<script src="../../assets/js/layout/site-header.js"></script>
+</body>
+</html>

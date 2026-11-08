@@ -34,7 +34,7 @@ evaluator/
 ├── AGENTS.md
 ├── frontend/
 │   ├── user/
-│   │   ├── index.html              # main portal (was Effectiveness_Of_It/main/index.html)
+│   │   ├── index.html              # main portal
 │   │   ├── satisfaction/           # satisfaction survey pages
 │   │   └── effectiveness/          # effectiveness wizard (3 steps)
 │   ├── admin/
@@ -49,7 +49,7 @@ evaluator/
 │       │   ├── user/
 │       │   ├── admin/
 │       │   └── **/*.test.cjs       # tests live next to the code they test
-│       └── img/                    # logos/images (replaces misspelled "Publice")
+│       └── img/                    # logos/images
 ├── backend/src/                    # C++ REST API — do not modify unless told
 ├── database/                       # schema.sql, seed.sql, evaluator.db, migrations
 └── tests/                          # backend/API/DB tests and fixtures only
@@ -57,7 +57,7 @@ evaluator/
 
 Rules for the structure:
 
-1. `frontend/Effectiveness_Of_It/` and `frontend/Satisfaction_Survey/` are **legacy**. Once migrated they must not be recreated.
+1. The legacy system-specific frontend folders have been migrated and must not be recreated.
 2. No page may reference another page's private files. Shared code lives only in `frontend/assets/`.
 3. Header and sidebar are rendered by **one** script from **one** NAV config. Never paste `<aside>` / `<header>` markup into individual HTML files.
 4. Colors, spacing and typography come from `tokens.css`. No raw hex colors in page CSS.
@@ -118,7 +118,7 @@ Requirements:
 ## 8. Backend
 
 - **Do not modify `backend/` or `database/`** unless the task explicitly says so.
-- Verify whether `backend/src/main.cpp` serves static files or hardcodes frontend paths (look for static mounts, file reads, redirects, `Effectiveness_Of_It`, `Satisfaction_Survey`, `Publice`, CORS/origin config).
+- Verify whether `backend/src/main.cpp` serves static files or hardcodes frontend paths (look for static mounts, file reads, redirects and CORS/origin config).
   - If it does: report it first, then change **only that single path** to match the new structure.
   - If it does not: state that no change is needed and touch nothing.
 - A successful frontend action is not "saved" until the backend confirms persistence.
@@ -152,7 +152,7 @@ Do not add dependencies, features or refactors outside the current phase.
 
 1. **Doing several phases in one task.** File moves and UI edits get mixed and cannot be undone cleanly.
 2. **Fixing paths only in HTML.** Also check `url()` in CSS, `fetch`, `import`/`require`, `location.href`, redirects and `<script>`/`<link>` tags.
-3. **Leaving old rules behind.** Do not follow the legacy rule "keep the two systems in separate folders"; this file overrides it.
+3. **Leaving old rules behind.** Keep shared frontend code in the shared asset tree instead of duplicating it by system.
 4. **Hardcoding the step count** (e.g. "ขั้นที่ 2 จาก 5") or breaking old drafts.
 5. **Hover-only interaction.** Tooltips must work on keyboard and touch.
 6. **Duplicating header/sidebar markup** or CSS per page instead of using the shared implementation.

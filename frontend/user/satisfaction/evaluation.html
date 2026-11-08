@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<script src="../../assets/js/core/login-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="evaluation_page_title">แบบประเมินประสิทธิภาพระบบ IT | IT Evaluator</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS: Common Master Stylesheet & Page Styles -->
+    <link rel="stylesheet" href="../../assets/css/tokens.css">
+    <link rel="stylesheet" href="../../assets/css/layouts/site-header.css">
+    <link rel="stylesheet" href="../../assets/css/common.css">
+    <link rel="stylesheet" href="../../assets/css/pages/evaluation.css">
+</head>
+<body>
+
+<main class="container">
+    <p id="survey-part">ส่วนที่ 1/2 — ประสิทธิภาพและประสิทธิผล</p>
+
+    <a href="./index.html" class="back-link">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 11H7.14l5.43-5.43L11.15 4.15 2.86 12.43l8.29 8.28 1.42-1.42-5.43-5.43H19v-2.86z"/></svg>
+        <span data-i18n="back_to_home">กลับสู่หน้าเริ่มต้น</span>
+    </a>
+
+    <header class="evaluation-header">
+        <h1 data-i18n="evaluation_header">แบบประเมินประสิทธิภาพและประสิทธิผลระบบ IT</h1>
+        <div class="system-name-badge" id="system-badge">
+            <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v10H4V6zm18-2H2v14h7v2H7v2h10v-2h-2v-2h7V4z"/></svg>
+            <span id="system-name" data-i18n="checking_system">กำลังตรวจสอบข้อมูลระบบ...</span>
+        </div>
+    </header>
+
+    <!-- ขั้นตอนที่ 1: ข้อมูลผู้ประเมิน -->
+    <section class="form-section profile-card" id="profile-section">
+        <h2 data-i18n="evaluator_profile_title">ข้อมูลผู้ประเมิน</h2>
+        <p class="section-desc" data-i18n="evaluator_profile_desc">ระบบจะใช้ชื่อและประเภทผู้ใช้จากบัญชีที่เข้าสู่ระบบ</p>
+        <div class="form-group">
+            <span class="form-label" data-i18n="signed_in_account_label">บัญชีที่เข้าสู่ระบบ</span>
+            <p id="evaluator-account" class="form-control" aria-live="polite">กำลังตรวจสอบบัญชี...</p>
+        </div>
+
+        <button id="start-btn" class="btn btn-primary" type="button">
+            <span data-i18n="evaluator_start_btn">เริ่มต้นการประเมิน</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42 5.43 5.43H5v2z"/></svg>
+        </button>
+    </section>
+
+    <!-- ขั้นตอนที่ 2: ข้อคำถามประเมิน Before vs After -->
+    <section id="question-section" class="form-section" hidden>
+
+        <div class="question-top">
+            <div id="phase-badge" class="phase-badge phase-before">
+                <span id="phase-icon"></span>
+                <span id="phase-label">ช่วงที่ 1: ก่อนการนำระบบ IT มาใช้</span>
+            </div>
+
+            <span id="question-count" class="question-counter">ข้อที่ 1 / 10</span>
+        </div>
+
+        <div class="progress-track" aria-hidden="true">
+            <div id="progress-bar" class="progress-bar" style="width: 10%;"></div>
+        </div>
+
+        <div id="phase-description-box" class="phase-description-box">
+            <span id="phase-description">โปรดพิจารณาการปฏิบัติงานตามวิธีการทำงานเดิม ก่อนเริ่มนำระบบ IT เข้ามาใช้งาน</span>
+        </div>
+
+        <div class="question-card">
+            <p class="question-caption" data-i18n="question_caption">เกณฑ์การประเมินประสิทธิภาพ</p>
+            <h2 id="question-text">ข้อคำถาม</h2>
+
+            <div id="rating-stars" class="rating-stars" role="radiogroup" aria-label="ระดับความคิดเห็น"></div>
+
+            <p id="rating-label" class="rating-label" data-i18n="rating_prompt">โปรดเลือกระดับความคิดเห็น</p>
+
+            <div class="skip-info">
+                <p class="skip-title" data-i18n="skip_title">ไม่สามารถประเมินข้อนี้ได้?</p>
+                <p class="skip-description" data-i18n="skip_desc">
+                    หากท่านไม่เคยมีประสบการณ์ในขั้นตอนดังกล่าว หรือไม่ทราบข้อมูลเกี่ยวกับข้อคำถามนี้ สามารถกดปุ่มด้านล่างเพื่อข้ามข้อนี้ได้ โดยระบบจะไม่นำคำถามนี้ไปคำนวณถ่วงน้ำหนัก
+                </p>
+
+                <button id="skip-btn" class="skip-btn" type="button" data-i18n="skip_btn">
+                    ข้ามคำถามข้อนี้ (ไม่มีข้อมูล / ไม่เคยปฏิบัติงาน)
+                </button>
+            </div>
+        </div>
+
+        <div class="question-actions">
+            <button id="prev-btn" class="btn btn-secondary" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 11H7.14l5.43-5.43L11.15 4.15 2.86 12.43l8.29 8.28 1.42-1.42-5.43-5.43H19v-2.86z"/></svg>
+                <span data-i18n="previous">ย้อนกลับ</span>
+            </button>
+
+            <button id="next-btn" class="btn btn-primary" type="button" disabled>
+                <span id="next-btn-text">ข้อถัดไป</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42 5.43 5.43H5v2z"/></svg>
+            </button>
+        </div>
+
+    </section>
+
+    <!-- ขั้นตอนที่ 3: ผลสรุปเปรียบเทียบ Before-After -->
+
+
+    <footer class="site-footer" data-i18n="footer_text">
+        ระบบประเมินประสิทธิภาพ IT © 2026 | คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร
+    </footer>
+
+</main>
+
+<!-- JS: Shared Data & User Page Logic -->
+<script src="../../assets/js/core/auth.js"></script>
+<script src="../../assets/js/core/systems-data.js"></script>
+<script src="../../assets/js/core/api.js"></script>
+<script src="../../assets/js/core/theme-lang.js"></script>
+<script src="../../assets/js/user/evaluation.js"></script>
+<script src="../../assets/js/layout/site-header.js"></script>
+</body>
+</html>
