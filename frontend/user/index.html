@@ -8,64 +8,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/layouts/site-header.css">
     <link rel="stylesheet" href="../assets/css/pages/effectiveness/styles.css">
 </head>
 <body>
     <a class="skip-link" href="#services" data-i18n="skip">ข้ามไปยังเนื้อหาหลัก</a>
-    <header class="site-header">
-        <div class="utility-bar">
-            <div class="shell utility-content">
-                <span data-i18n="utility">ศูนย์ประเมินระบบสารสนเทศ</span>
-                <button class="utility-contact" type="button" data-open-dialog="contact-dialog" data-i18n="contact">ติดต่อเรา</button>
-            </div>
-        </div>
-        <div class="shell brand-row">
-            <a class="brand" href="./index.html" aria-label="กลับสู่หน้าหลัก">
-                <img src="../assets/img/Nu_bage.png" alt="ตรามหาวิทยาลัยนเรศวร" width="72" height="72">
-                <span>
-                    <strong data-i18n="faculty">คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</strong>
-                    <small data-i18n="facultyEnglish">Faculty of Allied Health Sciences, Naresuan University</small>
-                </span>
-            </a>
-            <div class="header-actions">
-                <button class="control-button" id="theme-toggle" type="button" aria-pressed="false">
-                    <span class="control-icon" aria-hidden="true">☾</span><span data-i18n="theme">โหมดมืด</span>
-                </button>
-                <button class="control-button" id="language-toggle" type="button" aria-label="Switch language">TH / EN</button>
-                <button class="login-button" type="button"><span aria-hidden="true">◉</span><span data-auth-label data-i18n="login">เข้าสู่ระบบ</span></button>
-                <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav"><span></span><span></span><span></span><span class="sr-only">Menu</span></button>
-            </div>
-        </div>
-        <nav class="primary-nav" id="primary-nav" aria-label="เมนูหลัก">
-            <div class="shell nav-inner">
-                <a class="nav-link active" href="./index.html" data-i18n="home">หน้าหลัก</a>
-                <div class="nav-dropdown">
-                    <button class="nav-link dropdown-toggle" type="button" aria-expanded="false" data-i18n="about">เกี่ยวกับ <span aria-hidden="true">⌄</span></button>
-                    <div class="dropdown-menu about-menu">
-                        <a href="#services" data-i18n="aboutEffectiveness">ประเมินประสิทธิผลระบบ IT</a>
-                        <a href="./satisfaction/index.html" data-i18n="aboutSatisfaction">ประเมินความพึงพอใจ</a>
-                    </div>
-                </div>
-                <div class="nav-dropdown">
-                    <button class="nav-link dropdown-toggle" type="button" aria-expanded="false">สำหรับผู้ดูแล <span aria-hidden="true">⌄</span></button>
-                    <div class="dropdown-menu">
-                        <a href="../admin/dashboard.html">Dashboard ความพึงพอใจ</a>
-                        <a href="../admin/dashboard.html#quantitative-results">Dashboard ประสิทธิผลระบบ IT</a>
-                    </div>
-                </div>
-                <div class="nav-dropdown systems-dropdown">
-                    <button class="nav-link dropdown-toggle" type="button" aria-expanded="false" data-i18n="systems">ประสิทธิผลระบบ <span aria-hidden="true">⌄</span></button>
-                    <div class="dropdown-menu systems-menu" id="systems-menu"></div>
-                </div>
-                <div class="nav-dropdown">
-                    <button class="nav-link dropdown-toggle" type="button" aria-expanded="false" data-i18n="satisfaction">ประเมินความพึงพอใจ <span aria-hidden="true">⌄</span></button>
-                    <div class="dropdown-menu satisfaction-menu">
-                        <a href="./satisfaction/index.html" data-i18n="takeSurvey">ทำแบบประเมินความพึงพอใจ</a>
-                    </div>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <div id="app-site-header"></div>
 
     <main>
         <section class="hero" aria-labelledby="hero-title">
@@ -123,6 +72,12 @@
         </form>
     </dialog>
     <details class="shell"><summary>เครื่องมือทดสอบ Prototype สำหรับผู้พัฒนา</summary><p>โหมดผู้ดูแลจำลอง ยังไม่มีการตรวจสอบสิทธิ์จาก Server</p><a href="../admin/manage/processes.html">จัดการกระบวนการและตัวชี้วัด</a> · <a href="../admin/dashboard.html#quantitative-results">ตรวจสอบผลทดลองเชิงปริมาณ</a></details>
-    <script src="../assets/js/core/runtime-url.js"></script><script src="../assets/js/core/auth.js"></script><script src="../assets/js/user/app.js"></script>
+    <script src="../assets/js/core/runtime-url.js"></script>
+<script src="../assets/js/core/auth.js"></script>
+<script src="../assets/js/core/theme-lang.js" data-translation-only="true"></script>
+<script src="../assets/js/core/systems-data.js"></script>
+<script src="../assets/js/layout/nav-config.js"></script>
+<script src="../assets/js/layout/site-header.js"></script>
+<script src="../assets/js/user/app.js"></script>
 </body>
 </html>

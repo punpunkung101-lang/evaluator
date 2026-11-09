@@ -5,7 +5,7 @@
    ========================================================================== */
 
 :root {
-    /* Brand & Institutional Color Palette (from variables.css) */
+    /* Brand & Institutional Color Palette */
     --primary: #1e3a8a;          /* Deep Corporate Navy */
     --primary-hover: #172554;    /* Dark Navy Hover */
     --primary-light: #eff6ff;    /* Soft Ice Blue Accent */
@@ -52,7 +52,7 @@
     --info-border: #bae6fd;
     --info-text: #0369a1;
 
-    /* Geometry & Spacing (from variables.css) */
+    /* Geometry & Spacing */
     --radius-sm: 6px;
     --radius-md: 10px;
     --radius-lg: 14px;

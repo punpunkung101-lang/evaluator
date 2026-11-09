@@ -271,7 +271,8 @@ test('local HTML scripts and styles resolve to existing files, and user navigati
             assert.ok(fs.existsSync(path.resolve(path.dirname(absolute),url)),`${file}: ${url}`);
         }
         if (file === 'frontend/user/index.html') {
-            assert.ok(html.includes('id="primary-nav"'));
+            assert.ok(html.includes('id="app-site-header"'));
+            assert.ok(fs.readFileSync(path.join(root, 'frontend/assets/js/layout/site-header.js'), 'utf8').includes('id="primary-nav"'));
         } else if (file === 'frontend/user/effectiveness/evaluation.html') {
             assert.ok(html.includes('assets/js/layout/site-header.js'));
             assert.ok(html.includes('assets/js/user/evaluation-locale.js'));

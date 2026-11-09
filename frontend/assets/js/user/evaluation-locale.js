@@ -152,11 +152,10 @@
         document.documentElement.dataset.theme=theme;
         document.querySelectorAll('[data-language]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.language===language)));
         if(admin){
-            const languageButton=document.getElementById('q-admin-language');
-            const nextLabel=language==='th'?'EN':'ไทย';
-            if(languageButton){if(languageButton.textContent!==nextLabel)languageButton.textContent=nextLabel;languageButton.setAttribute('aria-label',language==='th'?'ภาษาอังกฤษ':'Switch to Thai');}
+            const languageButton=document.getElementById('language-toggle');
+            if(languageButton)languageButton.setAttribute('aria-label',language==='th'?'ภาษาอังกฤษ':'Switch to Thai');
         }
-        const toggle=document.getElementById('ev-theme');
+        const toggle=document.getElementById('theme-toggle');
         if(toggle){toggle.setAttribute('aria-pressed',String(theme==='dark'));toggle.setAttribute('aria-label',translate(theme==='dark'?'ธีมสว่าง':'ธีมมืด',language));if(admin){
             toggle.querySelector('[data-admin-moon]')?.toggleAttribute('hidden',theme==='dark');
             toggle.querySelector('[data-admin-sun]')?.toggleAttribute('hidden',theme!=='dark');

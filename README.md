@@ -7,13 +7,31 @@
 ```text
 evaluator/
 ├── frontend/
-│   ├── user/                      # หน้าหลักและแบบประเมิน
-│   ├── admin/                     # Dashboard, ผลประเมิน และจัดการระบบ
-│   └── assets/                    # CSS, JavaScript, รูปภาพ และ frontend tests
+│   ├── user/
+│   │   ├── index.html             # portal หลักและจุด mount ของ shared Header
+│   │   ├── effectiveness/         # แบบประเมินประสิทธิผล IT
+│   │   └── satisfaction/          # หน้าประเมินความพึงพอใจ
+│   ├── admin/
+│   │   ├── dashboard.html         # ภาพรวมระบบ
+│   │   ├── results.html           # ผลประเมินรายระบบ
+│   │   └── manage/                # จัดการแบบประเมินและกระบวนการ
+│   └── assets/
+│       ├── css/                   # tokens, base, layouts และ page styles
+│       ├── js/
+│       │   ├── core/              # API, auth, guards, theme, i18n, runtime URL
+│       │   ├── layout/            # shared Header/Sidebar และ NAV config
+│       │   ├── user/              # logic ของแบบประเมินและ portal
+│       │   ├── admin/             # logic ของผู้ดูแล
+│       │   └── **/*.test.cjs      # tests อยู่ข้างโค้ดที่ทดสอบ
+│       └── img/                   # โลโก้และรูปภาพ
+│   ├── Effectiveness_Of_It/       # legacy, รออนุมัติแผน cleanup
+│   └── Satisfaction_Survey/       # legacy, รออนุมัติแผน cleanup
 ├── backend/src/                   # C++ REST API
 ├── database/                      # schema.sql, seed.sql และ evaluator.db
 └── tests/                         # การทดสอบ backend/API/ฐานข้อมูลและ fixtures
 ```
+
+หน้า portal และหน้าแบบประเมินโหลด Header จาก `frontend/assets/js/layout/site-header.js` และใช้สไตล์จาก `frontend/assets/css/layouts/site-header.css` ชุดเดียวกัน ส่วน `theme-lang.js` ทำหน้าที่แปลข้อความและใช้ปุ่มธีม/ภาษาใน Header โดยหน้าเว็บกำหนด `data-translation-only="true"` เพื่อไม่ให้สร้างแถบปุ่มซ้ำ
 
 ## เริ่มใช้งาน
 
@@ -42,5 +60,3 @@ g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evalu
 ตรวจสอบ backend ได้ที่ `http://127.0.0.1:8080/health` หรือ `http://localhost:8080/health` ทดสอบ JavaScript จาก root โปรเจกต์ด้วย `node --test "frontend/assets/js/**/*.test.cjs"`.
 
 บัญชีผู้ดูแลเริ่มต้น: username `Admin`, password `00000000`, ID `00000000` (role `admin`) ส่วนการสมัครทั่วไปกำหนด ID 8 หลักอัตโนมัติ โดยเริ่มจาก `00000001`; username และชื่อที่ใช้แสดงรองรับไม่เกิน 20 ตัวอักษร
-
-```

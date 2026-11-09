@@ -46,13 +46,14 @@
         });
     }
 
-    function makeNavItem(item) {
+    function makeNavItem(item, contactDialogId) {
         const element = item.action ? document.createElement("button") : document.createElement("a");
         if (item.action) {
             element.type = "button";
             element.className = "site-nav-dialog-btn";
-            element.dataset.evDialog = item.action;
+            element.dataset.evDialog = item.action === "ev-contact" ? contactDialogId : item.action;
         } else {
+            element.className = "site-nav-link";
             element.href = resolveFrontendPath(item.href);
         }
         element.dataset.navId = item.id;
@@ -64,7 +65,7 @@
         return element;
     }
 
-    function renderHeaderNavigation(navigation, role) {
+    function renderHeaderNavigation(navigation, role, contactDialogId) {
         const main = navigation.querySelector(".site-nav-main");
         const admin = navigation.querySelector(".site-wide-nav-admin");
         main.replaceChildren();
@@ -72,7 +73,7 @@
         const items = navConfig.header[role] || navConfig.header.guest;
         for (const item of items) {
             const target = role === "admin" && item.id !== "home" ? admin : main;
-            target.append(makeNavItem(item));
+            target.append(makeNavItem(item, contactDialogId));
         }
         admin.hidden = role !== "admin";
         markActive(navigation, items, { pathname: location.pathname, hash: location.hash });
@@ -145,36 +146,28 @@
         document.body.classList.remove("it-has-sidebar", "ev-layout");
 
         const logoUrl = resolveFrontendPath("assets/img/Nu_bage.png");
-        const logoLink = Array.from(document.querySelectorAll("a img[src*='Nu_bage.png']"))
-            .map(image => image.closest("a"))
-            .find(link => link);
-        let masthead = logoLink?.closest("header") || null;
-        if (!masthead) {
-            masthead = document.createElement("header");
-            masthead.className = "site-shared-masthead";
-            masthead.setAttribute("data-site-header", "1");
-            masthead.innerHTML = `<div class="site-brand-row"><a class="site-brand" href="${resolveFrontendPath("user/index.html")}" aria-label="กลับสู่หน้าหลัก"><img src="${logoUrl}" alt="ตรามหาวิทยาลัยนเรศวร" width="56" height="56"><span><strong>คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</strong><small>Faculty of Allied Health Sciences, Naresuan University</small></span></a><div class="site-header-actions"><button type="button" class="site-btn site-theme-btn" id="ev-theme" aria-label="โหมดมืด" aria-pressed="false" title="โหมดมืด"><span data-theme-icon aria-hidden="true">☾</span></button><button type="button" class="site-btn site-lang-btn" id="q-admin-language" data-language-toggle aria-label="Switch language">EN</button><button class="ev-signin" type="button">เข้าสู่ระบบ</button></div></div>`;
-        }
-
-        const navigation = document.createElement("nav");
-        navigation.className = "site-wide-nav";
-        navigation.dataset.siteHeader = "1";
-        navigation.setAttribute("aria-label", "เมนูหลัก");
-        navigation.innerHTML = `<div class="site-nav-inner"><div class="site-nav-main"></div><span class="site-wide-nav-admin" hidden></span></div>`;
+        const header = document.createElement("header");
+        header.className = "site-shared-masthead";
+        header.dataset.siteHeader = "1";
+        header.innerHTML = `<div class="site-utility-bar"><div class="site-header-shell site-utility-content"><span data-i18n="portal_utility">ศูนย์ประเมินระบบสารสนเทศ</span><button type="button" class="site-utility-contact" data-header-contact data-i18n="nav_contact">ติดต่อเรา</button></div></div><div class="site-header-shell site-brand-row"><a class="site-brand" href="${resolveFrontendPath("user/index.html")}" aria-label="กลับสู่หน้าหลัก"><img src="${logoUrl}" alt="ตรามหาวิทยาลัยนเรศวร" width="72" height="72"><span><strong data-i18n="portal_faculty">คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</strong><small data-i18n="portal_faculty_en">Faculty of Allied Health Sciences, Naresuan University</small></span></a><div class="site-header-actions"><button type="button" class="site-control-button" id="theme-toggle" data-i18n-aria="portal_theme" aria-label="โหมดมืด" aria-pressed="false" title="โหมดมืด"><span class="control-icon" data-theme-icon aria-hidden="true">☾</span><span data-i18n="portal_theme">โหมดมืด</span></button><button type="button" class="site-control-button site-lang-btn" id="language-toggle" aria-label="Switch language">TH / EN</button><button class="login-button ev-signin" type="button"><span aria-hidden="true">◉</span><span data-auth-label data-i18n="portal_login">เข้าสู่ระบบ</span></button><button class="site-menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" data-i18n-aria="portal_menu" aria-label="เมนู"><span></span><span></span><span></span></button></div></div><nav class="site-wide-nav" id="primary-nav" aria-label="เมนูหลัก"><div class="site-nav-inner"><div class="site-nav-main"></div><span class="site-wide-nav-admin" hidden></span></div></nav>`;
+        const navigation = header.querySelector(".site-wide-nav");
         const dialogs = document.createElement("div");
         dialogs.id = "site-header-dialogs";
-        dialogs.innerHTML = `<dialog id="ev-contact" class="site-dialog" aria-labelledby="ev-contact-title"><div class="site-dialog-card"><h2 id="ev-contact-title">ติดต่อเรา</h2><p>หากต้องการความช่วยเหลือ โปรดติดต่อผู้รับผิดชอบโครงการหรือผู้ดูแลระบบของคณะ</p><button type="button" class="site-btn" data-ev-close>ปิด</button></div></dialog><dialog id="ev-guide" class="site-dialog" aria-labelledby="ev-guide-title"><div class="site-dialog-card"><h2 id="ev-guide-title">คู่มือการใช้งาน</h2><ol><li>ข้อมูลผู้ประเมิน</li><li>กระบวนการก่อนใช้ IT</li><li>กระบวนการหลังใช้ IT</li><li>ตัวชี้วัด</li><li>ตรวจสอบและส่ง</li></ol><p>บันทึกแบบร่างเพื่อกลับมากรอกต่อได้ ตรวจสอบข้อมูลก่อนยืนยันส่ง</p><button type="button" class="site-btn" data-ev-close>ปิด</button></div></dialog>`;
+        const existingContact = document.getElementById("contact-dialog");
+        const contactDialogId = existingContact ? "contact-dialog" : "ev-contact";
+        dialogs.innerHTML = `${existingContact ? "" : `<dialog id="ev-contact" class="site-dialog" aria-labelledby="ev-contact-title"><div class="site-dialog-card"><h2 id="ev-contact-title" data-i18n="nav_contact">ติดต่อเรา</h2><p data-i18n="portal_contact_text">หากต้องการความช่วยเหลือ โปรดติดต่อผู้รับผิดชอบโครงการหรือผู้ดูแลระบบของคณะ</p><button type="button" class="site-btn" data-ev-close>ปิด</button></div></dialog>`}<dialog id="ev-guide" class="site-dialog" aria-labelledby="ev-guide-title"><div class="site-dialog-card"><h2 id="ev-guide-title" data-i18n="nav_guide">คู่มือการใช้งาน</h2><ol><li data-i18n="portal_guide_profile">ข้อมูลผู้ประเมิน</li><li data-i18n="portal_guide_before">กระบวนการก่อนใช้ IT</li><li data-i18n="portal_guide_after">กระบวนการหลังใช้ IT</li><li data-i18n="portal_guide_metrics">ตัวชี้วัด</li><li data-i18n="portal_guide_submit">ตรวจสอบและส่ง</li></ol><p data-i18n="portal_guide_note">บันทึกแบบร่างเพื่อกลับมากรอกต่อได้ ตรวจสอบข้อมูลก่อนยืนยันส่ง</p><button type="button" class="site-btn" data-ev-close data-i18n="portal_close">ปิด</button></div></dialog>`;
         document.body.append(dialogs);
-        if (logoLink?.closest("header")) masthead.after(navigation);
-        else {
-            document.body.prepend(navigation);
-            document.body.prepend(masthead);
-        }
-        renderHeaderNavigation(navigation, "guest");
+        const mount = document.getElementById("app-site-header");
+        if (mount) mount.replaceWith(header);
+        else document.body.prepend(header);
+        renderHeaderNavigation(navigation, "guest", contactDialogId);
         mountSidebar();
 
         navigation.querySelectorAll("[data-ev-dialog]").forEach(button => {
             button.addEventListener("click", () => document.getElementById(button.dataset.evDialog)?.showModal());
+        });
+        header.querySelectorAll("[data-header-contact]").forEach(button => {
+            button.addEventListener("click", () => document.getElementById(contactDialogId)?.showModal());
         });
         dialogs.querySelectorAll("[data-ev-close]").forEach(button => {
             button.addEventListener("click", () => button.closest("dialog")?.close());
@@ -183,7 +176,7 @@
             dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
         });
 
-        const themeButton = masthead.querySelector("#ev-theme");
+        const themeButton = header.querySelector("#theme-toggle");
         const savedTheme = () => {
             try { return localStorage.getItem("it_eval_theme") || "light"; }
             catch (_) { return "light"; }
@@ -204,17 +197,17 @@
             window.EvaluationLocale?.setTheme?.(next);
         });
 
-        const languageButton = masthead.querySelector("#q-admin-language");
+        const languageButton = header.querySelector("#language-toggle");
         let activeUser = null;
         const applyLanguage = lang => {
             const language = lang === "en" ? "en" : "th";
             document.documentElement.lang = language;
             if (languageButton) {
-                languageButton.textContent = language === "en" ? "ไทย" : "EN";
+                languageButton.textContent = language === "en" ? "EN / TH" : "TH / EN";
                 languageButton.setAttribute("aria-label", language === "en" ? "Switch to Thai" : "ภาษาอังกฤษ");
             }
             window.ThemeLang?.applyTranslations?.(document);
-            renderHeaderNavigation(navigation, activeUser?.role === "admin" ? "admin" : activeUser ? "user" : "guest");
+            renderHeaderNavigation(navigation, activeUser?.role === "admin" ? "admin" : activeUser ? "user" : "guest", contactDialogId);
             document.dispatchEvent(new CustomEvent("langchange", { detail: { lang: language } }));
         };
         applyLanguage(currentLanguage());
@@ -227,15 +220,22 @@
             applyLanguage(next);
         });
 
+        const menuButton = header.querySelector("#menu-toggle");
+        menuButton?.addEventListener("click", () => {
+            const opening = !navigation.classList.contains("open");
+            navigation.classList.toggle("open", opening);
+            menuButton.setAttribute("aria-expanded", String(opening));
+        });
+
         function refreshActiveState() {
-            renderHeaderNavigation(navigation, activeUser?.role === "admin" ? "admin" : activeUser ? "user" : "guest");
+            renderHeaderNavigation(navigation, activeUser?.role === "admin" ? "admin" : activeUser ? "user" : "guest", contactDialogId);
             markActive(document.querySelector(".sidebar"), navConfig.sidebar.admin, { pathname: location.pathname, hash: location.hash });
         }
         window.addEventListener("hashchange", refreshActiveState);
         const authState = window.EvaluatorAuth?.renderAuthButton?.();
         Promise.resolve(authState).then(user => {
             activeUser = user || null;
-            renderHeaderNavigation(navigation, activeUser?.role === "admin" ? "admin" : activeUser ? "user" : "guest");
+            renderHeaderNavigation(navigation, activeUser?.role === "admin" ? "admin" : activeUser ? "user" : "guest", contactDialogId);
         }).catch(error => console.error("[SiteHeader] Could not verify role for navigation", error));
     }
 

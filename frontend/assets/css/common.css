@@ -4,7 +4,6 @@
    Aggregates Base, Shared Components, and Layouts
    ========================================================================== */
 
-@import "./base/variables.css";
 @import "./base/dark-theme.css";
 @import "./base/reset.css";
 @import "./components/buttons.css";

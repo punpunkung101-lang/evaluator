@@ -131,7 +131,7 @@ test('all admin pages use the shared auth control and backend-verified admin gua
     assert.match(guard, /window\.AdminGuard = \{ ready \}/);
     assert.doesNotMatch(guard, /sessionStorage\.getItem\("evaluatorProfile"\).*role/);
     const nav = fs.readFileSync(path.join(root, 'frontend/assets/js/layout/site-header.js'), 'utf8');
-    assert.match(nav, /class="ev-signin"/);
+    assert.match(nav, /class="[^"]*ev-signin/);
     assert.match(nav, /navConfig\.header\[role\]/);
     assert.match(nav, /activeUser\?\.role === "admin"/);
     const navigation = require('../layout/nav-config.js');
