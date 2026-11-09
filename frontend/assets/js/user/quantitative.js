@@ -25,6 +25,7 @@
     async function wizard(signedInUser) {
         const userId = String(signedInUser.id);
         const steps = ['ข้อมูลผู้ประเมิน','กระบวนการและตัวชี้วัด','ตรวจสอบและส่ง'];
+        const examples = window.EffectivenessExamples;
         const requested = new URLSearchParams(location.search).get('system');
         let draft = Q.draft(userId);
         if (requested && draft?.systemId !== requested) {
@@ -107,6 +108,70 @@
             }
             return valid;
         }
+        function exampleChip(example, phase, selected, metric = false) {
+            const tipId = `example-tip-${phase}-${example.id}`;
+            const group = metric ? 'metric' : phase;
+            return `<span class="q-example-option"><button type="button" class="q-example-chip" id="chip-${group}-${example.id}" data-example-choice="${metric?'metric':phase}" data-example-id="${esc(example.id)}" aria-pressed="${selected}" aria-describedby="${tipId}">${user(example.name)}</button><button type="button" class="q-example-info" aria-label="${esc(EvaluationLocale.translate('แสดงรายละเอียดตัวอย่าง'))}" aria-controls="${tipId}" aria-expanded="false">ⓘ</button><span class="q-example-tooltip" id="${tipId}" role="tooltip" hidden><strong>${user(example.name)}</strong><br>${user(example.description)}</span></span>`;
+        }
+        function processExampleChoices(phase) {
+            const language = window.EvaluationLocale?.getLanguage?.() || 'th';
+            const options = examples?.processExamples(draft.systemId, language)?.[phase] || [];
+            const selected = new Set((draft.config?.[phase] || []).map(item => item.id));
+            return `<fieldset class="q-example-group"><legend>${phase==='before'?'ขั้นตอนก่อนใช้ IT':'ขั้นตอนหลังใช้ IT'}</legend><div class="q-example-chips">${options.map(item=>exampleChip(item,phase,selected.has(item.id))).join('')}</div></fieldset>`;
+        }
+        function metricExampleChoices() {
+            const language = window.EvaluationLocale?.getLanguage?.() || 'th';
+            const selected = new Set((draft.config?.metrics || []).map(item => item.id));
+            return `<fieldset class="q-example-group"><legend>${language==='en'?'Indicator examples (optional)':'ตัวอย่างตัวชี้วัด (เลือกเพิ่มเติมได้)'}</legend><div class="q-example-chips">${(examples?.metrics || []).map(metric=>{
+                const item=examples.localized(metric,language);
+                return exampleChip({id:metric.id,name:item.name,description:`${language==='en'?'Method':'วิธีคิด'}: ${item.formula} · ${language==='en'?'Source':'ที่มา'}: ${item.sourceText}`},'metric',selected.has(metric.id),true);
+            }).join('')}</div></fieldset>`;
+        }
+        function bindExampleChoices() {
+            const setTooltip = (option, open) => {
+                const tooltip=option?.querySelector('.q-example-tooltip');
+                const info=option?.querySelector('.q-example-info');
+                if(tooltip) tooltip.hidden=!open;
+                if(info) info.setAttribute('aria-expanded',String(open));
+            };
+            app.querySelectorAll('.q-example-option').forEach(option=>{
+                option.addEventListener('pointerenter',()=>setTooltip(option,true));
+                option.addEventListener('pointerleave',()=>{if(!option.contains(document.activeElement))setTooltip(option,false);});
+                option.addEventListener('focusin',()=>setTooltip(option,true));
+                option.addEventListener('focusout',event=>{if(!option.contains(event.relatedTarget))setTooltip(option,false);});
+                option.querySelector('.q-example-info')?.addEventListener('click',event=>{
+                    event.stopPropagation();
+                    const tooltip=option.querySelector('.q-example-tooltip');
+                    setTooltip(option,tooltip.hidden);
+                });
+            });
+            app.querySelectorAll('[data-example-choice]').forEach(button=>button.addEventListener('click',()=>{
+                const {exampleChoice:choice,exampleId:id}=button.dataset;
+                if(choice==='metric') {
+                    const existing=draft.config.metrics.find(metric=>metric.id===id);
+                    if(existing) draft.config.metrics=draft.config.metrics.filter(metric=>metric.id!==id);
+                    else {
+                        const language=window.EvaluationLocale?.getLanguage?.()||'th';
+                        const source=examples.metrics.find(metric=>metric.id===id);
+                        const item=examples.localized(source,language);
+                        draft.config.metrics.push({id:source.id,name:item.name,description:`${item.formula} · ${item.sourceText}`,unit:item.unit,basis:language==='en'?'per request':'ต่อคำขอ',direction:source.direction,source:'manual',active:true,required:false});
+                    }
+                } else {
+                    const language=window.EvaluationLocale?.getLanguage?.()||'th';
+                    const available=examples.processExamples(draft.systemId,language)[choice];
+                    const existing=draft.config[choice].some(item=>item.id===id);
+                    const chosen=existing?draft.config[choice].filter(item=>item.id!==id):[...draft.config[choice],available.find(item=>item.id===id)];
+                    draft.config[choice]=chosen;
+                    if(existing) { delete draft.durations[choice][id]; delete draft.durationStatuses[choice][id]; }
+                }
+                render();
+                Q.saveDraft(draft,userId);
+                document.getElementById(`chip-${choice==='metric'?'metric':choice}-${id}`)?.focus();
+            }));
+            app.onkeydown=event=>{
+                if(event.key==='Escape' && event.target.closest('.q-example-option')) setTooltip(event.target.closest('.q-example-option'),false);
+            };
+        }
         function render() {
             const step=draft.step;
             let body='';
@@ -116,14 +181,14 @@
             }
             if (step===1) {
                 body='';
-                if (!draft.config || !['before','after'].every(phase=>draft.config[phase].some(s=>s.active))) body='<p>ระบบนี้ยังไม่มีการตั้งค่ากระบวนการ กรุณาโหลดการตั้งค่าหรือเลือกกระบวนการตัวอย่าง</p><button type="button" id="q-refresh-config">โหลดการตั้งค่าล่าสุด</button><button type="button" id="q-use-demo">ใช้กระบวนการตัวอย่าง (ข้อมูลจำลอง)</button>';
+                if (!draft.config || !['before','after'].every(phase=>draft.config[phase].some(s=>s.active))) body=`<p>${window.EvaluationLocale?.translate('ระบบนี้ยังไม่มีการตั้งค่ากระบวนการ เลือกตัวอย่างกระบวนการด้านล่างได้')}</p><button type="button" id="q-refresh-config">โหลดการตั้งค่าล่าสุด</button>${processExampleChoices('before')}${processExampleChoices('after')}`;
                 else {
                     for(const phase of ['before','after']) { const list=draft.config[phase].filter(s=>s.active); body+=`<h3>${phase==='before'?'ก่อน':'หลัง'}ใช้ IT</h3>`+list.map((s,i)=>`<section class="q-card"><h4>${i+1}. ${user(s.name)}</h4><p>${user(s.description)}</p>${s.timed?`<label>สถานะข้อมูลเวลา<select id="duration-status-${phase}-${s.id}">${[['known','มีข้อมูล'],['unknown','ไม่ทราบข้อมูล'],['na','ไม่เกี่ยวข้อง']].map(([v,l])=>`<option value="${v}" ${(draft.durationStatuses[phase][s.id]||'known')===v?'selected':''}>${l}</option>`).join('')}</select></label>`+field(`duration-${phase}-${s.id}`,'เวลาที่ใช้ (นาที)',draft.durations[phase][s.id],'number'):''}</section>`).join(''); }
                     body+='<p id="duration-total">เวลารวมก่อนและหลังจะคำนวณจากเวลาขั้นตอน</p><h3>ตัวชี้วัด</h3>'+draft.config.metrics.filter(m=>m.active).map(m=>{
                 const v=draft.values[m.id] || {};
                 if(m.source!=='manual') return `<section class="q-card"><h3>${user(m.name)}</h3><p>คำนวณจากกระบวนการ · ${user(m.basis)} · ก่อน ${fmt(v.before)} / หลัง ${fmt(v.after)} ${user(m.unit)}</p></section>`;
                 return `<section class="q-card"><h3>${user(m.name)} ${m.required?'(จำเป็นต้องระบุสถานะข้อมูล)':''}</h3><p>${user(m.description)} · ${user(m.unit)} / ${user(m.basis)}</p><label for="status-${m.id}">สถานะข้อมูล<select id="status-${m.id}" aria-describedby="status-${m.id}-error">${[['','เลือกสถานะ'],['known','มีข้อมูล'],['unknown','ไม่ทราบข้อมูล'],['na','ไม่เกี่ยวข้อง']].map(([key,label])=>`<option value="${key}" ${v.status===key?'selected':''}>${label}</option>`).join('')}</select></label><small class="q-error" id="status-${m.id}-error"></small><div class="q-grid">${field(`before-${m.id}`,'ก่อนใช้ระบบ',v.before,'number')}${field(`after-${m.id}`,'หลังใช้ระบบ',v.after,'number')}</div></section>`;
-                    }).join('');
+                    }).join('')+metricExampleChoices();
                 }
             }
             if (step===2) body=`<p>${user(draft.profile.name)} · ${{student:'นิสิต',teacher:'อาจารย์',staff:'บุคลากร'}[draft.profile.role]||esc(draft.profile.role)} · ${user(draft.profile.department)}</p><p>ระบบ ${user(draft.systemId)} · แบบประเมินเวอร์ชัน ${draft.config.version}</p>${['before','after'].map(phase=>`<h3>${phase==='before'?'ก่อน':'หลัง'}ใช้ IT</h3><ol>${draft.config[phase].filter(s=>s.active).map(s=>`<li>${user(s.name)} — ${user(s.description)} ${s.timed?fmt(draft.durations[phase][s.id])+' นาที':'ไม่เก็บเวลา'}</li>`).join('')}</ol>`).join('')}${resultTable(draft)}<p>ยังไม่บันทึกเป็นรายการที่ส่ง จนกว่าจะยืนยันในหน้าต่างถัดไป</p>`;
@@ -143,6 +208,7 @@
                 draft.durations={before:{},after:{}}; draft.durationStatuses={before:{},after:{}}; draft.values={};
                 render(); Q.saveDraft(draft,userId);
             }));
+            bindExampleChoices();
             document.getElementById('q-refresh-config')?.addEventListener('click',()=>safe(async()=>{
                 const latest=Q.config(draft.systemId);
                 if(!['before','after'].every(phase=>latest[phase].some(s=>s.active))){document.getElementById('q-message').textContent='ยังไม่มีการตั้งค่าครบทั้งก่อนและหลัง ใช้กระบวนการตัวอย่างเพื่อทดลอง หรือรอผู้ดูแลตั้งค่า';return;}

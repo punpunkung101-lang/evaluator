@@ -22,6 +22,8 @@
         'กรุณาระบุค่าที่ไม่ติดลบ และใช้จำนวนเต็มสำหรับกระดาษ/ข้อผิดพลาด':'Enter a non-negative value; paper and errors require whole numbers',
         'กรุณาเลือกสถานะข้อมูล':'Select a data status','สถานะข้อมูลเวลา':'Duration data status','สถานะข้อมูล':'Data status','เลือกสถานะ':'Select a status','มีข้อมูล':'Known','ไม่ทราบข้อมูล':'Unknown','ไม่เกี่ยวข้อง':'Not applicable',
         'เวลาที่ใช้ (นาที)':'Duration (minutes)','ฐานการวัดเวลา:':'Time measurement basis:','ใช้ฐานเดียวกันก่อนและหลัง':'Use the same basis before and after',
+        'แสดงรายละเอียดตัวอย่าง':'Show example details','ระบบนี้ยังไม่มีการตั้งค่ากระบวนการ เลือกตัวอย่างกระบวนการด้านล่างได้':'No processes are configured for this system. Choose process examples below.',
+        'ขั้นตอนก่อนใช้ IT':'Process examples before IT','ขั้นตอนหลังใช้ IT':'Process examples after IT','ตัวอย่างตัวชี้วัด (เลือกเพิ่มเติมได้)':'Indicator examples (optional)',
         'ขั้นตอนนี้ไม่เก็บเวลา':'This step does not collect duration','ระบบนี้ยังไม่ได้กำหนดกระบวนการ':'Processes have not been configured for this system',
         'ยังเริ่มประเมินจริงไม่ได้ หากผู้ดูแลตั้งค่าไว้แล้ว ให้โหลดการตั้งค่าล่าสุด หรือเลือกใช้กระบวนการตัวอย่างเพื่อทดลองกรอกฟอร์ม โดยจะระบุผลว่าเป็นข้อมูลจำลอง':'Processes are required. Load the latest administrator configuration, or use sample processes to try the form. Sample results are labeled as simulated data.',
         'โหลดการตั้งค่าล่าสุด':'Load latest configuration','ใช้กระบวนการตัวอย่าง (ข้อมูลจำลอง)':'Use sample processes (simulated data)',
