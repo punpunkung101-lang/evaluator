@@ -11,7 +11,7 @@
         'เข้าสู่ระบบ — ยังไม่พร้อมใช้งาน':'Sign in — not available yet','ยังไม่มีระบบเข้าสู่ระบบจริง':'Authentication is not available yet',
         'ธีมสว่าง':'Light mode','ธีมมืด':'Dark mode','ภาษาไทย':'Thai','ภาษาอังกฤษ':'English',
         'ตรามหาวิทยาลัยนเรศวร':'Naresuan University emblem',
-        'ข้อมูลผู้ประเมิน':'Evaluator information','กระบวนการก่อนใช้ IT':'Before IT','กระบวนการหลังใช้ IT':'After IT','ตัวชี้วัด':'Indicators','ตรวจสอบและส่ง':'Review & submit',
+        'ข้อมูลผู้ประเมิน':'Evaluator information','เลือกระบบ':'Select a system','กระบวนการก่อนใช้ IT':'Before IT','กระบวนการหลังใช้ IT':'After IT','ตัวชี้วัด':'Indicators','ตรวจสอบและส่ง':'Review & submit','ขั้นตอนที่ใช้ในช่วงนี้':'Active processes in this phase',
         'ชื่อ–นามสกุล / นามสมมุติ':'Full name / pseudonym','ประเภทผู้ประเมิน':'Evaluator type','เลือกประเภท':'Select a role','นิสิต':'Student','อาจารย์':'Academic staff','บุคลากร':'Support staff','หน่วยงาน / สังกัด':'Department / affiliation','ระบบ IT':'IT system','เลือกระบบ IT':'Select an IT system',
         'ย้อนกลับ':'Back','บันทึกแบบร่าง':'Save draft','ถัดไป':'Next','ตรวจสอบและยืนยัน':'Review & confirm','กลับไปตรวจสอบ':'Back to review','ยืนยันการส่งข้อมูล':'Confirm submission',
         'กรุณาตรวจสอบความถูกต้องของข้อมูลก่อนยืนยัน':'Please review your information before confirming',

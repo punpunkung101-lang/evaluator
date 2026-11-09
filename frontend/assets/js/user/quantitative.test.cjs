@@ -18,7 +18,7 @@ test('effectiveness examples export bilingual metrics with total weight 100 and 
 test('energy stepper renders three wizard stages with exactly one current step',()=>{
     const context={window:{}};
     vm.runInNewContext(fs.readFileSync(path.join(root,'frontend/assets/js/user/energy-stepper.js'),'utf8'),context);
-    const labels=['ข้อมูลผู้ประเมิน','กระบวนการและตัวชี้วัด','ตรวจสอบและส่ง'];
+    const labels=['เลือกระบบ','กระบวนการและตัวชี้วัด','ตรวจสอบและส่ง'];
     for(const step of [0,1,2,1,0]) {
         const html=context.window.EnergyStepper.markup(labels,step);
         assert.equal((html.match(/aria-current="step"/g)||[]).length,1);
@@ -27,6 +27,19 @@ test('energy stepper renders three wizard stages with exactly one current step',
         assert.ok(html.includes(`--energy-progress:${step/2}`));
         for(const label of labels) assert.ok(html.includes(label));
     }
+});
+test('energy stepper sizes its grid from three or five labels without a fixed five-column CSS rule',()=>{
+    const context={window:{}};
+    vm.runInNewContext(fs.readFileSync(path.join(root,'frontend/assets/js/user/energy-stepper.js'),'utf8'),context);
+    for(const count of [3,5]) {
+        const labels=Array.from({length:count},(_,index)=>`Step ${index+1}`);
+        const html=context.window.EnergyStepper.markup(labels,0);
+        assert.ok(html.includes(`style="--step-count:${count}"`));
+        assert.equal((html.match(/class="energy-step /g)||[]).length,count);
+    }
+    const css=fs.readFileSync(path.join(root,'frontend/assets/css/pages/effectiveness/energy-stepper.css'),'utf8');
+    assert.match(css,/grid-template-columns:\s*repeat\(var\(--step-count\),/);
+    assert.doesNotMatch(css,/grid-template-columns:\s*repeat\(\s*5\b/);
 });
 function setup() {
     const store = new Map();
