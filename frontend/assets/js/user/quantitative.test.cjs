@@ -71,7 +71,7 @@ test('admin configuration updates new forms while snapshots and other systems re
 });
 test('draft resumes separately from submitted records and confirmation is idempotent',()=>{
     const {Q,store}=setup(), draft={id:'one',step:2,values:{paper:{status:'unknown'}}}, userId='00000001';
-    Q.saveDraft(draft,userId); assert.equal(Q.draft(userId).step,1); assert.equal(Q.records().length,0);
+    Q.saveDraft(draft,userId); assert.equal(Q.draft(userId).step,2); assert.equal(Q.records().length,0);
     Q.submit(draft,userId);Q.submit(draft,userId);
     assert.equal(Q.records().length,1);assert.equal(Q.draft(userId),null);
     assert.ok(!store.has(Q.keys.draft));
@@ -80,6 +80,9 @@ test('draft resumes separately from submitted records and confirmation is idempo
 test('legacy draft stages map to the three-stage wizard and malformed stages reset safely',()=>{
     const {Q}=setup();
     for(const [oldStep,newStep] of [[0,0],[1,1],[2,1],[3,1],[4,2],[-1,0],[7,0],['bad',0],[null,0]]) assert.equal(Q.migrateDraft({step:oldStep}).step,newStep);
+    for(const [step,expected] of [[0,0],[1,1],[2,2],[-1,0],[7,0],['bad',0]]) assert.equal(Q.migrateDraft({wizardVersion:3,step}).step,expected);
+    const migrated=Q.migrateDraft({step:3,config:{before:[{id:'b'}]},durations:{before:{b:4}},durationStatuses:{before:{b:'known'}},values:{paper:{status:'unknown'}}});
+    assert.equal(migrated.step,1);assert.equal(JSON.stringify(migrated.config),JSON.stringify({before:[{id:'b'}]}));assert.equal(JSON.stringify(migrated.durations),JSON.stringify({before:{b:4}}));assert.equal(JSON.stringify(migrated.durationStatuses),JSON.stringify({before:{b:'known'}}));assert.equal(JSON.stringify(migrated.values),JSON.stringify({paper:{status:'unknown'}}));
     assert.equal(Q.migrateDraft(null),null);
 });
 test('drafts are isolated by authenticated user and legacy unscoped drafts are ignored',()=>{

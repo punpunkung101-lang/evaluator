@@ -18,8 +18,13 @@
     function migrateDraft(value) {
         if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
         const draft = clone(value);
-        const oldStep = Number(draft.step);
-        draft.step = Number.isInteger(oldStep) ? oldStep === 0 ? 0 : oldStep >= 1 && oldStep <= 3 ? 1 : oldStep === 4 ? 2 : 0 : 0;
+        const step = Number(draft.step);
+        if (draft.wizardVersion === 3) {
+            draft.step = Number.isInteger(step) && step >= 0 && step <= 2 ? step : 0;
+        } else {
+            draft.step = Number.isInteger(step) ? step === 0 ? 0 : step >= 1 && step <= 3 ? 1 : step === 4 ? 2 : 0 : 0;
+            draft.wizardVersion = 3;
+        }
         return draft;
     }
     function calculate(metric, input) {
@@ -69,7 +74,7 @@
         },
         saveDraft(value, userId) {
             if (!userId) throw new Error('ไม่สามารถบันทึกแบบร่างโดยไม่ระบุบัญชีผู้ใช้');
-            const scopedDraft = { ...clone(value), userId: String(userId) };
+            const scopedDraft = { ...clone(value), wizardVersion: 3, userId: String(userId) };
             localStorage.setItem(draftKey(userId), JSON.stringify(scopedDraft));
         },
         clearDraft(userId) {

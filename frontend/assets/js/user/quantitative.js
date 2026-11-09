@@ -24,14 +24,15 @@
     }
     async function wizard(signedInUser) {
         const userId = String(signedInUser.id);
+        const steps = ['ข้อมูลผู้ประเมิน','กระบวนการและตัวชี้วัด','ตรวจสอบและส่ง'];
         const requested = new URLSearchParams(location.search).get('system');
         let draft = Q.draft(userId);
         if (requested && draft?.systemId !== requested) {
             Q.clearDraft(userId);
             draft = null;
         } else if (!requested && draft) {
-            const stepNumber = Math.min(3, Math.max(1, Number(draft.step || 0) + 1));
-            const resume = window.confirm(`มีแบบร่างที่ค้างอยู่ (${draft.systemId || 'ยังไม่เลือกระบบ'}, ขั้นที่ ${stepNumber})\nตกลง: ทำต่อ · ยกเลิก: เริ่มใหม่`);
+            const stepNumber = Math.min(steps.length, Math.max(1, Number(draft.step || 0) + 1));
+            const resume = window.confirm(`มีแบบร่างที่ค้างอยู่ (${draft.systemId || 'ยังไม่เลือกระบบ'}, ขั้นที่ ${stepNumber} จาก ${steps.length})\nตกลง: ทำต่อ · ยกเลิก: เริ่มใหม่`);
             if (!resume) {
                 Q.clearDraft(userId);
                 draft = null;
@@ -45,7 +46,6 @@
             draft.config = Q.config(requested);
         }
         let sending = false, submitted = false;
-        const steps = ['ข้อมูลผู้ประเมิน','กระบวนการและตัวชี้วัด','ตรวจสอบและส่ง'];
         if (!draft.profile.name) {
             try { const profile = JSON.parse(sessionStorage.getItem('evaluatorProfile') || 'null'); if (profile) draft.profile = { id:profile.id || '', name:profile.name || profile.evaluatorName || '', role:profile.role || profile.userRole || '', department:'' }; } catch (_) { /* Optional session profile. */ }
         }
