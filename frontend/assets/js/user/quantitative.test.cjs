@@ -85,6 +85,17 @@ test('legacy draft stages map to the three-stage wizard and malformed stages res
     assert.equal(migrated.step,1);assert.equal(JSON.stringify(migrated.config),JSON.stringify({before:[{id:'b'}]}));assert.equal(JSON.stringify(migrated.durations),JSON.stringify({before:{b:4}}));assert.equal(JSON.stringify(migrated.durationStatuses),JSON.stringify({before:{b:'known'}}));assert.equal(JSON.stringify(migrated.values),JSON.stringify({paper:{status:'unknown'}}));
     assert.equal(Q.migrateDraft(null),null);
 });
+test('custom process and metric fields reject blank, whitespace and overlong values',()=>{
+    const {Q}=setup();
+    for(const name of ['', '   ', 'x'.repeat(121)]) assert.equal(Q.validateCustomProcess({name,description:''}).name,false);
+    assert.equal(Q.validateCustomProcess({name:'Review request',description:'x'.repeat(501)}).description,false);
+    assert.equal(Q.validateCustomProcess({name:'Review request',description:'Optional details'}).name,true);
+    for(const name of ['', '  ', 'x'.repeat(121)]) assert.equal(Q.validateCustomMetric({name,unit:'cases',direction:'decrease'}).name,false);
+    assert.equal(Q.validateCustomMetric({name:'Queue time',unit:'',direction:'decrease'}).unit,false);
+    assert.equal(Q.validateCustomMetric({name:'Queue time',unit:'hours',direction:''}).direction,false);
+    assert.equal(Q.validateCustomMetric({name:'Queue time',unit:'h'.repeat(33),direction:'decrease'}).unit,false);
+    assert.equal(JSON.stringify(Q.validateCustomMetric({name:'Queue time',unit:'hours',direction:'decrease'})),JSON.stringify({name:true,unit:true,direction:true,description:true}));
+});
 test('drafts are isolated by authenticated user and legacy unscoped drafts are ignored',()=>{
     const {Q,store}=setup();
     const userA='00000001',userB='00000002';

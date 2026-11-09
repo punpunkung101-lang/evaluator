@@ -69,6 +69,7 @@
             }
         }
         function capture() {
+            if (draft.step === 1) captureCustomFields();
             if (draft.step === 0) {
                 const profile = window.EvaluatorAuth?.current() || {};
                 draft.profile = { id:profile.id || '', name:profile.name || '', role:profile.role || '', department:'' };
@@ -83,6 +84,20 @@
             }
             derived();
         }
+        function captureCustomFields() {
+            for (const phase of ['before','after']) for (const item of (draft.config?.[phase] || []).filter(step=>step.id.startsWith(`custom-process-${phase}`))) {
+                const name=document.getElementById(`custom-process-name-${phase}`), description=document.getElementById(`custom-process-description-${phase}`);
+                if(name) item.name=name.value;
+                if(description) item.description=description.value;
+            }
+            for (const item of (draft.config?.metrics || []).filter(metric=>metric.id.startsWith('custom-metric-'))) {
+                const name=document.getElementById(`custom-metric-name-${item.id}`), unit=document.getElementById(`custom-metric-unit-${item.id}`), direction=document.getElementById(`custom-metric-direction-${item.id}`), description=document.getElementById(`custom-metric-description-${item.id}`);
+                if(name) item.name=name.value;
+                if(unit) item.unit=unit.value;
+                if(direction) item.direction=direction.value;
+                if(description) item.description=description.value;
+            }
+        }
         function validate() {
             app.querySelectorAll('[aria-invalid=true]').forEach(el => el.setAttribute('aria-invalid', 'false'));
             app.querySelectorAll('.q-error').forEach(el => { el.textContent = ''; });
@@ -96,11 +111,23 @@
             if (draft.step === 1) {
                 if (!draft.config || !['before','after'].every(phase=>draft.config[phase].some(s=>s.active))) { document.getElementById('q-message').textContent='ยังไม่กำหนดกระบวนการ กรุณาเลือกตัวอย่างหรือให้ผู้ดูแลตั้งค่าก่อน'; return false; }
                 for (const phase of ['before','after']) draft.config[phase].filter(s=>s.active&&s.timed).forEach(s=>{if(draft.durationStatuses[phase][s.id]==='known'&&!Q.finite(draft.durations[phase][s.id]))fail(`duration-${phase}-${s.id}`,'กรุณาระบุเวลาตั้งแต่ 0 ขึ้นไป หรือเลือกไม่ทราบข้อมูล');});
+                for (const phase of ['before','after']) draft.config[phase].filter(item=>item.id.startsWith(`custom-process-${phase}`)).forEach(item=>{
+                    const fields=Q.validateCustomProcess(item);
+                    if(!fields.name) fail(`custom-process-name-${phase}`,'กรุณาระบุชื่อกระบวนการ (ไม่เกิน 120 ตัวอักษร)');
+                    if(!fields.description) fail(`custom-process-description-${phase}`,'รายละเอียดต้องไม่เกิน 500 ตัวอักษร');
+                });
             }
             if (draft.step === 1) draft.config.metrics.filter(m=>m.active && m.source==='manual').forEach(m=>{
                 const value=draft.values[m.id];
                 if (!['known','unknown','na'].includes(value.status) && m.required) fail(`status-${m.id}`,'กรุณาเลือกสถานะข้อมูล');
                 if (value.status==='known') for (const phase of ['before','after']) if (!Q.finite(value[phase]) || (['paper','errors'].includes(m.id) && !Number.isInteger(value[phase]))) fail(`${phase}-${m.id}`,'กรุณาระบุค่าที่ไม่ติดลบ และใช้จำนวนเต็มสำหรับกระดาษ/ข้อผิดพลาด');
+            });
+            if (draft.step === 1) draft.config.metrics.filter(m=>m.id.startsWith('custom-metric-')).forEach(metric=>{
+                const fields=Q.validateCustomMetric(metric);
+                if(!fields.name) fail(`custom-metric-name-${metric.id}`,'กรุณาระบุชื่อตัวชี้วัด (ไม่เกิน 120 ตัวอักษร)');
+                if(!fields.unit) fail(`custom-metric-unit-${metric.id}`,'กรุณาระบุหน่วย (ไม่เกิน 32 ตัวอักษร)');
+                if(!fields.direction) fail(`custom-metric-direction-${metric.id}`,'กรุณาเลือกทิศทาง');
+                if(!fields.description) fail(`custom-metric-description-${metric.id}`,'รายละเอียดต้องไม่เกิน 500 ตัวอักษร');
             });
             if (!valid) {
                 document.getElementById('q-message').textContent = 'กรุณาตรวจสอบช่องที่มีข้อความแจ้งเตือนก่อนดำเนินการต่อ';
@@ -117,7 +144,26 @@
             const language = window.EvaluationLocale?.getLanguage?.() || 'th';
             const options = examples?.processExamples(draft.systemId, language)?.[phase] || [];
             const selected = new Set((draft.config?.[phase] || []).map(item => item.id));
-            return `<fieldset class="q-example-group"><legend>${phase==='before'?'ขั้นตอนก่อนใช้ IT':'ขั้นตอนหลังใช้ IT'}</legend><div class="q-example-chips">${options.map(item=>exampleChip(item,phase,selected.has(item.id))).join('')}</div></fieldset>`;
+            return `<fieldset class="q-example-group"><legend>${phase==='before'?'ขั้นตอนก่อนใช้ IT':'ขั้นตอนหลังใช้ IT'}</legend><div class="q-example-chips">${options.map(item=>exampleChip(item,phase,selected.has(item.id))).join('')}${otherProcessControl(phase)}</div></fieldset>`;
+        }
+        function customInput(id,label,value,maxLength,required=false) {
+            const translated=window.EvaluationLocale?.translate(label)||label;
+            return `<label class="q-custom-label">${esc(translated)}<input class="q-custom-field" id="${esc(id)}" type="text" maxlength="${maxLength}" value="${esc(value)}" ${required?'required':''} aria-describedby="${esc(id)}-error"></label><small class="q-error" id="${esc(id)}-error"></small>`;
+        }
+        function customTextarea(id,label,value,maxLength) {
+            const translated=window.EvaluationLocale?.translate(label)||label;
+            return `<label class="q-custom-label">${esc(translated)}<textarea class="q-custom-field" id="${esc(id)}" maxlength="${maxLength}" aria-describedby="${esc(id)}-error">${esc(value)}</textarea></label><small class="q-error" id="${esc(id)}-error"></small>`;
+        }
+        function otherProcessControl(phase) {
+            const id=`custom-process-${phase}`, process=draft.config?.[phase]?.find(item=>item.id===id), selected=!!process;
+            return `<span class="q-example-option"><button type="button" class="q-example-chip" id="chip-other-${phase}" data-example-choice="other-process-${phase}" aria-pressed="${selected}">${window.EvaluationLocale?.translate('อื่น ๆ (ระบุเอง)')||'อื่น ๆ (ระบุเอง)'}</button></span>${selected?`<div class="q-custom-fields">${customInput(`custom-process-name-${phase}`,'ชื่อกระบวนการ',process.name,120,true)}${customTextarea(`custom-process-description-${phase}`,'รายละเอียดเพิ่มเติม (ไม่บังคับ)',process.description,500)}</div>`:''}`;
+        }
+        function otherMetricControl() {
+            const metric=draft.config?.metrics?.find(item=>item.id.startsWith('custom-metric-'));
+            if(!metric) return `<span class="q-example-option"><button type="button" class="q-example-chip" id="chip-other-metric" data-example-choice="other-metric" aria-pressed="false">${window.EvaluationLocale?.translate('อื่น ๆ (ระบุเอง)')||'อื่น ๆ (ระบุเอง)'}</button></span>`;
+            const directionLabel=window.EvaluationLocale?.translate('ทิศทาง')||'ทิศทาง';
+            const directionOptions=[['','เลือกทิศทาง'],['decrease','ลดลงยิ่งดี'],['increase','เพิ่มขึ้นยิ่งดี']];
+            return `<span class="q-example-option"><button type="button" class="q-example-chip" id="chip-other-metric" data-example-choice="other-metric" aria-pressed="true">${window.EvaluationLocale?.translate('อื่น ๆ (ระบุเอง)')||'อื่น ๆ (ระบุเอง)'}</button></span><div class="q-custom-fields">${customInput(`custom-metric-name-${metric.id}`,'ชื่อตัวชี้วัด',metric.name,120,true)}${customInput(`custom-metric-unit-${metric.id}`,'หน่วย',metric.unit,32,true)}<label class="q-custom-label">${esc(directionLabel)}<select class="q-custom-field" id="custom-metric-direction-${metric.id}" aria-describedby="custom-metric-direction-${metric.id}-error">${directionOptions.map(([value,label])=>`<option value="${value}" ${metric.direction===value?'selected':''}>${window.EvaluationLocale?.translate(label)||label}</option>`).join('')}</select></label><small class="q-error" id="custom-metric-direction-${metric.id}-error"></small>${customTextarea(`custom-metric-description-${metric.id}`,'รายละเอียดเพิ่มเติม (ไม่บังคับ)',metric.description,500)}</div>`;
         }
         function metricExampleChoices() {
             const language = window.EvaluationLocale?.getLanguage?.() || 'th';
@@ -125,7 +171,7 @@
             return `<fieldset class="q-example-group"><legend>${language==='en'?'Indicator examples (optional)':'ตัวอย่างตัวชี้วัด (เลือกเพิ่มเติมได้)'}</legend><div class="q-example-chips">${(examples?.metrics || []).map(metric=>{
                 const item=examples.localized(metric,language);
                 return exampleChip({id:metric.id,name:item.name,description:`${language==='en'?'Method':'วิธีคิด'}: ${item.formula} · ${language==='en'?'Source':'ที่มา'}: ${item.sourceText}`},'metric',selected.has(metric.id),true);
-            }).join('')}</div></fieldset>`;
+            }).join('')}${otherMetricControl()}</div></fieldset>`;
         }
         function bindExampleChoices() {
             const setTooltip = (option, open) => {
@@ -147,7 +193,17 @@
             });
             app.querySelectorAll('[data-example-choice]').forEach(button=>button.addEventListener('click',()=>{
                 const {exampleChoice:choice,exampleId:id}=button.dataset;
-                if(choice==='metric') {
+                if(choice?.startsWith('other-process-')) {
+                    const phase=choice.slice('other-process-'.length), customId=`custom-process-${phase}`;
+                    const existing=draft.config[phase].some(item=>item.id===customId);
+                    if(existing) draft.config[phase]=draft.config[phase].filter(item=>item.id!==customId);
+                    else draft.config[phase].push({id:customId,name:'',description:'',active:true,timed:true});
+                } else if(choice==='other-metric') {
+                    const existing=draft.config.metrics.find(item=>item.id.startsWith('custom-metric-'));
+                    if(existing) draft.config.metrics=draft.config.metrics.filter(item=>!item.id.startsWith('custom-metric-'));
+                    // The id prefix marks a custom metric without adding a record_json property.
+                    else draft.config.metrics.push({id:`custom-metric-${uid()}`,name:'',description:'',unit:'',basis:'ต่อคำขอ',direction:'',source:'manual',active:true,required:true});
+                } else if(choice==='metric') {
                     const existing=draft.config.metrics.find(metric=>metric.id===id);
                     if(existing) draft.config.metrics=draft.config.metrics.filter(metric=>metric.id!==id);
                     else {
@@ -166,7 +222,8 @@
                 }
                 render();
                 Q.saveDraft(draft,userId);
-                document.getElementById(`chip-${choice==='metric'?'metric':choice}-${id}`)?.focus();
+                const focusId=choice==='metric'?`chip-metric-${id}`:choice==='other-metric'?'chip-other-metric':choice?.startsWith('other-process-')?`chip-other-${choice.slice('other-process-'.length)}`:`chip-${choice}-${id}`;
+                document.getElementById(focusId)?.focus();
             }));
             app.onkeydown=event=>{
                 if(event.key==='Escape' && event.target.closest('.q-example-option')) setTooltip(event.target.closest('.q-example-option'),false);
@@ -183,7 +240,7 @@
                 body='';
                 if (!draft.config || !['before','after'].every(phase=>draft.config[phase].some(s=>s.active))) body=`<p>${window.EvaluationLocale?.translate('ระบบนี้ยังไม่มีการตั้งค่ากระบวนการ เลือกตัวอย่างกระบวนการด้านล่างได้')}</p><button type="button" id="q-refresh-config">โหลดการตั้งค่าล่าสุด</button>${processExampleChoices('before')}${processExampleChoices('after')}`;
                 else {
-                    for(const phase of ['before','after']) { const list=draft.config[phase].filter(s=>s.active); body+=`<h3>${phase==='before'?'ก่อน':'หลัง'}ใช้ IT</h3>`+list.map((s,i)=>`<section class="q-card"><h4>${i+1}. ${user(s.name)}</h4><p>${user(s.description)}</p>${s.timed?`<label>สถานะข้อมูลเวลา<select id="duration-status-${phase}-${s.id}">${[['known','มีข้อมูล'],['unknown','ไม่ทราบข้อมูล'],['na','ไม่เกี่ยวข้อง']].map(([v,l])=>`<option value="${v}" ${(draft.durationStatuses[phase][s.id]||'known')===v?'selected':''}>${l}</option>`).join('')}</select></label>`+field(`duration-${phase}-${s.id}`,'เวลาที่ใช้ (นาที)',draft.durations[phase][s.id],'number'):''}</section>`).join(''); }
+                    for(const phase of ['before','after']) { const list=draft.config[phase].filter(s=>s.active); body+=`<h3>${phase==='before'?'ก่อน':'หลัง'}ใช้ IT</h3>`+list.map((s,i)=>`<section class="q-card"><h4>${i+1}. ${user(s.name)}</h4><p>${user(s.description)}</p>${s.timed?`<label>สถานะข้อมูลเวลา<select id="duration-status-${phase}-${s.id}">${[['known','มีข้อมูล'],['unknown','ไม่ทราบข้อมูล'],['na','ไม่เกี่ยวข้อง']].map(([v,l])=>`<option value="${v}" ${(draft.durationStatuses[phase][s.id]||'known')===v?'selected':''}>${l}</option>`).join('')}</select></label>`+field(`duration-${phase}-${s.id}`,'เวลาที่ใช้ (นาที)',draft.durations[phase][s.id],'number'):''}</section>`).join('')+`<div class="q-example-chips">${otherProcessControl(phase)}</div>`; }
                     body+='<p id="duration-total">เวลารวมก่อนและหลังจะคำนวณจากเวลาขั้นตอน</p><h3>ตัวชี้วัด</h3>'+draft.config.metrics.filter(m=>m.active).map(m=>{
                 const v=draft.values[m.id] || {};
                 if(m.source!=='manual') return `<section class="q-card"><h3>${user(m.name)}</h3><p>คำนวณจากกระบวนการ · ${user(m.basis)} · ก่อน ${fmt(v.before)} / หลัง ${fmt(v.after)} ${user(m.unit)}</p></section>`;
@@ -226,6 +283,7 @@
             };
             if(step===1 && draft.config) {
                 app.querySelectorAll('input[type=number]').forEach(input=>input.addEventListener('input',capture));
+                app.querySelectorAll('.q-custom-field').forEach(input=>input.addEventListener(input.tagName==='SELECT'?'change':'input',capture));
                 for(const phase of ['before','after']) draft.config[phase].filter(s=>s.active&&s.timed).forEach(s=>{const select=document.getElementById(`duration-status-${phase}-${s.id}`),input=document.getElementById(`duration-${phase}-${s.id}`);if(!select||!input)return;select.onchange=()=>{input.disabled=select.value!=='known';capture();};input.disabled=select.value!=='known';});
                 draft.config.metrics.filter(m=>m.active&&m.source==='manual').forEach(m=>{const select=document.getElementById(`status-${m.id}`);if(!select)return;select.onchange=()=>{for(const phase of ['before','after'])document.getElementById(`${phase}-${m.id}`).disabled=select.value!=='known';};select.onchange();});
             }

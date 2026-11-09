@@ -27,6 +27,12 @@
 .q-example-chip:focus-visible,.q-example-info:focus-visible { outline:3px solid var(--primary); outline-offset:2px; }
 .q-example-tooltip { position:absolute; z-index:5; inset-inline-start:0; bottom:calc(100% + 8px); width:min(320px,calc(100vw - 48px)); padding:12px; border:1px solid var(--border); border-radius:var(--radius-md,12px); background:var(--bg-surface); color:var(--text-primary); box-shadow:var(--shadow-md,0 6px 20px rgb(0 0 0 / 16%)); line-height:1.55; }
 .q-example-tooltip strong { color:var(--primary); }
+.q-custom-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; width:100%; margin:12px 0; }
+.q-custom-label { display:grid; gap:5px; min-width:0; color:var(--text-primary); }
+.q-custom-field { width:100%; min-width:0; padding:10px; border:1px solid var(--border); border-radius:var(--radius-sm,8px); background:var(--bg-surface); color:var(--text-primary); font:inherit; }
+.q-custom-field:focus-visible { outline:3px solid var(--primary); outline-offset:2px; }
+.q-custom-fields .q-error { grid-column:1 / -1; }
+@media(max-width:640px) { .q-custom-fields { grid-template-columns:minmax(0,1fr); } }
 [aria-invalid=true] { border-color:var(--danger) !important; }
 .q-table-wrap { overflow-x:auto; }
 .quant-main table { width:100%; border-collapse:collapse; margin:16px 0; }

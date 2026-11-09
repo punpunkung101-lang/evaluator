@@ -15,6 +15,18 @@
         { id: 'errors', name: 'จำนวนข้อผิดพลาด', unit: 'ครั้ง', basis: 'ต่อคำขอ', direction: 'decrease', source: 'manual', active: true, required: false }
     ] });
     const finite = v => typeof v === 'number' && Number.isFinite(v) && v >= 0;
+    const boundedText = (value, max) => typeof value === 'string' && value.trim().length > 0 && value.trim().length <= max;
+    function validateCustomProcess(value) {
+        return { name: boundedText(value?.name,120), description: typeof (value?.description || '') === 'string' && (value?.description || '').length <= 500 };
+    }
+    function validateCustomMetric(value) {
+        return {
+            name: boundedText(value?.name,120),
+            unit: boundedText(value?.unit,32),
+            direction: ['decrease','increase'].includes(value?.direction),
+            description: typeof (value?.description || '') === 'string' && (value?.description || '').length <= 500
+        };
+    }
     function migrateDraft(value) {
         if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
         const draft = clone(value);
@@ -39,7 +51,7 @@
         return { available: true, delta, percent, outcome: improvement > 0 ? 'ดีขึ้น' : improvement < 0 ? 'แย่ลง' : 'คงเดิม', targetMet: metric.direction === 'target' ? input.after === metric.target : null };
     }
     const api = {
-        keys, clone, defaults, calculate, finite, migrateDraft,
+        keys, clone, defaults, calculate, finite, migrateDraft, validateCustomProcess, validateCustomMetric,
         demoConfig() {
             const config = defaults();
             config.version = 'demo-1';
