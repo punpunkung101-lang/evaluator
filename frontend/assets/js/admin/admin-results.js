@@ -128,7 +128,13 @@
             }
             return `<details><summary>เวอร์ชัน ${esc(config.version)} · ${esc(record.submittedAt)}</summary>
                 ${['before','after'].map(phase => `<h4>${phase === 'before' ? 'ก่อนใช้ IT' : 'หลังใช้ IT'}</h4>
-                <ol>${config[phase].filter(step => step.active).map(step => `<li>${esc(step.name)}${finite(record.durations?.[phase]?.[step.id]) ? ` · ${fmt(record.durations[phase][step.id])} นาที` : ''}</li>`).join('')}</ol>`).join('')}</details>`;
+                <ol>${config[phase].filter(step => step.active).map(step => `<li>${esc(step.name)}${finite(record.durations?.[phase]?.[step.id]) ? ` · ${fmt(record.durations[phase][step.id])} นาที` : ''}</li>`).join('')}</ol>`).join('')}
+                <h4>ตัวชี้วัด</h4><ul>${(config.metrics || []).filter(metric => metric.active).map(metric => {
+                    const value = record.values?.[metric.id] || {};
+                    const custom = metric.id.startsWith('custom-metric-') ? ' <strong>ตัวชี้วัดที่ระบุเอง</strong>' : '';
+                    const values = value.status === 'known' ? ` · ก่อน ${esc(value.before)} / หลัง ${esc(value.after)} ${esc(metric.unit)}` : ` · ${esc(value.status || 'ไม่มีข้อมูล')}`;
+                    return `<li>${esc(metric.name)}${custom}${values}</li>`;
+                }).join('')}</ul></details>`;
         }).join('');
         el('qd-details').showModal();
     }

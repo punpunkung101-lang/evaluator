@@ -46,7 +46,7 @@
             draft.systemId = requested;
             draft.config = Q.config(requested);
         }
-        let sending = false, submitted = false;
+        let sending = false, submitted = false, systemChangeCancelled = false;
         if (!draft.profile.name) {
             try { const profile = JSON.parse(sessionStorage.getItem('evaluatorProfile') || 'null'); if (profile) draft.profile = { id:profile.id || '', name:profile.name || profile.evaluatorName || '', role:profile.role || profile.userRole || '', department:'' }; } catch (_) { /* Optional session profile. */ }
         }
@@ -69,17 +69,29 @@
             }
         }
         function capture() {
+            systemChangeCancelled = false;
             if (draft.step === 1) captureCustomFields();
             if (draft.step === 0) {
                 const profile = window.EvaluatorAuth?.current() || {};
                 draft.profile = { id:profile.id || '', name:profile.name || '', role:profile.role || '', department:'' };
                 const id = document.getElementById('q-system').value;
-                if (id !== draft.systemId) { draft.systemId=id; draft.config=id ? Q.config(id) : null; draft.durations={before:{},after:{}}; draft.durationStatuses={before:{},after:{}}; draft.values={}; }
+                if (id !== draft.systemId) {
+                    const hasSelections=!!draft.systemId && !!draft.config && (['before','after'].some(phase=>draft.config[phase].some(item=>item.active)) || Object.values(draft.values||{}).some(value=>value&&value.status));
+                    if (hasSelections && !window.confirm(window.EvaluationLocale?.translate('การเปลี่ยนระบบจะล้างค่าที่เลือกไว้ ต้องการดำเนินการต่อหรือไม่?') || 'การเปลี่ยนระบบจะล้างค่าที่เลือกไว้ ต้องการดำเนินการต่อหรือไม่?')) {
+                        systemChangeCancelled=true;
+                        document.getElementById('q-system').value=draft.systemId;
+                        document.getElementById('q-message').textContent=window.EvaluationLocale?.translate('ยกเลิกการเปลี่ยนระบบ ระบบและค่าที่เลือกเดิมยังอยู่ครบ') || 'ยกเลิกการเปลี่ยนระบบ ระบบและค่าที่เลือกเดิมยังอยู่ครบ';
+                        return;
+                    }
+                    draft.systemId=id; draft.config=id ? Q.config(id) : null; draft.durations={before:{},after:{}}; draft.durationStatuses={before:{},after:{}}; draft.values={};
+                }
             } else if (draft.step === 1 && draft.config) {
                 for (const phase of ['before','after']) draft.config[phase].filter(s => s.active && s.timed).forEach(s => { const input=document.getElementById(`duration-${phase}-${s.id}`); const status=document.getElementById(`duration-status-${phase}-${s.id}`); if(!input||!status)return; draft.durationStatuses[phase][s.id]=status.value; draft.durations[phase][s.id]=status.value==='known'?num(input.value):null; });
                 draft.config.metrics.filter(m => m.active && m.source === 'manual').forEach(m => {
-                    const status=document.getElementById(`status-${m.id}`).value;
-                    draft.values[m.id] = { status, before:status === 'known' ? num(document.getElementById(`before-${m.id}`).value) : null, after:status === 'known' ? num(document.getElementById(`after-${m.id}`).value) : null };
+                    const statusField=document.getElementById(`status-${m.id}`);
+                    if(!statusField) return;
+                    const status=statusField.value, beforeField=document.getElementById(`before-${m.id}`), afterField=document.getElementById(`after-${m.id}`);
+                    draft.values[m.id] = { status, before:status === 'known' && beforeField ? num(beforeField.value) : null, after:status === 'known' && afterField ? num(afterField.value) : null };
                 });
             }
             derived();
@@ -99,6 +111,7 @@
             }
         }
         function validate() {
+            if (systemChangeCancelled) return false;
             app.querySelectorAll('[aria-invalid=true]').forEach(el => el.setAttribute('aria-invalid', 'false'));
             app.querySelectorAll('.q-error').forEach(el => { el.textContent = ''; });
             document.getElementById('q-message').textContent = '';
@@ -182,13 +195,15 @@
             };
             app.querySelectorAll('.q-example-option').forEach(option=>{
                 option.addEventListener('pointerenter',()=>setTooltip(option,true));
-                option.addEventListener('pointerleave',()=>{if(!option.contains(document.activeElement))setTooltip(option,false);});
+                option.addEventListener('pointerleave',()=>{if(!option.contains(document.activeElement)&&!option.querySelector('.q-example-info')?.dataset.tooltipPinned)setTooltip(option,false);});
                 option.addEventListener('focusin',()=>setTooltip(option,true));
                 option.addEventListener('focusout',event=>{if(!option.contains(event.relatedTarget))setTooltip(option,false);});
-                option.querySelector('.q-example-info')?.addEventListener('click',event=>{
+                const info=option.querySelector('.q-example-info');
+                info?.addEventListener('click',event=>{
                     event.stopPropagation();
-                    const tooltip=option.querySelector('.q-example-tooltip');
-                    setTooltip(option,tooltip.hidden);
+                    const open=info.dataset.tooltipPinned!=='true';
+                    info.dataset.tooltipPinned=String(open);
+                    setTooltip(option,open);
                 });
             });
             app.querySelectorAll('[data-example-choice]').forEach(button=>button.addEventListener('click',()=>{
@@ -226,7 +241,7 @@
                 document.getElementById(focusId)?.focus();
             }));
             app.onkeydown=event=>{
-                if(event.key==='Escape' && event.target.closest('.q-example-option')) setTooltip(event.target.closest('.q-example-option'),false);
+                if(event.key==='Escape' && event.target.closest('.q-example-option')) { const option=event.target.closest('.q-example-option'); const info=option.querySelector('.q-example-info'); if(info) delete info.dataset.tooltipPinned; setTooltip(option,false); }
             };
         }
         function render() {
@@ -244,7 +259,7 @@
                     body+='<p id="duration-total">เวลารวมก่อนและหลังจะคำนวณจากเวลาขั้นตอน</p><h3>ตัวชี้วัด</h3>'+draft.config.metrics.filter(m=>m.active).map(m=>{
                 const v=draft.values[m.id] || {};
                 if(m.source!=='manual') return `<section class="q-card"><h3>${user(m.name)}</h3><p>คำนวณจากกระบวนการ · ${user(m.basis)} · ก่อน ${fmt(v.before)} / หลัง ${fmt(v.after)} ${user(m.unit)}</p></section>`;
-                return `<section class="q-card"><h3>${user(m.name)} ${m.required?'(จำเป็นต้องระบุสถานะข้อมูล)':''}</h3><p>${user(m.description)} · ${user(m.unit)} / ${user(m.basis)}</p><label for="status-${m.id}">สถานะข้อมูล<select id="status-${m.id}" aria-describedby="status-${m.id}-error">${[['','เลือกสถานะ'],['known','มีข้อมูล'],['unknown','ไม่ทราบข้อมูล'],['na','ไม่เกี่ยวข้อง']].map(([key,label])=>`<option value="${key}" ${v.status===key?'selected':''}>${label}</option>`).join('')}</select></label><small class="q-error" id="status-${m.id}-error"></small><div class="q-grid">${field(`before-${m.id}`,'ก่อนใช้ระบบ',v.before,'number')}${field(`after-${m.id}`,'หลังใช้ระบบ',v.after,'number')}</div></section>`;
+                return `<section class="q-card"><h3>${user(m.name)} ${m.id.startsWith('custom-metric-')?`<span class="q-custom-badge">${window.EvaluationLocale?.translate('ตัวชี้วัดที่ระบุเอง')||'ตัวชี้วัดที่ระบุเอง'}</span>`:''} ${m.required?'(จำเป็นต้องระบุสถานะข้อมูล)':''}</h3><p>${user(m.description)} · ${user(m.unit)} / ${user(m.basis)}</p><label for="status-${m.id}">สถานะข้อมูล<select id="status-${m.id}" aria-describedby="status-${m.id}-error">${[['','เลือกสถานะ'],['known','มีข้อมูล'],['unknown','ไม่ทราบข้อมูล'],['na','ไม่เกี่ยวข้อง']].map(([key,label])=>`<option value="${key}" ${v.status===key?'selected':''}>${label}</option>`).join('')}</select></label><small class="q-error" id="status-${m.id}-error"></small><div class="q-grid">${field(`before-${m.id}`,'ก่อนใช้ระบบ',v.before,'number')}${field(`after-${m.id}`,'หลังใช้ระบบ',v.after,'number')}</div></section>`;
                     }).join('')+metricExampleChoices();
                 }
             }
@@ -288,6 +303,24 @@
                 draft.config.metrics.filter(m=>m.active&&m.source==='manual').forEach(m=>{const select=document.getElementById(`status-${m.id}`);if(!select)return;select.onchange=()=>{for(const phase of ['before','after'])document.getElementById(`${phase}-${m.id}`).disabled=select.value!=='known';};select.onchange();});
             }
         }
+        function localizeSelectedExamples() {
+            if(!examples || !draft.config) return;
+            const language=window.EvaluationLocale?.getLanguage?.()||'th';
+            for(const phase of ['before','after']) {
+                const choices=examples.processExamples(draft.systemId,language)[phase];
+                for(const step of draft.config[phase]) {
+                    const localized=choices.find(item=>item.id===step.id);
+                    if(localized) { step.name=localized.name; step.description=localized.description; }
+                }
+            }
+            for(const metric of draft.config.metrics) {
+                const source=examples.metrics.find(item=>item.id===metric.id);
+                if(!source) continue;
+                const localized=examples.localized(source,language);
+                metric.name=localized.name;metric.unit=localized.unit;metric.description=`${localized.formula} · ${localized.sourceText}`;metric.basis=language==='en'?'per request':'ต่อคำขอ';
+            }
+        }
+        document.addEventListener?.('evaluation-locale-change',()=>{capture();localizeSelectedExamples();render();});
         render();
     }
     function admin() {

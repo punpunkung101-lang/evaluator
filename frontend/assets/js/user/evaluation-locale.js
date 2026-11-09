@@ -24,7 +24,9 @@
         'เวลาที่ใช้ (นาที)':'Duration (minutes)','ฐานการวัดเวลา:':'Time measurement basis:','ใช้ฐานเดียวกันก่อนและหลัง':'Use the same basis before and after',
         'แสดงรายละเอียดตัวอย่าง':'Show example details','ระบบนี้ยังไม่มีการตั้งค่ากระบวนการ เลือกตัวอย่างกระบวนการด้านล่างได้':'No processes are configured for this system. Choose process examples below.',
         'ขั้นตอนก่อนใช้ IT':'Process examples before IT','ขั้นตอนหลังใช้ IT':'Process examples after IT','ตัวอย่างตัวชี้วัด (เลือกเพิ่มเติมได้)':'Indicator examples (optional)',
-        'อื่น ๆ (ระบุเอง)':'Other (specify)','ชื่อกระบวนการ':'Process name','รายละเอียดเพิ่มเติม (ไม่บังคับ)':'Additional details (optional)','ชื่อตัวชี้วัด':'Indicator name','หน่วย':'Unit',
+        'อื่น ๆ (ระบุเอง)':'Other (specify)','ตัวชี้วัดที่ระบุเอง':'Custom indicator','ชื่อกระบวนการ':'Process name','รายละเอียดเพิ่มเติม (ไม่บังคับ)':'Additional details (optional)','ชื่อตัวชี้วัด':'Indicator name','หน่วย':'Unit',
+        'การเปลี่ยนระบบจะล้างค่าที่เลือกไว้ ต้องการดำเนินการต่อหรือไม่?':'Changing systems will clear the current selections. Continue?',
+        'ยกเลิกการเปลี่ยนระบบ ระบบและค่าที่เลือกเดิมยังอยู่ครบ':'System change cancelled. The previous system and selections are unchanged.',
         'กรุณาระบุชื่อกระบวนการ (ไม่เกิน 120 ตัวอักษร)':'Enter a process name (up to 120 characters)','รายละเอียดต้องไม่เกิน 500 ตัวอักษร':'Details must be 500 characters or fewer',
         'กรุณาระบุชื่อตัวชี้วัด (ไม่เกิน 120 ตัวอักษร)':'Enter an indicator name (up to 120 characters)','กรุณาระบุหน่วย (ไม่เกิน 32 ตัวอักษร)':'Enter a unit (up to 32 characters)','กรุณาเลือกทิศทาง':'Select a direction',
         'ขั้นตอนนี้ไม่เก็บเวลา':'This step does not collect duration','ระบบนี้ยังไม่ได้กำหนดกระบวนการ':'Processes have not been configured for this system',
@@ -152,23 +154,18 @@
         if(admin){
             const languageButton=document.getElementById('q-admin-language');
             const nextLabel=language==='th'?'EN':'ไทย';
-            if(languageButton.textContent!==nextLabel)languageButton.textContent=nextLabel;
-            languageButton.setAttribute('aria-label',language==='th'?'ภาษาอังกฤษ':'Switch to Thai');
+            if(languageButton){if(languageButton.textContent!==nextLabel)languageButton.textContent=nextLabel;languageButton.setAttribute('aria-label',language==='th'?'ภาษาอังกฤษ':'Switch to Thai');}
         }
         const toggle=document.getElementById('ev-theme');
         if(toggle){toggle.setAttribute('aria-pressed',String(theme==='dark'));toggle.setAttribute('aria-label',translate(theme==='dark'?'ธีมสว่าง':'ธีมมืด',language));if(admin){
-            toggle.querySelector('[data-admin-moon]').toggleAttribute('hidden',theme==='dark');
-            toggle.querySelector('[data-admin-sun]').toggleAttribute('hidden',theme!=='dark');
-        }else toggle.querySelector('[data-theme-icon]').textContent=theme==='dark'?'☀':'☾';}
+            toggle.querySelector('[data-admin-moon]')?.toggleAttribute('hidden',theme==='dark');
+            toggle.querySelector('[data-admin-sun]')?.toggleAttribute('hidden',theme!=='dark');
+        }else {const icon=toggle.querySelector('[data-theme-icon]');if(icon)icon.textContent=theme==='dark'?'☀':'☾';}}
     }
     let scheduled=false;
     const observer=new MutationObserver(()=>{if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;observer.disconnect();apply();observe();});});
     function observe(){observer.observe(document.body,{childList:true,characterData:true,subtree:true});}
-    root.EvaluationLocale={apply,translate:text=>translate(text,language),getLanguage:()=>language,setLanguage(value){language=value==='en'?'en':'th';write(LANG,language);apply();},setTheme(value){theme=value==='dark'?'dark':'light';write(THEME,theme);apply();}};
-    if(admin){
-        document.getElementById('ev-theme').addEventListener('click',()=>root.EvaluationLocale.setTheme(theme==='dark'?'light':'dark'));
-        document.getElementById('q-admin-language').addEventListener('click',()=>root.EvaluationLocale.setLanguage(language==='th'?'en':'th'));
-    }
+    root.EvaluationLocale={apply,translate:text=>translate(text,language),getLanguage:()=>language,setLanguage(value){language=value==='en'?'en':'th';write(LANG,language);apply();document.dispatchEvent(new CustomEvent('evaluation-locale-change',{detail:{language}}));},setTheme(value){theme=value==='dark'?'dark':'light';write(THEME,theme);apply();}};
     apply();observe();
     root.addEventListener('storage',event=>{if(event.key===LANG){language=read(LANG,'th')==='en'?'en':'th';apply();}if(event.key===THEME){theme=read(THEME,'light')==='dark'?'dark':'light';apply();}});
 })(typeof window!=='undefined'?window:globalThis);
