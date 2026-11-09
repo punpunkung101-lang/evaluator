@@ -88,7 +88,7 @@ Requirements:
 - Each question offers selectable examples; hovering an option shows a tooltip with the example. Must also work with keyboard focus and touch/tap, not hover only.
 - Every question has "อื่น ๆ (ระบุเอง)" which reveals a required free-text field.
 - Examples adapt to the selected system, using wording appropriate to that system (not "repair request" wording for every system). Examples are stored as data, not hardcoded in logic.
-- Old drafts (steps 0–4) must still load. Map: 0→1, 1–3→2, 4→3. No data loss.
+- Old drafts must still load. `draft.step` is stored zero-based. Map old → new: 0→0, 1/2/3→1, 4→2. No data loss.
 - Payload sent to the backend keeps its current shape.
 
 ## 6. Shared Authentication
@@ -144,7 +144,13 @@ For every task:
 2. State the plan briefly (for deletions/moves, list them first).
 3. Make the smallest suitable change.
 4. Run tests; never claim a test passed unless it actually ran and passed.
-5. **Do NOT run `git commit`, `git push`, `git reset`, `git checkout --`, `git stash`, `git clean`, or any other history-changing or work-discarding command unless the user explicitly asks.** At the end of a phase: show `git status` and `git diff --stat`, propose a commit message, and wait for approval. Never `git add` unrelated files (`.gitignore` edits, legacy folders, binaries) on your own.
+5. **Git policy (agent may commit on its own; no approval needed):**
+   - Work only on a feature branch (e.g. `Dev`, `phase-N-*`). Run `git branch --show-current` first; if it is `main` or `master`, stop and ask.
+   - Commit after each finished sub-task, only when `node --test "frontend/assets/js/**/*.test.cjs"` is fully green (0 fail, 0 skip). Message format: `feat|fix|refactor|docs(scope): summary`.
+   - To protect work before a risky change you may commit a red state with the prefix `wip-red:`.
+   - Stage only explicit paths (`git add <paths>`). Never `git add -A` or `git add .`. Check `git diff --cached --stat` before committing: no unrelated files (`.gitignore` edits, legacy folders, binaries, `.db`, `.exe`, `.bak`, `node_modules`) and no line-ending-only changes.
+   - **Never run:** `git push`, `git reset`, `git rebase`, `git checkout -- <file>`, `git restore`, `git stash`, `git clean`, `git branch -D`, any `--force` or `--no-verify` option, or any other command that discards work or rewrites history. Do not use a discard/undo action to "clean up" the working tree.
+   - Do not amend or squash commits. The user squashes later if wanted.
 6. Report: files changed, behavior changed, tests run + results, remaining issues.
 
 Do not add dependencies, features or refactors outside the current phase.
@@ -159,7 +165,7 @@ Do not add dependencies, features or refactors outside the current phase.
 6. **Duplicating header/sidebar markup** or CSS per page instead of using the shared implementation.
 7. **Deleting files without proof.** Grep for references before every deletion and list them for approval.
 8. **Touching backend/database without being asked**, or overwriting `evaluator.db`.
-9. **Committing or discarding work without approval**, or starting a new phase while the previous phase's changes are still unreviewed and uncommitted.
+9. **Discarding or rewriting work** (`reset`, `stash`, `clean`, `restore`, force operations, undo buttons), or leaving finished work uncommitted. Uncommitted work is the easiest to lose: commit after every green sub-task.
 10. **Committing binaries**: `.exe`, `*.bak`, and `.db` files belong in `.gitignore`.
 11. **Relying on per-machine editor settings** (e.g. `.vscode/settings.json`) to make the site open. The documented URL in `README.md` must work for anyone who clones the repo.
 
@@ -179,6 +185,7 @@ Do not add dependencies, features or refactors outside the current phase.
 ## 12. Definition of Done (per phase)
 
 - Scope limited to the phase.
-- Tests pass (reported honestly), no broken links or 404s.
+- Tests pass (reported honestly, 0 skipped), no broken links or 404s.
+- Work is committed per §9 rule 5; `git status` shows only the known untracked files.
 - No leftover references to removed paths (`grep` clean).
 - Report delivered in the format from §9.
