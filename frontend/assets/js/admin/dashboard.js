@@ -518,7 +518,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <td style="text-align: center;">${uniqueSysUsers} คน (${sysRecords.length} ชุด)</td>
                 <td>${statusBadge}</td>
                 <td style="text-align: center;">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="location.href='${window.EvaluatorRuntimeUrl.fromScript(`../../../admin/evaluation-detail.html?system=${encodeURIComponent(system.id)}`, dashboardScriptUrl)}'">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="location.href='${window.EvaluatorRuntimeUrl.fromScript(`../../../admin/results.html?system=${encodeURIComponent(system.id)}`, dashboardScriptUrl)}'">
                         ดูรายละเอียด →
                     </button>
                 </td>

@@ -4,14 +4,14 @@
     background: linear-gradient(160deg, var(--ev-navy), var(--ev-royal));
     overflow-y: auto;
 }
-.ev-admin-layout .sidebar-brand { border-color: rgb(255 255 255 / 20%); }
+.ev-admin-layout .sidebar-brand { border-color: color-mix(in srgb, var(--text-on-brand) 20%, transparent); }
 .ev-admin-layout .sidebar .brand-info h2,
 .ev-admin-layout .sidebar .nav-link { color: white; }
-.ev-admin-layout .sidebar .brand-info p { color: #c7d8ee; }
-.ev-admin-layout .sidebar .nav-link:hover { background: rgb(255 255 255 / 10%); }
+.ev-admin-layout .sidebar .brand-info p { color: var(--text-secondary); }
+.ev-admin-layout .sidebar .nav-link:hover { background: color-mix(in srgb, var(--text-on-brand) 10%, transparent); }
 .ev-admin-layout .sidebar .nav-link.active {
-    background: #eaf2ff;
-    color: #102d55;
+    background: var(--primary-light);
+    color: var(--navy);
     border-inline-start: 3px solid var(--ev-gold);
 }
 .ev-admin-layout .sidebar-footer .nav-link span { color: white; }

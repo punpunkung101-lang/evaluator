@@ -56,6 +56,9 @@
             element.href = resolveFrontendPath(item.href);
         }
         element.dataset.navId = item.id;
+        if (navConfig.isProcessManagementPage(location.pathname) && element.tagName === "A") {
+            element.id = "q-admin-dashboard-back";
+        }
         element.dataset.i18n = item.labelKey;
         element.textContent = translatedText(item.labelKey);
         return element;

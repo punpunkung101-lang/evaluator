@@ -490,7 +490,7 @@
 .progress-track {
     width: 100%;
     height: 14px;
-    background: var(--bg-subtle, #f1f5f9);
+    background: var(--bg-subtle, var(--bg-subtle));
     border: 1px solid var(--border);
     border-radius: 999px;
     overflow: hidden;
@@ -554,8 +554,8 @@
 }
 
 .systems-table thead th {
-    background: var(--bg-subtle, #f8fafc);
-    color: var(--text-secondary, #475569);
+    background: var(--bg-subtle, var(--bg-page));
+    color: var(--text-secondary, var(--text-secondary));
     font-size: 14px;
     font-weight: 600;
     padding: 14px 16px;
@@ -568,7 +568,7 @@
 }
 
 .systems-table tbody tr:nth-child(even) {
-    background: var(--bg-page, #f8fafc);
+    background: var(--bg-page, var(--bg-page));
 }
 
 .status-badge {
@@ -607,16 +607,16 @@
 
 /* Dark mode adjustments */
 [data-theme="dark"] .systems-table thead th {
-    background: var(--bg-surface, #1e293b);
-    color: var(--text-primary, #f1f5f9);
+    background: var(--bg-surface, var(--bg-surface));
+    color: var(--text-primary, var(--bg-subtle));
 }
 
 [data-theme="dark"] .systems-table tbody tr:nth-child(even) {
-    background: var(--bg-page, #0f172a);
+    background: var(--bg-page, var(--bg-page));
 }
 
 [data-theme="dark"] .progress-track {
-    background: var(--bg-subtle, #1e293b);
+    background: var(--bg-subtle, var(--bg-surface));
 }
 
 /* Responsive <= 760px */

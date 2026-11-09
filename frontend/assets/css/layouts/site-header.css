@@ -6,10 +6,10 @@
 .site-shared-masthead {
     display: flex;
     align-items: center;
-    background: var(--bg-surface, #ffffff);
-    color: var(--text-primary, #17365d);
+    background: var(--bg-surface, var(--text-on-brand));
+    color: var(--text-primary, var(--navy));
     font-family: var(--font-sans, "Kanit", sans-serif);
-    border-bottom: 1px solid var(--border, #e2e8f0);
+    border-bottom: 1px solid var(--border, var(--border));
     box-sizing: border-box;
     width: 100%;
 }
@@ -46,12 +46,12 @@
     font-size: 1.05rem;
     font-weight: 600;
     line-height: 1.35;
-    color: var(--text-primary, #17365d);
+    color: var(--text-primary, var(--navy));
 }
 
 .site-shared-masthead .site-brand small {
     display: block;
-    color: var(--text-muted, #596b80);
+    color: var(--text-muted, var(--text-muted));
     font-size: 0.78rem;
     line-height: 1.35;
 }
@@ -69,10 +69,10 @@
     justify-content: center;
     min-height: 38px;
     padding: 6px 14px;
-    border: 1px solid var(--border, #cbd5e1);
+    border: 1px solid var(--border, var(--border-strong));
     border-radius: var(--radius-sm, 6px);
-    background: var(--bg-surface, #ffffff);
-    color: var(--text-primary, #0f172a);
+    background: var(--bg-surface, var(--text-on-brand));
+    color: var(--text-primary, var(--bg-page));
     font-family: var(--font-sans, "Kanit", sans-serif);
     font-size: 0.86rem;
     font-weight: 500;
@@ -81,8 +81,8 @@
 }
 
 .site-header-actions .site-btn:hover {
-    background: var(--bg-hover, #f1f5f9);
-    border-color: var(--border-strong, #94a3b8);
+    background: var(--bg-hover, var(--bg-subtle));
+    border-color: var(--border-strong, var(--text-muted));
 }
 
 .site-header-actions .site-btn.site-theme-btn {
@@ -98,10 +98,10 @@
     justify-content: center;
     min-height: 38px;
     padding: 6px 16px;
-    border: 1px solid var(--primary, #1e3a8a);
+    border: 1px solid var(--primary, var(--primary));
     border-radius: var(--radius-sm, 6px);
-    background: var(--primary, #1e3a8a);
-    color: #ffffff;
+    background: var(--primary, var(--primary));
+    color: var(--text-on-brand);
     font-family: var(--font-sans, "Kanit", sans-serif);
     font-size: 0.88rem;
     font-weight: 500;
@@ -112,8 +112,8 @@
 
 .site-header-actions .ev-signin:hover,
 .site-header-actions .login-button:hover {
-    background: var(--primary-hover, #172554);
-    border-color: var(--primary-hover, #172554);
+    background: var(--primary-hover, var(--primary-hover));
+    border-color: var(--primary-hover, var(--primary-hover));
 }
 
 /* ==========================================================================
@@ -127,9 +127,9 @@
     width: 100%;
     box-sizing: border-box;
     min-height: 48px;
-    background: var(--navy, #15365d);
-    color: #ffffff;
-    border-bottom: 3px solid var(--gold, #d6aa50);
+    background: var(--navy, var(--navy));
+    color: var(--text-on-brand);
+    border-bottom: 3px solid var(--gold, var(--gold));
     font-family: var(--font-sans, "Kanit", sans-serif);
     font-size: 14px;
     font-weight: 500;
@@ -155,7 +155,7 @@
 .site-wide-nav a {
     display: inline-block;
     padding: 12px 14px;
-    color: #ffffff;
+    color: var(--text-on-brand);
     text-decoration: none;
     white-space: nowrap;
     transition: background 0.15s ease;
@@ -163,23 +163,23 @@
 
 .site-wide-nav a:hover,
 .site-wide-nav a:focus-visible {
-    background: rgba(255, 255, 255, 0.15);
-    outline: 2px solid var(--gold, #d6aa50);
+    background: color-mix(in srgb, var(--text-on-brand) 15%, transparent);
+    outline: 2px solid var(--gold, var(--gold));
     outline-offset: -2px;
 }
 
 .site-wide-nav a.active,
 .site-wide-nav a[aria-current="page"] {
-    background: rgba(255, 255, 255, 0.2);
+    background: color-mix(in srgb, var(--text-on-brand) 20%, transparent);
     font-weight: 600;
-    border-bottom: 3px solid var(--gold, #d6aa50);
+    border-bottom: 3px solid var(--gold, var(--gold));
     margin-bottom: -3px;
 }
 
 .site-nav-dialog-btn {
     background: transparent;
     border: 0;
-    color: #ccd9ea;
+    color: var(--text-on-brand);
     font-family: inherit;
     font-size: 13px;
     padding: 6px 10px;
@@ -189,8 +189,8 @@
 }
 
 .site-nav-dialog-btn:hover {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-on-brand);
+    background: color-mix(in srgb, var(--text-on-brand) 10%, transparent);
 }
 
 .site-wide-nav-admin {
@@ -212,19 +212,19 @@
     border-radius: var(--radius-md, 10px);
     padding: 0;
     background: transparent;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 20px 40px var(--shadow-lg);
     max-width: 480px;
     width: calc(100% - 32px);
 }
 
 .site-dialog::backdrop {
-    background: rgba(15, 23, 42, 0.65);
+    background: var(--dialog-backdrop);
     backdrop-filter: blur(2px);
 }
 
 .site-dialog-card {
-    background: var(--bg-surface, #ffffff);
-    color: var(--text-primary, #0f172a);
+    background: var(--bg-surface, var(--text-on-brand));
+    color: var(--text-primary, var(--bg-page));
     padding: 24px;
     border-radius: var(--radius-md, 10px);
     font-family: var(--font-sans, "Kanit", sans-serif);
@@ -233,13 +233,13 @@
 .site-dialog-card h2 {
     margin: 0 0 12px;
     font-size: 1.3rem;
-    color: var(--primary, #1e3a8a);
+    color: var(--primary, var(--primary));
 }
 
 .site-dialog-card p,
 .site-dialog-card ol {
     margin: 0 0 16px;
-    color: var(--text-secondary, #475569);
+    color: var(--text-secondary, var(--text-secondary));
     font-size: 0.92rem;
     line-height: 1.6;
 }
@@ -258,31 +258,31 @@
 
 [data-theme="dark"] .site-shared-masthead,
 body.dark .site-shared-masthead {
-    background: var(--bg-surface, #1e293b);
-    color: var(--text-primary, #f1f5f9);
-    border-bottom-color: var(--border, #334155);
+    background: var(--bg-surface, var(--bg-surface));
+    color: var(--text-primary, var(--bg-subtle));
+    border-bottom-color: var(--border, var(--text-primary));
 }
 
 [data-theme="dark"] .site-shared-masthead .site-brand strong,
 body.dark .site-shared-masthead .site-brand strong {
-    color: var(--heading, #a9ceff);
+    color: var(--heading, var(--text-primary));
 }
 
 [data-theme="dark"] .site-shared-masthead .site-brand small,
 body.dark .site-shared-masthead .site-brand small {
-    color: var(--text-muted, #94a3b8);
+    color: var(--text-muted, var(--text-muted));
 }
 
 [data-theme="dark"] .site-header-actions .site-btn,
 body.dark .site-header-actions .site-btn {
-    background: var(--bg-surface, #1e293b);
-    color: var(--text-primary, #f1f5f9);
-    border-color: var(--border, #334155);
+    background: var(--bg-surface, var(--bg-surface));
+    color: var(--text-primary, var(--bg-subtle));
+    border-color: var(--border, var(--text-primary));
 }
 
 [data-theme="dark"] .site-header-actions .site-btn:hover,
 body.dark .site-header-actions .site-btn:hover {
-    background: var(--bg-hover, #334155);
+    background: var(--bg-hover, var(--text-primary));
 }
 
 /* ==========================================================================

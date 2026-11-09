@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="../../assets/css/layouts/admin-layout.css">
     <link rel="stylesheet" href="../../assets/css/pages/dashboard.css">
     <link rel="stylesheet" href="../../assets/css/pages/assessment-management.css">
+    <link rel="stylesheet" href="../../assets/css/pages/admin-pages.css">
 
 <link rel="stylesheet" href="../../assets/css/pages/effectiveness/evaluation-shell.css">
 <link rel="stylesheet" href="../../assets/css/pages/effectiveness/admin-shell.css">
@@ -27,6 +28,7 @@
     <div class="admin-layout ev-admin-layout">
         <div id="app-sidebar"></div>
         <main class="main-content">
+            <div id="admin-tabs"></div>
             <!-- ========== ASSESSMENT MANAGEMENT SECTION (Near Overview) ========== -->
             <section class="dashboard-card assessment-mgmt-section" id="assessment-management">
                 <div class="mgmt-header">
@@ -231,6 +233,8 @@
     <script src="../../assets/js/core/theme-lang.js?v=20261103-assessment"></script>
     <script src="../../assets/js/layout/nav-config.js"></script>
     <script src="../../assets/js/layout/site-header.js"></script>
+    <script src="../../assets/js/layout/admin-tabs.js"></script>
+    <script>AdminTabs.mount({ activeTab: "settings" });</script>
     <script src="../../assets/js/admin/assessment-management.js"></script>
 
 </body>

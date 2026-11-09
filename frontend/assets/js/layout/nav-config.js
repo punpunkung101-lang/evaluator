@@ -43,18 +43,19 @@
         href: "admin/dashboard.html#overview",
         icon: "overview",
         activeMatcher: ({ pathname, hash }) =>
-            (dashboardPath(pathname) && (!hash || hash === "#overview")) ||
-            matchesPage(pathname, "admin/manage/assessment-management.html") ||
-            matchesPage(pathname, "admin/manage/processes.html")
+            dashboardPath(pathname) && (!hash || hash === "#overview")
     });
     const results = Object.freeze({
         id: "results",
         labelKey: "nav_systems",
-        href: "admin/dashboard.html#systems",
+        href: "admin/results.html",
         icon: "results",
         activeMatcher: ({ pathname, hash }) =>
             (dashboardPath(pathname) && ["#systems", "#quantitative-results", "#satisfaction"].includes(hash)) ||
-            matchesPage(pathname, "admin/evaluation-detail.html")
+            matchesPage(pathname, "admin/results.html") ||
+            matchesPage(pathname, "admin/evaluation-detail.html") ||
+            matchesPage(pathname, "admin/manage/assessment-management.html") ||
+            matchesPage(pathname, "admin/manage/processes.html")
     });
 
     const publicHeader = Object.freeze([home, effectiveness, satisfaction, guide, contact]);
@@ -84,7 +85,7 @@
 
     function showsSidebarFooter(pathname) {
         return matchesPage(pathname, "admin/dashboard.html") ||
-            matchesPage(pathname, "admin/evaluation-detail.html");
+            matchesPage(pathname, "admin/evaluation-detail.html") || matchesPage(pathname, "admin/results.html");
     }
 
     function isProcessManagementPage(pathname) {

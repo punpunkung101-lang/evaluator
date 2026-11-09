@@ -84,7 +84,7 @@
 
 .hierarchy-step.active .step-num {
     background: var(--primary);
-    color: #ffffff;
+    color: var(--text-on-brand);
 }
 
 .hierarchy-separator {
@@ -240,10 +240,10 @@
 
 .btn-icon-text.primary {
     background: var(--primary);
-    color: #ffffff;
+    color: var(--text-on-brand);
 }
 .btn-icon-text.primary:hover {
-    background: var(--primary-dark, #172554);
+    background: var(--primary-dark, var(--primary-hover));
 }
 
 .btn-icon-text.secondary {
@@ -403,11 +403,11 @@ textarea.mgmt-form-control {
 
 /* Dark Theme Adjustments */
 [data-theme="dark"] .category-pill.active {
-    background: rgba(30, 58, 138, 0.35);
+    background: var(--primary-focus);
 }
 
 [data-theme="dark"] .mgmt-table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.03);
+    background: color-mix(in srgb, var(--text-on-brand) 3%, transparent);
 }
 
 /* Responsive adjustments */

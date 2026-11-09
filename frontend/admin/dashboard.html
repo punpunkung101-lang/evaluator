@@ -17,13 +17,11 @@
     <link rel="stylesheet" href="../assets/css/common.css">
     <link rel="stylesheet" href="../assets/css/layouts/admin-layout.css">
     <link rel="stylesheet" href="../assets/css/pages/dashboard.css">
+    <link rel="stylesheet" href="../assets/css/pages/admin-pages.css">
 
-    <link rel="stylesheet" href="../assets/css/pages/effectiveness/admin-results.css">
 
     <!-- Chart.js สำหรับแสดงกราฟ -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="../assets/css/pages/effectiveness/evaluation-shell.css">
-<link rel="stylesheet" href="../assets/css/pages/effectiveness/admin-shell.css">
 </head>
 
 <body>
@@ -39,8 +37,8 @@
                         <!-- HEADER -->
             <header class="dashboard-header">
                 <div>
-                    <h1>Dashboard ความพึงพอใจระบบ IT</h1>
-                    <p>สรุปผลการประเมินความพึงพอใจหลังใช้งานระบบ IT คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</p>
+                    <h1 data-i18n="admin_overview_title">ภาพรวมการประเมินระบบ IT</h1>
+                    <p data-i18n="admin_overview_subtitle">สรุปผลประสิทธิผลและความพึงพอใจจากข้อมูลที่บันทึกจริง</p>
                 </div>
 
                 <div class="header-actions">
@@ -62,15 +60,12 @@
                             ส่งออก PDF
                         </button>
                     </div>
-                    <nav class="header-actions" aria-label="ทางลัดผู้ดูแล">
-                        <a class="btn btn-secondary btn-sm" href="dashboard.html#quantitative-results" data-i18n="nav_temp_effectiveness_results">ผลประเมินประสิทธิผล</a>
-                        <a class="btn btn-secondary btn-sm" href="manage/assessment-management.html" data-i18n="nav_manage_assessments">จัดการแบบประเมิน</a>
-                        <a class="btn btn-secondary btn-sm" href="manage/processes.html" data-i18n="nav_manage_processes">จัดการกระบวนการและตัวชี้วัด</a>
-                    </nav>
                 </div>
             </header>
 
-            <section id="quantitative-results" hidden aria-label="ผลประเมินประสิทธิภาพและประสิทธิผล"></section>
+            <section id="admin-overview" class="admin-overview" aria-live="polite"></section>
+            <div id="legacy-dashboard" hidden>
+            <section id="quantitative-results" hidden aria-label="[^"]*"></section>
 
             <section class="section-overview-lead" aria-label="บทสรุปภาพรวมความพึงพอใจ">
                 <p class="section-summary-line" id="satSummaryLine" aria-live="polite">กำลังรวบรวมข้อมูลสรุปผลการประเมิน...</p>
@@ -319,6 +314,7 @@
                 ระบบประเมินประสิทธิภาพและประสิทธิผลของระบบ IT © 2026 | คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร
             </footer>
 
+            </div>
         </main>
     </div>
 
@@ -357,6 +353,11 @@
     <script src="../assets/js/layout/nav-config.js"></script>
     <script src="../assets/js/layout/site-header.js"></script>
     <script src="../assets/js/user/quantitative-data.js"></script>
+    <script src="../assets/js/user/effectiveness-examples.js"></script>
+    <script src="../assets/js/admin/effectiveness-scoring.js"></script>
+    <script src="../assets/js/admin/admin-data.js"></script>
+    <script src="../assets/js/admin/admin-overview-model.js"></script>
+    <script src="../assets/js/admin/admin-overview.js"></script>
     <script src="../assets/js/admin/admin-results.js"></script>
     <script src="../assets/js/admin/report-builder.js"></script>
     <script src="../assets/js/admin/dashboard.js"></script>
