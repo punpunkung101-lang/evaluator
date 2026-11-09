@@ -181,5 +181,4 @@ Do not add dependencies, features or refactors outside the current phase.
 - Scope limited to the phase.
 - Tests pass (reported honestly), no broken links or 404s.
 - No leftover references to removed paths (`grep` clean).
-- Changes are ready to commit: `git status` and `git diff --stat` shown, commit message proposed, awaiting user approval (not committed by the agent).
 - Report delivered in the format from §9.
