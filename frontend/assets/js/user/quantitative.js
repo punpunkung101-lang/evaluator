@@ -30,7 +30,7 @@
             Q.clearDraft(userId);
             draft = null;
         } else if (!requested && draft) {
-            const stepNumber = Math.min(5, Math.max(1, Number(draft.step || 0) + 1));
+            const stepNumber = Math.min(3, Math.max(1, Number(draft.step || 0) + 1));
             const resume = window.confirm(`มีแบบร่างที่ค้างอยู่ (${draft.systemId || 'ยังไม่เลือกระบบ'}, ขั้นที่ ${stepNumber})\nตกลง: ทำต่อ · ยกเลิก: เริ่มใหม่`);
             if (!resume) {
                 Q.clearDraft(userId);
@@ -45,7 +45,7 @@
             draft.config = Q.config(requested);
         }
         let sending = false, submitted = false;
-        const steps = ['ข้อมูลผู้ประเมิน','กระบวนการก่อนใช้ IT','กระบวนการหลังใช้ IT','ตัวชี้วัด','ตรวจสอบและส่ง'];
+        const steps = ['ข้อมูลผู้ประเมิน','กระบวนการและตัวชี้วัด','ตรวจสอบและส่ง'];
         if (!draft.profile.name) {
             try { const profile = JSON.parse(sessionStorage.getItem('evaluatorProfile') || 'null'); if (profile) draft.profile = { id:profile.id || '', name:profile.name || profile.evaluatorName || '', role:profile.role || profile.userRole || '', department:'' }; } catch (_) { /* Optional session profile. */ }
         }
@@ -73,10 +73,8 @@
                 draft.profile = { id:profile.id || '', name:profile.name || '', role:profile.role || '', department:'' };
                 const id = document.getElementById('q-system').value;
                 if (id !== draft.systemId) { draft.systemId=id; draft.config=id ? Q.config(id) : null; draft.durations={before:{},after:{}}; draft.durationStatuses={before:{},after:{}}; draft.values={}; }
-            } else if (draft.step === 1 || draft.step === 2) {
-                const phase = draft.step === 1 ? 'before' : 'after';
-                draft.config[phase].filter(s => s.active && s.timed).forEach(s => { const input=document.getElementById(`duration-${s.id}`); const status=document.getElementById(`duration-status-${s.id}`).value; draft.durationStatuses[phase][s.id]=status; draft.durations[phase][s.id]=status==='known'?num(input.value):null; });
-            } else if (draft.step === 3) {
+            } else if (draft.step === 1 && draft.config) {
+                for (const phase of ['before','after']) draft.config[phase].filter(s => s.active && s.timed).forEach(s => { const input=document.getElementById(`duration-${phase}-${s.id}`); const status=document.getElementById(`duration-status-${phase}-${s.id}`); if(!input||!status)return; draft.durationStatuses[phase][s.id]=status.value; draft.durations[phase][s.id]=status.value==='known'?num(input.value):null; });
                 draft.config.metrics.filter(m => m.active && m.source === 'manual').forEach(m => {
                     const status=document.getElementById(`status-${m.id}`).value;
                     draft.values[m.id] = { status, before:status === 'known' ? num(document.getElementById(`before-${m.id}`).value) : null, after:status === 'known' ? num(document.getElementById(`after-${m.id}`).value) : null };
@@ -94,12 +92,11 @@
                 if (!draft.profile.id || !draft.profile.name) { document.getElementById('q-message').textContent='ไม่พบข้อมูลบัญชี กรุณาเข้าสู่ระบบใหม่'; return false; }
                 if (!systems.some(s => s.id === draft.systemId)) fail('q-system','กรุณาเลือกระบบ IT');
             }
-            if (draft.step === 1 || draft.step === 2) {
-                const phase=draft.step === 1 ? 'before' : 'after';
-                if (!draft.config[phase].some(s=>s.active)) { document.getElementById('q-message').textContent='ยังไม่กำหนดกระบวนการ กรุณาให้ผู้ดูแลตั้งค่าก่อน'; return false; }
-                draft.config[phase].filter(s=>s.active && s.timed).forEach(s => { if (draft.durationStatuses[phase][s.id]==='known' && !Q.finite(draft.durations[phase][s.id])) fail(`duration-${s.id}`,'กรุณาระบุเวลาตั้งแต่ 0 ขึ้นไป หรือเลือกไม่ทราบข้อมูล'); });
+            if (draft.step === 1) {
+                if (!draft.config || !['before','after'].every(phase=>draft.config[phase].some(s=>s.active))) { document.getElementById('q-message').textContent='ยังไม่กำหนดกระบวนการ กรุณาเลือกตัวอย่างหรือให้ผู้ดูแลตั้งค่าก่อน'; return false; }
+                for (const phase of ['before','after']) draft.config[phase].filter(s=>s.active&&s.timed).forEach(s=>{if(draft.durationStatuses[phase][s.id]==='known'&&!Q.finite(draft.durations[phase][s.id]))fail(`duration-${phase}-${s.id}`,'กรุณาระบุเวลาตั้งแต่ 0 ขึ้นไป หรือเลือกไม่ทราบข้อมูล');});
             }
-            if (draft.step === 3) draft.config.metrics.filter(m=>m.active && m.source==='manual').forEach(m=>{
+            if (draft.step === 1) draft.config.metrics.filter(m=>m.active && m.source==='manual').forEach(m=>{
                 const value=draft.values[m.id];
                 if (!['known','unknown','na'].includes(value.status) && m.required) fail(`status-${m.id}`,'กรุณาเลือกสถานะข้อมูล');
                 if (value.status==='known') for (const phase of ['before','after']) if (!Q.finite(value[phase]) || (['paper','errors'].includes(m.id) && !Number.isInteger(value[phase]))) fail(`${phase}-${m.id}`,'กรุณาระบุค่าที่ไม่ติดลบ และใช้จำนวนเต็มสำหรับกระดาษ/ข้อผิดพลาด');
@@ -117,25 +114,25 @@
                 const profile=window.EvaluatorAuth?.current() || {};
                 body=`<p class="q-account-summary">ผู้ประเมิน: <strong>${user(profile.name || draft.profile.name)}</strong> · ID ${user(profile.id || draft.profile.id)} · ${user(profile.role || draft.profile.role)}</p><label for="q-system">ระบบ IT<select id="q-system" aria-describedby="q-system-error">${systemOptions(draft.systemId)}</select></label><small class="q-error" id="q-system-error"></small>`;
             }
-            if (step===1 || step===2) {
-                const phase=step===1?'before':'after', list=draft.config[phase].filter(s=>s.active);
-                body=`<p>ฐานการวัดเวลา: ${user(draft.config.metrics.find(m=>m.source==='time')?.basis || 'ต่อคำขอ')} ใช้ฐานเดียวกันก่อนและหลัง</p>`;
-                body+=list.length?list.map((s,i)=>`<section class="q-card"><h3>${i+1}. ${user(s.name)}</h3><p>${user(s.description)}</p>${s.timed?`<label>สถานะข้อมูลเวลา<select id="duration-status-${s.id}">${[['known','มีข้อมูล'],['unknown','ไม่ทราบข้อมูล'],['na','ไม่เกี่ยวข้อง']].map(([v,l])=>`<option value="${v}" ${(draft.durationStatuses[phase][s.id]||'known')===v?'selected':''}>${l}</option>`).join('')}</select></label>`+field(`duration-${s.id}`,'เวลาที่ใช้ (นาที)',draft.durations[phase][s.id],'number'):'<p>ขั้นตอนนี้ไม่เก็บเวลา</p>'}</section>`).join(''):'<section class="q-card"><h3>ระบบนี้ยังไม่ได้กำหนดกระบวนการ</h3><p>ยังเริ่มประเมินจริงไม่ได้ หากผู้ดูแลตั้งค่าไว้แล้ว ให้โหลดการตั้งค่าล่าสุด หรือเลือกใช้กระบวนการตัวอย่างเพื่อทดลองกรอกฟอร์ม โดยจะระบุผลว่าเป็นข้อมูลจำลอง</p><button type="button" id="q-refresh-config">โหลดการตั้งค่าล่าสุด</button><button type="button" id="q-use-demo">ใช้กระบวนการตัวอย่าง (ข้อมูลจำลอง)</button></section>';
-                const timed=list.filter(s=>s.timed), known=timed.length && timed.every(s=>Q.finite(draft.durations[phase][s.id]));
-                body+=`<p id="duration-total">เวลารวม: ${known?fmt(timed.reduce((sum,s)=>sum+draft.durations[phase][s.id],0))+' นาที':'ยังมีข้อมูลไม่ครบ / ไม่ได้เก็บเวลา'}</p>`;
-            }
-            if (step===3) body=draft.config.metrics.filter(m=>m.active).map(m=>{
+            if (step===1) {
+                body='';
+                if (!draft.config || !['before','after'].every(phase=>draft.config[phase].some(s=>s.active))) body='<p>ระบบนี้ยังไม่มีการตั้งค่ากระบวนการ กรุณาโหลดการตั้งค่าหรือเลือกกระบวนการตัวอย่าง</p><button type="button" id="q-refresh-config">โหลดการตั้งค่าล่าสุด</button><button type="button" id="q-use-demo">ใช้กระบวนการตัวอย่าง (ข้อมูลจำลอง)</button>';
+                else {
+                    for(const phase of ['before','after']) { const list=draft.config[phase].filter(s=>s.active); body+=`<h3>${phase==='before'?'ก่อน':'หลัง'}ใช้ IT</h3>`+list.map((s,i)=>`<section class="q-card"><h4>${i+1}. ${user(s.name)}</h4><p>${user(s.description)}</p>${s.timed?`<label>สถานะข้อมูลเวลา<select id="duration-status-${phase}-${s.id}">${[['known','มีข้อมูล'],['unknown','ไม่ทราบข้อมูล'],['na','ไม่เกี่ยวข้อง']].map(([v,l])=>`<option value="${v}" ${(draft.durationStatuses[phase][s.id]||'known')===v?'selected':''}>${l}</option>`).join('')}</select></label>`+field(`duration-${phase}-${s.id}`,'เวลาที่ใช้ (นาที)',draft.durations[phase][s.id],'number'):''}</section>`).join(''); }
+                    body+='<p id="duration-total">เวลารวมก่อนและหลังจะคำนวณจากเวลาขั้นตอน</p><h3>ตัวชี้วัด</h3>'+draft.config.metrics.filter(m=>m.active).map(m=>{
                 const v=draft.values[m.id] || {};
                 if(m.source!=='manual') return `<section class="q-card"><h3>${user(m.name)}</h3><p>คำนวณจากกระบวนการ · ${user(m.basis)} · ก่อน ${fmt(v.before)} / หลัง ${fmt(v.after)} ${user(m.unit)}</p></section>`;
                 return `<section class="q-card"><h3>${user(m.name)} ${m.required?'(จำเป็นต้องระบุสถานะข้อมูล)':''}</h3><p>${user(m.description)} · ${user(m.unit)} / ${user(m.basis)}</p><label for="status-${m.id}">สถานะข้อมูล<select id="status-${m.id}" aria-describedby="status-${m.id}-error">${[['','เลือกสถานะ'],['known','มีข้อมูล'],['unknown','ไม่ทราบข้อมูล'],['na','ไม่เกี่ยวข้อง']].map(([key,label])=>`<option value="${key}" ${v.status===key?'selected':''}>${label}</option>`).join('')}</select></label><small class="q-error" id="status-${m.id}-error"></small><div class="q-grid">${field(`before-${m.id}`,'ก่อนใช้ระบบ',v.before,'number')}${field(`after-${m.id}`,'หลังใช้ระบบ',v.after,'number')}</div></section>`;
-            }).join('');
-            if (step===4) body=`<p>${user(draft.profile.name)} · ${{student:'นิสิต',teacher:'อาจารย์',staff:'บุคลากร'}[draft.profile.role]||esc(draft.profile.role)} · ${user(draft.profile.department)}</p><p>ระบบ ${user(draft.systemId)} · แบบประเมินเวอร์ชัน ${draft.config.version}</p>${['before','after'].map(phase=>`<h3>${phase==='before'?'ก่อน':'หลัง'}ใช้ IT</h3><ol>${draft.config[phase].filter(s=>s.active).map(s=>`<li>${user(s.name)} — ${user(s.description)} ${s.timed?fmt(draft.durations[phase][s.id])+' นาที':'ไม่เก็บเวลา'}</li>`).join('')}</ol>`).join('')}${resultTable(draft)}<p>ยังไม่บันทึกเป็นรายการที่ส่ง จนกว่าจะยืนยันในหน้าต่างถัดไป</p>`;
+                    }).join('');
+                }
+            }
+            if (step===2) body=`<p>${user(draft.profile.name)} · ${{student:'นิสิต',teacher:'อาจารย์',staff:'บุคลากร'}[draft.profile.role]||esc(draft.profile.role)} · ${user(draft.profile.department)}</p><p>ระบบ ${user(draft.systemId)} · แบบประเมินเวอร์ชัน ${draft.config.version}</p>${['before','after'].map(phase=>`<h3>${phase==='before'?'ก่อน':'หลัง'}ใช้ IT</h3><ol>${draft.config[phase].filter(s=>s.active).map(s=>`<li>${user(s.name)} — ${user(s.description)} ${s.timed?fmt(draft.durations[phase][s.id])+' นาที':'ไม่เก็บเวลา'}</li>`).join('')}</ol>`).join('')}${resultTable(draft)}<p>ยังไม่บันทึกเป็นรายการที่ส่ง จนกว่าจะยืนยันในหน้าต่างถัดไป</p>`;
             if(step===0) {
                 body='<div class="q-profile-grid">'+body.replace(/(<label[^>]*>[\s\S]*?<\/label><small class="q-error"[^>]*><\/small>)/g,'<div class="q-field">$1</div>')+'</div>';
             }
             const previousStepper = document.getElementById('energy-stepper');
-            const missingProcesses = (step===1 || step===2) && !draft.config[step===1?'before':'after'].some(s=>s.active);
-            app.innerHTML=`${window.EnergyStepper.markup(steps, step)}${draft.config?.isDemo ? '<p class="prototype">กำลังทดลองด้วยกระบวนการตัวอย่าง ข้อมูลจำลองนี้ไม่ใช่ข้อมูลจริงของคณะ</p>' : ''}<section class="q-card"><h2 tabindex="-1" id="step-heading"><svg class="ev-step-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v17H5zM9 4V2h6v2M8 10h8M8 14h8M8 18h5"/></svg>ขั้นที่ ${step+1}: ${steps[step]}</h2><form id="wizard-form" novalidate>${body}<p id="q-message" role="status"></p><div class="q-form-actions"><button type="button" id="q-back" ${step===0?'disabled':''}>ย้อนกลับ</button><button type="button" id="q-save">บันทึกแบบร่าง</button><button class="primary" type="submit" ${missingProcesses?'disabled':''}>${step===4?'ตรวจสอบและยืนยัน':missingProcesses?'ยังไม่มีขั้นตอนให้ประเมิน':'ถัดไป'}</button></div></form></section><dialog id="confirm-dialog" aria-labelledby="confirm-title"><h2 id="confirm-title">กรุณาตรวจสอบความถูกต้องของข้อมูลก่อนยืนยัน</h2><p>ข้อมูลทดลองจะเก็บเฉพาะเบราว์เซอร์นี้</p><button id="q-cancel">กลับไปตรวจสอบ</button><button class="primary" id="q-confirm">ยืนยันการส่งข้อมูล</button></dialog>`;
+            const missingProcesses = false;
+            app.innerHTML=`${window.EnergyStepper.markup(steps, step)}${draft.config?.isDemo ? '<p class="prototype">กำลังทดลองด้วยกระบวนการตัวอย่าง ข้อมูลจำลองนี้ไม่ใช่ข้อมูลจริงของคณะ</p>' : ''}<section class="q-card"><h2 tabindex="-1" id="step-heading"><svg class="ev-step-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v17H5zM9 4V2h6v2M8 10h8M8 14h8M8 18h5"/></svg>ขั้นที่ ${step+1}: ${steps[step]}</h2><form id="wizard-form" novalidate>${body}<p id="q-message" role="status"></p><div class="q-form-actions"><button type="button" id="q-back" ${step===0?'disabled':''}>ย้อนกลับ</button><button type="button" id="q-save">บันทึกแบบร่าง</button><button class="primary" type="submit" ${missingProcesses?'disabled':''}>${step===steps.length-1?'ตรวจสอบและยืนยัน':missingProcesses?'ยังไม่มีขั้นตอนให้ประเมิน':'ถัดไป'}</button></div></form></section><dialog id="confirm-dialog" aria-labelledby="confirm-title"><h2 id="confirm-title">กรุณาตรวจสอบความถูกต้องของข้อมูลก่อนยืนยัน</h2><p>ข้อมูลทดลองจะเก็บเฉพาะเบราว์เซอร์นี้</p><button id="q-cancel">กลับไปตรวจสอบ</button><button class="primary" id="q-confirm">ยืนยันการส่งข้อมูล</button></dialog>`;
             const nextStepper = document.getElementById('energy-stepper');
             if (previousStepper && nextStepper && typeof nextStepper.replaceWith === 'function') {
                 nextStepper.replaceWith(previousStepper);
@@ -153,7 +150,7 @@
             }));
             document.getElementById('q-back').onclick=()=>{capture(); draft.step--; render();};
             document.getElementById('q-save').onclick=()=>safe(()=>{capture(); Q.saveDraft(draft,userId); document.getElementById('q-message').textContent='บันทึกแบบร่างในเบราว์เซอร์แล้ว';});
-            document.getElementById('wizard-form').onsubmit=e=>{e.preventDefault();safe(()=>{capture(); if(!validate()) return; if(step<4){Q.saveDraft({...draft,step:draft.step+1},userId);draft.step++;render();document.getElementById('step-heading').focus();} else {Q.saveDraft(draft,userId);document.getElementById('confirm-dialog').showModal();}});};
+            document.getElementById('wizard-form').onsubmit=e=>{e.preventDefault();safe(()=>{capture(); if(!validate()) return; if(step<steps.length-1){Q.saveDraft({...draft,step:draft.step+1},userId);draft.step++;render();document.getElementById('step-heading').focus();} else {Q.saveDraft(draft,userId);document.getElementById('confirm-dialog').showModal();}});};
             document.getElementById('q-cancel').onclick=()=>document.getElementById('confirm-dialog').close();
             document.getElementById('q-confirm').onclick=async()=>{
                 if(sending || submitted)return; sending=true; document.getElementById('q-confirm').disabled=true;
@@ -161,9 +158,11 @@
                 if(ok) app.innerHTML=`<section class="q-card"><h2>บันทึกผลประเมินลงฐานข้อมูลแล้ว</h2><p>เปิด Dashboard เพื่อดูผลที่บันทึก</p><a class="q-button" href="${appUrl(`admin/dashboard.html?dataset=${draft.config.isDemo?'demo':'real'}#quantitative-results`)}">ดูผลที่ส่งใน Dashboard</a><a class="q-button" href="${appUrl('user/effectiveness/evaluation.html')}">เริ่มแบบประเมินใหม่</a><a class="q-button" href="${appUrl('user/satisfaction/index.html')}">ประเมินความพึงพอใจ</a></section>`;
                 else {sending=false;document.getElementById('q-confirm').disabled=false;document.getElementById('confirm-dialog').close();}
             };
-            if(step===1||step===2) app.querySelectorAll('input[type=number]').forEach(input=>input.addEventListener('input',()=>{capture();const phase=step===1?'before':'after';const list=draft.config[phase].filter(s=>s.active&&s.timed);document.getElementById('duration-total').textContent='เวลารวม: '+(list.length&&list.every(s=>Q.finite(draft.durations[phase][s.id]))?fmt(list.reduce((sum,s)=>sum+draft.durations[phase][s.id],0))+' นาที':'ยังมีข้อมูลไม่ครบ');}));
-            if(step===1||step===2) draft.config[step===1?'before':'after'].filter(s=>s.active&&s.timed).forEach(s=>{const select=document.getElementById(`duration-status-${s.id}`);const toggle=()=>{document.getElementById(`duration-${s.id}`).disabled=select.value!=='known';capture();const phase=step===1?'before':'after',timed=draft.config[phase].filter(item=>item.active&&item.timed);document.getElementById('duration-total').textContent='เวลารวม: '+(timed.length&&timed.every(item=>Q.finite(draft.durations[phase][item.id]))?fmt(timed.reduce((sum,item)=>sum+draft.durations[phase][item.id],0))+' นาที':'ยังมีข้อมูลไม่ครบ');};select.onchange=toggle;document.getElementById(`duration-${s.id}`).disabled=select.value!=='known';});
-            if(step===3) draft.config.metrics.filter(m=>m.active&&m.source==='manual').forEach(m=>{const select=document.getElementById(`status-${m.id}`);const toggle=()=>{for(const phase of ['before','after'])document.getElementById(`${phase}-${m.id}`).disabled=select.value!=='known';};select.onchange=toggle;toggle();});
+            if(step===1 && draft.config) {
+                app.querySelectorAll('input[type=number]').forEach(input=>input.addEventListener('input',capture));
+                for(const phase of ['before','after']) draft.config[phase].filter(s=>s.active&&s.timed).forEach(s=>{const select=document.getElementById(`duration-status-${phase}-${s.id}`),input=document.getElementById(`duration-${phase}-${s.id}`);if(!select||!input)return;select.onchange=()=>{input.disabled=select.value!=='known';capture();};input.disabled=select.value!=='known';});
+                draft.config.metrics.filter(m=>m.active&&m.source==='manual').forEach(m=>{const select=document.getElementById(`status-${m.id}`);if(!select)return;select.onchange=()=>{for(const phase of ['before','after'])document.getElementById(`${phase}-${m.id}`).disabled=select.value!=='known';};select.onchange();});
+            }
         }
         render();
     }

@@ -15,6 +15,13 @@
         { id: 'errors', name: 'จำนวนข้อผิดพลาด', unit: 'ครั้ง', basis: 'ต่อคำขอ', direction: 'decrease', source: 'manual', active: true, required: false }
     ] });
     const finite = v => typeof v === 'number' && Number.isFinite(v) && v >= 0;
+    function migrateDraft(value) {
+        if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+        const draft = clone(value);
+        const oldStep = Number(draft.step);
+        draft.step = Number.isInteger(oldStep) ? oldStep === 0 ? 0 : oldStep >= 1 && oldStep <= 3 ? 1 : oldStep === 4 ? 2 : 0 : 0;
+        return draft;
+    }
     function calculate(metric, input) {
         if (!input || input.status !== 'known' || !finite(input.before) || !finite(input.after)) return { available: false, reason: input?.status === 'na' ? 'ไม่เกี่ยวข้อง' : 'ไม่สามารถคำนวณได้: ไม่มีข้อมูลครบถ้วน' };
         const delta = input.after - input.before;
@@ -27,7 +34,7 @@
         return { available: true, delta, percent, outcome: improvement > 0 ? 'ดีขึ้น' : improvement < 0 ? 'แย่ลง' : 'คงเดิม', targetMet: metric.direction === 'target' ? input.after === metric.target : null };
     }
     const api = {
-        keys, clone, defaults, calculate, finite,
+        keys, clone, defaults, calculate, finite, migrateDraft,
         demoConfig() {
             const config = defaults();
             config.version = 'demo-1';
@@ -58,7 +65,7 @@
         draft(userId) {
             if (!userId) return null;
             const value = read(draftKey(userId), null);
-            return value?.userId === String(userId) ? value : null;
+            return value?.userId === String(userId) ? migrateDraft(value) : null;
         },
         saveDraft(value, userId) {
             if (!userId) throw new Error('ไม่สามารถบันทึกแบบร่างโดยไม่ระบุบัญชีผู้ใช้');

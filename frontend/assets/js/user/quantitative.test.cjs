@@ -4,16 +4,27 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../../../..');
-test('energy stepper fills and drains all five stages with exactly one current step',()=>{
+test('effectiveness examples export bilingual metrics with total weight 100 and unique ids',()=>{
+    const examples=require('./effectiveness-examples.js');
+    assert.equal(examples.metrics.reduce((sum,metric)=>sum+metric.weight,0),100);
+    assert.equal(new Set(examples.metrics.map(metric=>metric.id)).size,examples.metrics.length);
+    for(const metric of examples.metrics) for(const field of ['dimension','name','unit','formula','source']) {
+        assert.ok(metric[field].th,`${metric.id}.${field}.th`);
+        assert.ok(metric[field].en,`${metric.id}.${field}.en`);
+    }
+    assert.doesNotMatch(JSON.stringify(examples.metrics),/แจ้งซ่อม/);
+    for(const group of Object.values(examples.groups)) for(const language of ['th','en']) for(const phase of ['before','after']) assert.ok(group[language][phase].length);
+});
+test('energy stepper renders three wizard stages with exactly one current step',()=>{
     const context={window:{}};
     vm.runInNewContext(fs.readFileSync(path.join(root,'frontend/assets/js/user/energy-stepper.js'),'utf8'),context);
-    const labels=['ข้อมูลผู้ประเมิน','กระบวนการก่อนใช้ IT','กระบวนการหลังใช้ IT','ตัวชี้วัด','ตรวจสอบและส่ง'];
-    for(const step of [0,1,2,3,4,3,2,1,0]) {
+    const labels=['ข้อมูลผู้ประเมิน','กระบวนการและตัวชี้วัด','ตรวจสอบและส่ง'];
+    for(const step of [0,1,2,1,0]) {
         const html=context.window.EnergyStepper.markup(labels,step);
         assert.equal((html.match(/aria-current="step"/g)||[]).length,1);
-        assert.equal((html.match(/class="energy-circle"/g)||[]).length,5);
+        assert.equal((html.match(/class="energy-circle"/g)||[]).length,3);
         assert.equal((html.match(/energy-step is-complete/g)||[]).length,step);
-        assert.ok(html.includes(`--energy-progress:${step/4}`));
+        assert.ok(html.includes(`--energy-progress:${step/2}`));
         for(const label of labels) assert.ok(html.includes(label));
     }
 });
@@ -60,11 +71,16 @@ test('admin configuration updates new forms while snapshots and other systems re
 });
 test('draft resumes separately from submitted records and confirmation is idempotent',()=>{
     const {Q,store}=setup(), draft={id:'one',step:2,values:{paper:{status:'unknown'}}}, userId='00000001';
-    Q.saveDraft(draft,userId); assert.equal(Q.draft(userId).step,2); assert.equal(Q.records().length,0);
+    Q.saveDraft(draft,userId); assert.equal(Q.draft(userId).step,1); assert.equal(Q.records().length,0);
     Q.submit(draft,userId);Q.submit(draft,userId);
     assert.equal(Q.records().length,1);assert.equal(Q.draft(userId),null);
     assert.ok(!store.has(Q.keys.draft));
     assert.ok(!store.has('it_evaluations_store'));
+});
+test('legacy draft stages map to the three-stage wizard and malformed stages reset safely',()=>{
+    const {Q}=setup();
+    for(const [oldStep,newStep] of [[0,0],[1,1],[2,1],[3,1],[4,2],[-1,0],[7,0],['bad',0],[null,0]]) assert.equal(Q.migrateDraft({step:oldStep}).step,newStep);
+    assert.equal(Q.migrateDraft(null),null);
 });
 test('drafts are isolated by authenticated user and legacy unscoped drafts are ignored',()=>{
     const {Q,store}=setup();
