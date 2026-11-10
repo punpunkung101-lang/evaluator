@@ -34,6 +34,9 @@
             admin: "ผู้ดูแลระบบ",
             darkMode: "โหมดมืด",
             lightMode: "โหมดสว่าง",
+            theme_switch_to_dark: "เปลี่ยนเป็นธีมมืด",
+            theme_switch_to_navy: "เปลี่ยนเป็นธีมน้ำเงินเข้ม",
+            theme_switch_to_light: "เปลี่ยนเป็นธีมสว่าง",
             langLabel: "EN",
             lang_toggle: "EN",
             back_to_categories: "กลับสู่หน้ารายการหมวดหมู่",
@@ -523,6 +526,9 @@
             admin: "Administrator",
             darkMode: "Dark mode",
             lightMode: "Light mode",
+            theme_switch_to_dark: "Switch to dark theme",
+            theme_switch_to_navy: "Switch to navy theme",
+            theme_switch_to_light: "Switch to light theme",
             langLabel: "ไทย",
             lang_toggle: "ไทย",
             back_to_categories: "Back to Categories",
@@ -1003,11 +1009,16 @@
     /* =====================================================================
        PREFERENCE STORAGE HELPERS
        ===================================================================== */
-    const THEME_KEY = "it_eval_theme";   // "dark" | "light"
+    const THEME_KEY = "it_eval_theme";   // "light" | "dark" | "navy"
     const LANG_KEY  = "it_eval_lang";    // "th"   | "en"
 
+    function normalizeTheme(value) {
+        return value === "light" || value === "dark" || value === "navy" ? value : "light";
+    }
+
     function getTheme() {
-        return localStorage.getItem(THEME_KEY) || "light";
+        try { return normalizeTheme(localStorage.getItem(THEME_KEY)); }
+        catch (_) { return "light"; }
     }
 
     function getLang() {
@@ -1017,7 +1028,7 @@
     }
 
     function saveTheme(val) {
-        localStorage.setItem(THEME_KEY, val);
+        try { localStorage.setItem(THEME_KEY, normalizeTheme(val)); } catch (_) {}
     }
 
     function saveLang(val) {
@@ -1136,7 +1147,9 @@
        THEME APPLICATION
        ===================================================================== */
     function applyTheme(theme) {
-        document.documentElement.setAttribute("data-theme", theme);
+        const normalized = normalizeTheme(theme);
+        document.documentElement.setAttribute("data-theme", normalized);
+        document.body?.classList.toggle("dark", normalized === "dark");
     }
 
     /* =====================================================================
@@ -1157,6 +1170,8 @@
         const theme = getTheme();
         const tObj  = i18n[lang];
         const isDark = theme === "dark";
+        const nextTheme = theme === "light" ? "dark" : theme === "dark" ? "navy" : "light";
+        const themeLabel = tObj[nextTheme === "dark" ? "theme_switch_to_dark" : nextTheme === "navy" ? "theme_switch_to_navy" : "theme_switch_to_light"];
 
         // Moon / Sun SVG icons
         const moonSvg = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>`;
@@ -1166,8 +1181,8 @@
 <div class="tl-toolbar" id="tlToolbar" role="toolbar" aria-label="Toolbar">
     <!-- Theme Toggle -->
     <button class="tl-btn tl-icon-btn" id="tlThemeBtn"
-            aria-label="${isDark ? tObj.lightMode : tObj.darkMode}"
-            title="${isDark ? tObj.lightMode : tObj.darkMode}">
+            aria-label="${themeLabel}"
+            title="${themeLabel}">
         ${isDark ? sunSvg : moonSvg}
     </button>
 
@@ -1212,7 +1227,8 @@
         const themeBtn = document.getElementById("tlThemeBtn");
         if (themeBtn) {
             themeBtn.addEventListener("click", () => {
-                const next = getTheme() === "dark" ? "light" : "dark";
+                const current = getTheme();
+                const next = current === "light" ? "dark" : current === "dark" ? "navy" : "light";
                 saveTheme(next);
                 applyTheme(next);
                 injectToolbar();
@@ -1254,6 +1270,7 @@
     window.applyTranslations = applyTranslations;
     window.ThemeLang = {
         getTheme,
+        normalizeTheme,
         getLang,
         saveLang,
         applyLang,

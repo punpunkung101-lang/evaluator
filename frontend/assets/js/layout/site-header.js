@@ -149,7 +149,7 @@
         const header = document.createElement("header");
         header.className = "site-shared-masthead";
         header.dataset.siteHeader = "1";
-        header.innerHTML = `<div class="site-utility-bar"><div class="site-header-shell site-utility-content"><span data-i18n="portal_utility">ศูนย์ประเมินระบบสารสนเทศ</span><button type="button" class="site-utility-contact" data-header-contact data-i18n="nav_contact">ติดต่อเรา</button></div></div><div class="site-header-shell site-brand-row"><a class="site-brand" href="${resolveFrontendPath("user/index.html")}" aria-label="กลับสู่หน้าหลัก"><img src="${logoUrl}" alt="ตรามหาวิทยาลัยนเรศวร" width="72" height="72"><span><strong data-i18n="portal_faculty">คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</strong><small data-i18n="portal_faculty_en">Faculty of Allied Health Sciences, Naresuan University</small></span></a><div class="site-header-actions"><button type="button" class="site-control-button" id="theme-toggle" data-i18n-aria="portal_theme" aria-label="โหมดมืด" aria-pressed="false" title="โหมดมืด"><span class="control-icon" data-theme-icon aria-hidden="true">☾</span><span data-i18n="portal_theme">โหมดมืด</span></button><button type="button" class="site-control-button site-lang-btn" id="language-toggle" aria-label="Switch language">TH / EN</button><button class="login-button ev-signin" type="button"><span aria-hidden="true">◉</span><span data-auth-label data-i18n="portal_login">เข้าสู่ระบบ</span></button><button class="site-menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" data-i18n-aria="portal_menu" aria-label="เมนู"><span></span><span></span><span></span></button></div></div><nav class="site-wide-nav" id="primary-nav" aria-label="เมนูหลัก"><div class="site-nav-inner"><div class="site-nav-main"></div><span class="site-wide-nav-admin" hidden></span></div></nav>`;
+        header.innerHTML = `<div class="site-utility-bar"><div class="site-header-shell site-utility-content"><span data-i18n="portal_utility">ศูนย์ประเมินระบบสารสนเทศ</span><button type="button" class="site-utility-contact" data-header-contact data-i18n="nav_contact">ติดต่อเรา</button></div></div><div class="site-header-shell site-brand-row"><a class="site-brand" href="${resolveFrontendPath("user/index.html")}" aria-label="กลับสู่หน้าหลัก"><img src="${logoUrl}" alt="ตรามหาวิทยาลัยนเรศวร" width="72" height="72"><span><strong data-i18n="portal_faculty">คณะสหเวชศาสตร์ มหาวิทยาลัยนเรศวร</strong><small data-i18n="portal_faculty_en">Faculty of Allied Health Sciences, Naresuan University</small></span></a><div class="site-header-actions"><button type="button" class="site-control-button" id="theme-toggle" aria-label="เปลี่ยนเป็นธีมมืด" title="เปลี่ยนเป็นธีมมืด"><span class="control-icon" data-theme-icon aria-hidden="true">☾</span><span data-theme-label data-i18n="theme_switch_to_dark">เปลี่ยนเป็นธีมมืด</span></button><button type="button" class="site-control-button site-lang-btn" id="language-toggle" aria-label="Switch language">TH / EN</button><button class="login-button ev-signin" type="button"><span aria-hidden="true">◉</span><span data-auth-label data-i18n="portal_login">เข้าสู่ระบบ</span></button><button class="site-menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" data-i18n-aria="portal_menu" aria-label="เมนู"><span></span><span></span><span></span></button></div></div><nav class="site-wide-nav" id="primary-nav" aria-label="เมนูหลัก"><div class="site-nav-inner"><div class="site-nav-main"></div><span class="site-wide-nav-admin" hidden></span></div></nav>`;
         const navigation = header.querySelector(".site-wide-nav");
         const dialogs = document.createElement("div");
         dialogs.id = "site-header-dialogs";
@@ -178,22 +178,44 @@
 
         const themeButton = header.querySelector("#theme-toggle");
         const savedTheme = () => {
-            try { return localStorage.getItem("it_eval_theme") || "light"; }
+            if (window.ThemeLang?.getTheme) return window.ThemeLang.getTheme();
+            try {
+                const value = localStorage.getItem("it_eval_theme");
+                return value === "dark" || value === "navy" ? value : "light";
+            }
             catch (_) { return "light"; }
         };
-        const applyTheme = theme => {
-            document.documentElement.dataset.theme = theme;
-            document.body.classList.toggle("dark", theme === "dark");
-            themeButton?.setAttribute("aria-pressed", String(theme === "dark"));
+        const syncThemeControl = theme => {
+            const nextTheme = theme === "light" ? "dark" : theme === "dark" ? "navy" : "light";
+            const key = nextTheme === "dark" ? "theme_switch_to_dark" : nextTheme === "navy" ? "theme_switch_to_navy" : "theme_switch_to_light";
+            const label = translatedText(key);
+            const labelNode = themeButton?.querySelector("[data-theme-label]");
+            if (labelNode) {
+                labelNode.dataset.i18n = key;
+                labelNode.textContent = label;
+            }
+            themeButton?.setAttribute("aria-label", label);
+            themeButton?.setAttribute("title", label);
+            themeButton?.removeAttribute("aria-pressed");
             const icon = themeButton?.querySelector("[data-theme-icon]");
-            if (icon) icon.textContent = theme === "dark" ? "☀" : "☾";
+            if (icon) icon.textContent = theme === "dark" ? "☀" : theme === "navy" ? "◈" : "☾";
+        };
+        const applyTheme = theme => {
+            const normalized = window.ThemeLang?.normalizeTheme?.(theme) || (theme === "dark" || theme === "navy" ? theme : "light");
+            if (window.ThemeLang?.applyTheme) window.ThemeLang.applyTheme(normalized);
+            else {
+                document.documentElement.dataset.theme = normalized;
+                document.body.classList.toggle("dark", normalized === "dark");
+            }
+            syncThemeControl(normalized);
         };
         applyTheme(savedTheme());
         themeButton?.addEventListener("click", () => {
-            const next = savedTheme() === "dark" ? "light" : "dark";
+            const current = savedTheme();
+            const next = current === "light" ? "dark" : current === "dark" ? "navy" : "light";
+            window.ThemeLang?.saveTheme?.(next);
             try { localStorage.setItem("it_eval_theme", next); } catch (_) {}
             applyTheme(next);
-            window.ThemeLang?.applyTheme?.(next);
             window.EvaluationLocale?.setTheme?.(next);
         });
 
@@ -207,6 +229,7 @@
                 languageButton.setAttribute("aria-label", language === "en" ? "Switch to Thai" : "ภาษาอังกฤษ");
             }
             window.ThemeLang?.applyTranslations?.(document);
+            syncThemeControl(savedTheme());
             renderHeaderNavigation(navigation, activeUser?.role === "admin" ? "admin" : activeUser ? "user" : "guest", contactDialogId);
             document.dispatchEvent(new CustomEvent("langchange", { detail: { lang: language } }));
         };
