@@ -1,0 +1,443 @@
+{
+  "SYS015": {
+    "systemId": "SYS015",
+    "name": "ดาวน์โหลดแบบฟอร์ม",
+    "sortOrder": 15,
+    "status": "improve",
+    "nEffectiveness": 3,
+    "nSatisfaction": 3,
+    "beforeScore": 71.20328070484429,
+    "afterScore": 100,
+    "summary": "after-better",
+    "coverage": 100,
+    "satisfactionAverage": 2.1999999999999997,
+    "satisfactionScore": 29.999999999999993,
+    "combined": 65,
+    "preliminary": false,
+    "lowSample": true,
+    "metricImprovement": {
+      "improved": 11,
+      "total": 11
+    }
+  },
+  "SYS012": {
+    "systemId": "SYS012",
+    "name": "กรรมการภายในต่างๆ",
+    "sortOrder": 12,
+    "status": "improve",
+    "nEffectiveness": 5,
+    "nSatisfaction": 5,
+    "beforeScore": 100,
+    "afterScore": 70.76385315206664,
+    "summary": "before-better",
+    "coverage": 100,
+    "satisfactionAverage": 3.4,
+    "satisfactionScore": 60,
+    "combined": 65.38192657603332,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 0,
+      "total": 11
+    }
+  },
+  "SYS013": {
+    "systemId": "SYS013",
+    "name": "ระบบเสนอของบอิเล็กทรอนิกส์",
+    "sortOrder": 13,
+    "status": "improve",
+    "nEffectiveness": 5,
+    "nSatisfaction": 5,
+    "beforeScore": 100,
+    "afterScore": 70.76385315206664,
+    "summary": "before-better",
+    "coverage": 100,
+    "satisfactionAverage": 3.4,
+    "satisfactionScore": 60,
+    "combined": 65.38192657603332,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 0,
+      "total": 11
+    }
+  },
+  "SYS014": {
+    "systemId": "SYS014",
+    "name": "AHS eForm",
+    "sortOrder": 14,
+    "status": "improve",
+    "nEffectiveness": 5,
+    "nSatisfaction": 5,
+    "beforeScore": 100,
+    "afterScore": 70.76385315206664,
+    "summary": "before-better",
+    "coverage": 100,
+    "satisfactionAverage": 3.4,
+    "satisfactionScore": 60,
+    "combined": 65.38192657603332,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 0,
+      "total": 11
+    }
+  },
+  "SYS016": {
+    "systemId": "SYS016",
+    "name": "ระบบบริหารจัดการอาคารและห้อง",
+    "sortOrder": 16,
+    "status": "improve",
+    "nEffectiveness": 4,
+    "nSatisfaction": 4,
+    "beforeScore": 71.74721981994233,
+    "afterScore": 100,
+    "summary": "preliminary",
+    "coverage": 70,
+    "satisfactionAverage": 2.3,
+    "satisfactionScore": 32.49999999999999,
+    "combined": 66.25,
+    "preliminary": true,
+    "lowSample": true,
+    "metricImprovement": {
+      "improved": 7,
+      "total": 7
+    }
+  },
+  "SYS018": {
+    "systemId": "SYS018",
+    "name": "ระบบซ่อมและบำรุงรักษา",
+    "sortOrder": 18,
+    "status": "watch",
+    "nEffectiveness": 0,
+    "nSatisfaction": 5,
+    "beforeScore": null,
+    "afterScore": null,
+    "summary": "no-data",
+    "coverage": 0,
+    "satisfactionAverage": 3.4,
+    "satisfactionScore": 60,
+    "combined": 60,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 0,
+      "total": 0
+    }
+  },
+  "SYS011": {
+    "systemId": "SYS011",
+    "name": "ระบบรับส่งหนังสือ",
+    "sortOrder": 11,
+    "status": "watch",
+    "nEffectiveness": 4,
+    "nSatisfaction": 4,
+    "beforeScore": 100,
+    "afterScore": 100,
+    "summary": "similar",
+    "coverage": 100,
+    "satisfactionAverage": 3.3,
+    "satisfactionScore": 57.49999999999999,
+    "combined": 78.75,
+    "preliminary": false,
+    "lowSample": true,
+    "metricImprovement": {
+      "improved": 0,
+      "total": 11
+    }
+  },
+  "SYS009": {
+    "systemId": "SYS009",
+    "name": "แผนปฏิบัติการประจำปี",
+    "sortOrder": 9,
+    "status": "watch",
+    "nEffectiveness": 5,
+    "nSatisfaction": 5,
+    "beforeScore": 100,
+    "afterScore": 100,
+    "summary": "similar",
+    "coverage": 100,
+    "satisfactionAverage": 3.4,
+    "satisfactionScore": 60,
+    "combined": 80,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 0,
+      "total": 11
+    }
+  },
+  "SYS010": {
+    "systemId": "SYS010",
+    "name": "ระบบ KPI / แผนกลยุทธ์",
+    "sortOrder": 10,
+    "status": "watch",
+    "nEffectiveness": 5,
+    "nSatisfaction": 5,
+    "beforeScore": 100,
+    "afterScore": 100,
+    "summary": "similar",
+    "coverage": 100,
+    "satisfactionAverage": 3.4,
+    "satisfactionScore": 60,
+    "combined": 80,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 0,
+      "total": 11
+    }
+  },
+  "SYS001": {
+    "systemId": "SYS001",
+    "name": "รายชื่อบุคลากร",
+    "sortOrder": 1,
+    "status": "good",
+    "nEffectiveness": 5,
+    "nSatisfaction": 5,
+    "beforeScore": 71.26494403685588,
+    "afterScore": 100,
+    "summary": "after-better",
+    "coverage": 100,
+    "satisfactionAverage": 4.52,
+    "satisfactionScore": 87.99999999999999,
+    "combined": 94,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 11,
+      "total": 11
+    }
+  },
+  "SYS002": {
+    "systemId": "SYS002",
+    "name": "ระบบลาออนไลน์",
+    "sortOrder": 2,
+    "status": "good",
+    "nEffectiveness": 5,
+    "nSatisfaction": 5,
+    "beforeScore": 71.26494403685588,
+    "afterScore": 100,
+    "summary": "after-better",
+    "coverage": 100,
+    "satisfactionAverage": 4.52,
+    "satisfactionScore": 87.99999999999999,
+    "combined": 94,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 11,
+      "total": 11
+    }
+  },
+  "SYS003": {
+    "systemId": "SYS003",
+    "name": "ลงเวลาปฏิบัติงาน",
+    "sortOrder": 3,
+    "status": "good",
+    "nEffectiveness": 5,
+    "nSatisfaction": 5,
+    "beforeScore": 71.26494403685588,
+    "afterScore": 100,
+    "summary": "after-better",
+    "coverage": 100,
+    "satisfactionAverage": 4.52,
+    "satisfactionScore": 87.99999999999999,
+    "combined": 94,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 11,
+      "total": 11
+    }
+  },
+  "SYS004": {
+    "systemId": "SYS004",
+    "name": "ฐานข้อมูลงานวิจัย",
+    "sortOrder": 4,
+    "status": "good",
+    "nEffectiveness": 5,
+    "nSatisfaction": 5,
+    "beforeScore": 71.26494403685588,
+    "afterScore": 100,
+    "summary": "after-better",
+    "coverage": 100,
+    "satisfactionAverage": 4.52,
+    "satisfactionScore": 87.99999999999999,
+    "combined": 94,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 11,
+      "total": 11
+    }
+  },
+  "SYS005": {
+    "systemId": "SYS005",
+    "name": "คุณสมบัติอาจารย์ผู้รับผิดชอบหลักสูตร",
+    "sortOrder": 5,
+    "status": "good",
+    "nEffectiveness": 5,
+    "nSatisfaction": 5,
+    "beforeScore": 71.26494403685588,
+    "afterScore": 100,
+    "summary": "after-better",
+    "coverage": 100,
+    "satisfactionAverage": 4.52,
+    "satisfactionScore": 87.99999999999999,
+    "combined": 94,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 11,
+      "total": 11
+    }
+  },
+  "SYS006": {
+    "systemId": "SYS006",
+    "name": "AHS KM Hub",
+    "sortOrder": 6,
+    "status": "good",
+    "nEffectiveness": 5,
+    "nSatisfaction": 5,
+    "beforeScore": 71.26494403685588,
+    "afterScore": 100,
+    "summary": "after-better",
+    "coverage": 100,
+    "satisfactionAverage": 4.52,
+    "satisfactionScore": 87.99999999999999,
+    "combined": 94,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 11,
+      "total": 11
+    }
+  },
+  "SYS007": {
+    "systemId": "SYS007",
+    "name": "ภาระงานสายวิชาการ",
+    "sortOrder": 7,
+    "status": "good",
+    "nEffectiveness": 5,
+    "nSatisfaction": 5,
+    "beforeScore": 71.26494403685588,
+    "afterScore": 100,
+    "summary": "after-better",
+    "coverage": 100,
+    "satisfactionAverage": 4.52,
+    "satisfactionScore": 87.99999999999999,
+    "combined": 94,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 11,
+      "total": 11
+    }
+  },
+  "SYS008": {
+    "systemId": "SYS008",
+    "name": "ภาระงานสายสนับสนุน",
+    "sortOrder": 8,
+    "status": "good",
+    "nEffectiveness": 5,
+    "nSatisfaction": 5,
+    "beforeScore": 71.26494403685588,
+    "afterScore": 100,
+    "summary": "after-better",
+    "coverage": 100,
+    "satisfactionAverage": 4.5200000000000005,
+    "satisfactionScore": 88.00000000000001,
+    "combined": 94,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 11,
+      "total": 11
+    }
+  },
+  "SYS021": {
+    "systemId": "SYS021",
+    "name": "ระบบ AHS e-donation",
+    "sortOrder": 21,
+    "status": "good",
+    "nEffectiveness": 5,
+    "nSatisfaction": 5,
+    "beforeScore": 71.26494403685588,
+    "afterScore": 100,
+    "summary": "after-better",
+    "coverage": 100,
+    "satisfactionAverage": 4.52,
+    "satisfactionScore": 87.99999999999999,
+    "combined": 94,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 11,
+      "total": 11
+    }
+  },
+  "SYS017": {
+    "systemId": "SYS017",
+    "name": "ระบบบริหารจัดการครุภัณฑ์",
+    "sortOrder": 17,
+    "status": "good",
+    "nEffectiveness": 5,
+    "nSatisfaction": 0,
+    "beforeScore": 71.26494403685588,
+    "afterScore": 100,
+    "summary": "after-better",
+    "coverage": 100,
+    "satisfactionAverage": null,
+    "satisfactionScore": null,
+    "combined": 100,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 11,
+      "total": 11
+    }
+  },
+  "SYS019": {
+    "systemId": "SYS019",
+    "name": "ระบบขอรับบริการจากหน่วยประชาสัมพันธ์",
+    "sortOrder": 19,
+    "status": "no-data",
+    "nEffectiveness": 0,
+    "nSatisfaction": 0,
+    "beforeScore": null,
+    "afterScore": null,
+    "summary": "no-data",
+    "coverage": 0,
+    "satisfactionAverage": null,
+    "satisfactionScore": null,
+    "combined": null,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 0,
+      "total": 0
+    }
+  },
+  "SYS020": {
+    "systemId": "SYS020",
+    "name": "ระบบลูกหนี้เงินยืม",
+    "sortOrder": 20,
+    "status": "no-data",
+    "nEffectiveness": 0,
+    "nSatisfaction": 0,
+    "beforeScore": null,
+    "afterScore": null,
+    "summary": "no-data",
+    "coverage": 0,
+    "satisfactionAverage": null,
+    "satisfactionScore": null,
+    "combined": null,
+    "preliminary": false,
+    "lowSample": false,
+    "metricImprovement": {
+      "improved": 0,
+      "total": 0
+    }
+  }
+}

@@ -57,14 +57,19 @@ g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evalu
 .\backend\evaluator_backend.exe
 ```
 
-ตรวจสอบ backend ได้ที่ `http://127.0.0.1:8080/health` หรือ `http://localhost:8080/health` ทดสอบ JavaScript จาก root โปรเจกต์ด้วย `node --test "frontend/assets/js/**/*.test.cjs"`.
+ตรวจสอบ backend ได้ที่ `http://127.0.0.1:8080/health` หรือ `http://localhost:8080/health`
+ทดสอบ JavaScript จาก root โปรเจกต์ด้วย:
+- `node --test "frontend/assets/js/**/*.test.cjs"` (การทดสอบ frontend ทั้งหมด)
+- `node --test "tests/**/*.test.cjs"` (การทดสอบชุดข้อมูลจำลองและฐานข้อมูล)
 
 บัญชีผู้ดูแลเริ่มต้น: username `Admin`, password `00000000`, ID `00000000` (role `admin`) ส่วนการสมัครทั่วไปกำหนด ID 8 หลักอัตโนมัติ โดยเริ่มจาก `00000001`; username และชื่อที่ใช้แสดงรองรับไม่เกิน 20 ตัวอักษร
 
 ## ข้อมูลตัวอย่างหน้า Admin
 
-`database/evaluator.db` ใน Git เป็น baseline สำหรับพัฒนาหน้า Admin และมี mock data ที่ติด marker ชัดเจน ครอบคลุม 21 ระบบ ข้อมูลจำลองจะแสดงป้ายกำกับในหน้า Admin บัญชีที่ login ได้มีเพียง `Admin` / `00000000`; ผู้ใช้ `mock_` ไม่มีรหัสผ่านที่ใช้งานได้
+`database/evaluator.db` ใน Git เป็น baseline สำหรับพัฒนาหน้า Admin และมี mock data ที่ติด marker ชัดเจน ครอบคลุม 21 ระบบ โดยแต่ละระบบสุ่ม 10–20 ผู้ประเมิน (จากกลุ่มผู้ใช้จำลอง 40 คน) ข้อมูลจำลองจะแสดงป้ายกำกับในหน้า Admin บัญชีที่ login ได้มีเพียง `Admin` / `00000000`; ผู้ใช้ `mock_*` ไม่มีรหัสผ่านที่ใช้งานได้
 
 ดูวิธีรีเซ็ตผลประเมินเป็นศูนย์, สร้าง DB เริ่มต้นใหม่, และใส่ mock data กลับได้ที่ [`database/README.md`](database/README.md) หรือรัน `database/mock/reset-mock-data.sql` / `database/mock/mock-data.sql` ผ่าน sqlite3 หรือ DB Browser for SQLite
 
-> ทุกครั้งที่ login Backend จะเขียน `auth_sessions` ลง DB อย่า commit `database/evaluator.db` หลังใช้งานเครื่องตัวเอง หากถูกแก้ไขให้คืน baseline ด้วย `git restore database/evaluator.db` ก่อน commit งานอื่น
+### ข้อควรระวังสำหรับเพื่อนร่วมทีม
+
+DB นี้ถูก track ใน Git แล้ว backend จะแก้ไฟล์เมื่อมีการล็อกอิน (`auth_sessions`) ห้าม `git add` ไฟล์ DB ที่ใช้งานแล้ว ก่อน commit ต้องไม่มีไฟล์ DB ใน stage เว้นแต่ตั้งใจรีเฟรช mock และตรวจ `auth_sessions` ว่าง, ถ้า `git pull` ติดเพราะ DB ในเครื่องเปลี่ยน ให้สำรองไฟล์ก่อนแล้ว `git restore`

@@ -171,7 +171,7 @@ Do not add dependencies, features or refactors outside the current phase.
 
 ## 11. Testing
 
-- JS tests: `node --test "frontend/assets/js/**/*.test.cjs"`; backend/API/DB tests: `tests/`.
+- JS frontend tests: `node --test "frontend/assets/js/**/*.test.cjs"`; mock dataset and DB tests: `node --test "tests/**/*.test.cjs"`; backend/API tests: `tests/`.
 - Use isolated test DBs/fixtures. Never delete real data to make a test pass.
 - Before closing any phase, verify:
   1. Register/login works and one account reaches both systems.
