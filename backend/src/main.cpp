@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "db_compat.h"
 
 struct Json {
     enum Type { Null, Bool, Number, String, Array, Object } type = Null;
@@ -80,7 +81,7 @@ static std::string handle(sqlite3*db,const std::string&method,const std::string&
  status=404;return errorJson("not found");
 }
 static bool initialize(sqlite3*db){
- std::ifstream f("database/schema.sql");if(!f){std::cerr<<"Cannot read database/schema.sql (run from project root)\n";return false;}std::stringstream schema;schema<<f.rdbuf();if(!exec(db,schema.str()))return false;
+ std::ifstream f("database/schema.sql");if(!f){std::cerr<<"Cannot read database/schema.sql (run from project root)\n";return false;}std::stringstream schema;schema<<f.rdbuf();if(!dbcompat::upgradeLegacySchema(db,schema.str(),"database/backups"))return false;if(!exec(db,schema.str()))return false;
  std::ifstream seed("database/seed.sql");if(seed){std::stringstream data;data<<seed.rdbuf();if(!exec(db,data.str()))return false;}
  sqlite3_stmt*q=nullptr;sqlite3_prepare_v2(db,"SELECT 1 FROM schema_migrations WHERE name='assessment_questions_csv_v1'",-1,&q,nullptr);bool seeded=sqlite3_step(q)==SQLITE_ROW;sqlite3_finalize(q);
  if(!seeded){std::ifstream questions("database/questions_seed.sql");if(!questions){std::cerr<<"Cannot read database/questions_seed.sql\n";return false;}std::stringstream data;data<<questions.rdbuf();if(!exec(db,data.str()))return false;if(!exec(db,"INSERT INTO schema_migrations(name) VALUES('assessment_questions_csv_v1')"))return false;}

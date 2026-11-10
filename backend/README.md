@@ -466,3 +466,16 @@ the project configuration.
 -   ไม่ควร Commit ข้อมูลประเมินส่วนตัวหรือไฟล์ Build ในเครื่องขึ้น Git
     เว้นแต่ตั้งใจให้เป็นส่วนหนึ่งของโปรเจกต์
 
+### ฐานข้อมูลเก่า: `table users has no column named display_name` (หรือ "no column named …")
+
+ไฟล์ `database/evaluator.db` ไม่ได้อยู่ใน Git ทุกคนจึงมีไฟล์ของตัวเอง และ `CREATE TABLE IF NOT EXISTS` ไม่เพิ่มคอลัมน์ให้ตารางที่มีอยู่แล้ว
+
+ตอนนี้ backend จัดการให้อัตโนมัติ: ก่อนใช้ `schema.sql` จะเทียบตารางในไฟล์ DB กับ schema ปัจจุบัน
+ถ้าขาดคอลัมน์ที่เพิ่มได้ จะ **สำรองไฟล์ไว้ที่ `database/backups/evaluator.db.pre-schema-upgrade-<วันเวลา>.bak`** แล้วเพิ่มคอลัมน์ให้ ข้อมูลเดิมไม่ถูกลบ
+ถ้าอัปเกรดอัตโนมัติไม่ได้ จะไม่แก้อะไรเลยและแจ้งรายการที่ไม่ตรงในหน้าต่างคำสั่ง ให้สำรอง `database/evaluator.db` แล้วลบทิ้ง
+จากนั้นเปิด backend ใหม่ จะสร้างฐานข้อมูลใหม่จาก `database/schema.sql` และ `database/seed.sql`
+
+หลัง `git pull` ที่มีการแก้ `backend/src` ต้อง build backend ใหม่ทุกครั้ง (ไฟล์ `.exe` ไม่อยู่ใน Git)
+
+ทดสอบส่วนนี้: `cmake -S backend -B build -DEVALUATOR_BUILD_TESTS=ON` แล้ว build target `db_compat_test` และรันจากโฟลเดอร์รากของโปรเจกต์
+(หรือ `g++ -std=c++17 tests/backend/db_compat_test.cpp -lsqlite3 -o db_compat_test`)
