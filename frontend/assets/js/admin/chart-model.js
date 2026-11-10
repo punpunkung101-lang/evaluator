@@ -25,8 +25,9 @@
         const items = (Array.isArray(rows) ? rows : []).map(row => {
             const hasEff = row.effectivenessScore !== null && Number.isFinite(row.effectivenessScore);
             const effAfter = hasEff ? clamp(row.afterScore ?? row.effectivenessScore) : null;
-            const effBefore = hasEff && row.beforeScore !== null && Number.isFinite(row.beforeScore)
-                ? clamp(row.beforeScore)
+            const rawBefore = row.beforeScore !== undefined ? row.beforeScore : row.effectiveness?.beforeScore;
+            const effBefore = hasEff && rawBefore !== null && rawBefore !== undefined && Number.isFinite(rawBefore)
+                ? clamp(rawBefore)
                 : null;
 
             const hasSat = row.satisfactionAverage !== null && Number.isFinite(row.satisfactionAverage);

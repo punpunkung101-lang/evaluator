@@ -30,16 +30,6 @@
         return target.href;
     }
 
-    function meter(label, value, detail, className) {
-        const shown = value === null ? t("priority_no_data_value") : `${number(value)} / 100`;
-        const bar = value === null ? "" : '<span class="priority-meter-fill" style="width:' + Math.max(0, Math.min(100, value)) + '%"></span>';
-        const title = `${label}: ${shown}${detail ? ` · ${detail}` : ""}`;
-        return '<span class="priority-meter ' + className + (value === null ? " no-data" : "") + '" title="' + esc(title) + '">' +
-            '<span class="priority-meter-label">' + esc(label) + '</span>' +
-            '<span class="priority-meter-track" aria-hidden="true">' + bar + '</span>' +
-            '<span class="priority-meter-value">' + esc(shown) + "</span></span>";
-    }
-
     function recommendation(row) {
         if (row.status === "no-data") return t("priority_rec_no_data");
         if (row.lowSample || row.preliminary) return t("priority_rec_wait");
@@ -49,22 +39,19 @@
     }
 
     function renderChart(rows) {
-        const legend = '<div class="priority-chart-legend" aria-label="' + esc(t("priority_legend_aria")) + '">' +
-            '<span><i class="priority-legend-swatch effectiveness" aria-hidden="true"></i>' + t("priority_effectiveness") + '</span>' +
-            '<span><i class="priority-legend-swatch satisfaction" aria-hidden="true"></i>' + t("priority_satisfaction") + '</span></div>';
-        const columnHead = '<div class="priority-chart-head" aria-hidden="true"><span></span><span>' + t("priority_effectiveness") + '</span><span>' + t("priority_satisfaction") + "</span></div>";
-        const items = rows.map(row => {
-            const effectDetail = row.effectivenessScore === null ? "" : `${number(row.effectivenessScore)} / 100`;
-            const satDetail = row.satisfactionAverage === null ? "" : `${row.satisfactionAverage.toFixed(2)} / 5`;
-            const accessible = `${row.name} (${row.systemId}); ${t("priority_effectiveness")}: ${row.effectivenessScore === null ? t("priority_no_data_value") : effectDetail}; ${t("priority_satisfaction")}: ${row.satisfactionAverage === null ? t("priority_no_data_value") : `${satDetail}, ${number(row.satisfactionScore)} / 100`}; ${t(statusKey[row.status])}`;
-            return '<a class="priority-chart-row" role="listitem" href="' + esc(resultUrl(row.systemId)) + '" aria-label="' + esc(accessible) + '" title="' + esc(accessible) + '">' +
-                '<span class="priority-chart-system"><strong>' + esc(row.name) + '</strong><small>' + esc(row.systemId) + '</small></span>' +
-                meter(t("priority_effectiveness"), row.effectivenessScore, effectDetail, "effectiveness") +
-                meter(t("priority_satisfaction"), row.satisfactionScore, satDetail, "satisfaction") +
-                "</a>";
-        }).join("");
-        return '<section class="admin-panel priority-panel" aria-labelledby="priority-chart-title"><div class="priority-panel-heading"><div><h2 id="priority-chart-title">' + t("priority_chart_title") + '</h2><p>' + t("priority_chart_subtitle") + '</p></div>' + legend + '</div>' +
-            '<div class="priority-chart" aria-label="' + esc(t("priority_chart_aria")) + '">' + columnHead + '<div class="priority-chart-rows" role="list">' + items + '</div></div></section>';
+        const chartModel = window.AdminChartModel
+            ? window.AdminChartModel.computeSystemComparison(rows, window.ImprovementPriority?.CONFIG?.thresholds)
+            : null;
+        const chartHtml = chartModel && window.AdminCharts
+            ? window.AdminCharts.renderSystemComparison(chartModel, { resultUrl: id => resultUrl(id) })
+            : "";
+        return '<section class="admin-panel priority-panel" aria-labelledby="priority-chart-title">' +
+            '<div class="priority-panel-heading"><div>' +
+            '<h2 id="priority-chart-title">' + t("priority_chart_title") + '</h2>' +
+            '<p>' + t("priority_chart_subtitle") + '</p>' +
+            '</div></div>' +
+            chartHtml +
+            '</section>';
     }
 
     function renderTable(rows) {
