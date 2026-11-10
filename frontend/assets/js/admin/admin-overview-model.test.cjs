@@ -14,7 +14,7 @@ test('overview counts real submissions and unique evaluators across both systems
     assert.equal(model.evaluations.length, 1);
     assert.equal(model.evaluators.size, 1);
     assert.equal(model.excludedDemo, 1);
-    assert.deepEqual(model.systems.map(system => system.id), ['SYS001']);
+    assert.deepEqual(model.systems.map(system => system.id), ['SYS001', 'SYS002']);
     assert.equal(model.latestDate, '2026-01-02');
 });
 
@@ -23,9 +23,21 @@ test('legacy quantitative records use profile.id for unique evaluator counts', (
     assert.equal(model.evaluators.size, 1);
 });
 
-test('overview keeps a system visible when only one evaluation type exists', () => {
+test('overview keeps every catalog system visible, including systems without data', () => {
     const model = compute([{ id: 'SYS001' }, { id: 'SYS002' }], [], [{ systemId: 'SYS002', evaluatorId: 'u1' }]);
-    assert.deepEqual(model.systems.map(system => system.id), ['SYS002']);
+    assert.deepEqual(model.systems.map(system => system.id), ['SYS001', 'SYS002']);
     assert.equal(model.quantBySystem.has('SYS002'), false);
     assert.equal(model.satisfactionBySystem.get('SYS002').length, 1);
+    assert.equal(model.satisfactionBySystem.has('SYS001'), false);
+});
+
+test('overview counts marker-based mock submissions for the development banner', () => {
+    const model = compute(
+        [{ id: 'SYS001' }],
+        [{ id: 'mock-quant-SYS001-90000001', userId: '90000001', systemId: 'SYS001' }],
+        [{ id: 'mock-eval-SYS001-90000001', evaluatorId: '90000001', systemId: 'SYS001' }]
+    );
+    assert.equal(model.mockQuant.length, 1);
+    assert.equal(model.mockEvaluations.length, 1);
+    assert.equal(model.mockCount, 2);
 });

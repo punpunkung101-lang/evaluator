@@ -52,6 +52,9 @@
     --info-border: #bae6fd;
     --info-text: #0369a1;
 
+    --chart-effectiveness: #0072b2;
+    --chart-satisfaction: #9a4e00;
+
     /* Geometry & Spacing */
     --radius-sm: 6px;
     --radius-md: 10px;
@@ -134,6 +137,9 @@ body.dark {
     --info-bg:          #0c2a3e;
     --info-border:      #0369a1;
     --info-text:        #bae6fd;
+
+    --chart-effectiveness: #56b4e9;
+    --chart-satisfaction: #f0a202;
 
     /* Dark theme tokens from styles.css */
     --heading: #a9ceff;

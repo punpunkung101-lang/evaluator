@@ -230,6 +230,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล
             `;
             showStateBanner("error", dataFetchError || "ไม่สามารถเชื่อมต่อแหล่งข้อมูลภายนอกได้");
+        } else if (rawEvaluations.some(record => String(record?.id || "").startsWith("mock-"))) {
+            const mockCount = rawEvaluations.filter(record => String(record?.id || "").startsWith("mock-")).length;
+            const language = document.documentElement.lang === "en" ? "en" : "th";
+            const template = window.ThemeLang?.i18n?.[language]?.priority_mock_notice || "Development mock data ({count} submissions)";
+            dataStatusBadge.className = "data-badge";
+            dataStatusBadge.textContent = template.replace("{count}", String(mockCount));
+            hideStateBanner();
         } else if (rawEvaluations.length === 0) {
             dataStatusBadge.className = "data-badge";
             dataStatusBadge.innerHTML = `
