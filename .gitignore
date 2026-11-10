@@ -48,6 +48,7 @@ data-exports/
 
 # SQLite database files
 database/*.db
+!database/evaluator.db
 database/*.db-journal
 database/*.db-shm
 database/*.db-wal

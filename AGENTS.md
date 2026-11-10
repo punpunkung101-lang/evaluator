@@ -102,7 +102,7 @@ Requirements:
 ## 7. Shared Database
 
 - Location: `database/evaluator.db`; schema: `database/schema.sql` (SQLite, matching the existing backend).
-- Real data only. Never show mock data as real results; show a clear empty state when there are no submissions.
+- Production results must never present mock data as real. The tracked development baseline `database/evaluator.db` may contain marker-based mock data; the admin UI must label it clearly and reset only marked rows. Show a clear empty state when no submissions exist.
 - Assessment topics, questions and workflow steps are stored in the database, and admins can add / edit / delete / reorder / enable / disable them.
 - Store system code and display name in separate fields (`SYS001` + `รายชื่อบุคลากร`), never one combined string as an identifier.
 - Use primary/foreign keys and indexes. **No cascading deletes** that destroy historical results. Prefer deactivating over deleting.
@@ -148,7 +148,7 @@ For every task:
    - Work only on a feature branch (e.g. `Dev`, `phase-N-*`). Run `git branch --show-current` first; if it is `main` or `master`, stop and ask.
    - Commit after each finished sub-task, only when `node --test "frontend/assets/js/**/*.test.cjs"` is fully green (0 fail, 0 skip). Message format: `feat|fix|refactor|docs(scope): summary`.
    - To protect work before a risky change you may commit a red state with the prefix `wip-red:`.
-   - Stage only explicit paths (`git add <paths>`). Never `git add -A` or `git add .`. Check `git diff --cached --stat` before committing: no unrelated files (`.gitignore` edits, legacy folders, binaries, `.db`, `.exe`, `.bak`, `node_modules`) and no line-ending-only changes.
+   - Stage only explicit paths (`git add <paths>`). Never `git add -A` or `git add .`. Check `git diff --cached --stat` before committing: no unrelated files (legacy folders, binaries, `.db` files other than the explicitly authorized `database/evaluator.db` development mock baseline, `.exe`, `.bak`, `node_modules`) and no line-ending-only changes.
    - **Never run:** `git push`, `git reset`, `git rebase`, `git checkout -- <file>`, `git restore`, `git stash`, `git clean`, `git branch -D`, any `--force` or `--no-verify` option, or any other command that discards work or rewrites history. Do not use a discard/undo action to "clean up" the working tree.
    - Do not amend or squash commits. The user squashes later if wanted.
 6. Report: files changed, behavior changed, tests run + results, remaining issues.
