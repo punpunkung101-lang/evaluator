@@ -56,6 +56,15 @@
 
     --chart-effectiveness: #0072b2;
     --chart-satisfaction: #9a4e00;
+    --chart-before: #334155;
+    --chart-level-1: #b91c1c;
+    --chart-level-2: #c2410c;
+    --chart-level-3: #475569;
+    --chart-level-4: #0273a8;
+    --chart-level-5: #0072b2;
+    --chart-grid: #64748b;
+    --chart-axis: #334155;
+    --chart-track: #8494a7;
 
     /* Geometry & Spacing */
     --radius-sm: 6px;
@@ -150,6 +159,24 @@ body.dark {
 
     --chart-effectiveness: #56b4e9;
     --chart-satisfaction: #f0a202;
+    --chart-before: #f2f7fc;
+    --chart-level-1: #ff8585;
+    --chart-level-2: #ffb066;
+    --chart-level-3: #c6d7e8;
+    --chart-level-4: #75d3ff;
+    --chart-level-5: #38bdf8;
+    --chart-grid: #65809c;
+    --chart-axis: #c6d7e8;
+    --chart-track: #65809c;
+    --chart-before: #f1f5f9;
+    --chart-level-1: #f87171;
+    --chart-level-2: #fb923c;
+    --chart-level-3: #cbd5e1;
+    --chart-level-4: #7dd3fc;
+    --chart-level-5: #38bdf8;
+    --chart-grid: #64748b;
+    --chart-axis: #cbd5e1;
+    --chart-track: #64748b;
 
     /* Dark theme tokens from styles.css */
     --heading: #a9ceff;
@@ -218,6 +245,15 @@ body.dark {
 
     --chart-effectiveness: #56b4e9;
     --chart-satisfaction: #f0a202;
+    --chart-before: #f2f7fc;
+    --chart-level-1: #ff8585;
+    --chart-level-2: #ffb066;
+    --chart-level-3: #c6d7e8;
+    --chart-level-4: #75d3ff;
+    --chart-level-5: #38bdf8;
+    --chart-grid: #65809c;
+    --chart-axis: #c6d7e8;
+    --chart-track: #65809c;
 
     --heading: #c1dcff;
     --navy: #0d2743;
