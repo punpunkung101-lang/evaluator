@@ -30,11 +30,11 @@ function randomHex(rng, length) {
 // Fixed 40 mock accounts
 function generateMockUsers(rng) {
     const existingFive = [
-        { id: '90000001', username: 'mock_evaluator_01', displayName: 'ผู้ประเมินตัวอย่าง 01', role: 'teacher', hash: '0465287cd53b077b6e2150f54a1fbd60e75e64fcdd00e92d16b61082932cdb55', salt: '67bf9c05e5b47e76055c6a20ad21c43a8fa1d134cc395b58d4467bcf80e7f6aa', iter: 120000 },
-        { id: '90000002', username: 'mock_evaluator_02', displayName: 'ผู้ประเมินตัวอย่าง 02', role: 'staff', hash: '71f2f48b55a58ea7cce8f7a7a25d06e07c659b3e0abe1c2bf5d0754b6925cc01', salt: '670688480b2e1b2b392e230ea91c47cf440625e231a1997a2fa3c6ffedf8aa55', iter: 120000 },
-        { id: '90000003', username: 'mock_evaluator_03', displayName: 'ผู้ประเมินตัวอย่าง 03', role: 'student', hash: 'd6c88e95c5f8c211466c6bb3d136d364f49f6e9e3c83400bd4161e617e63fb03', salt: '117972e9c25308044aab33d5f9b96b96b67ca2b6f7c456dc5ca201d6d892f040', iter: 120000 },
-        { id: '90000004', username: 'mock_evaluator_04', displayName: 'ผู้ประเมินตัวอย่าง 04', role: 'teacher', hash: 'f8db6a63a0e3eb11364de51b03756d6d00a1898d9dd0b56b443be0db0cf8cf32', salt: '3aadc7730087b3d1d8d05650a3714cb1050464c47172e294d72df5ea06761609', iter: 120000 },
-        { id: '90000005', username: 'mock_evaluator_05', displayName: 'ผู้ประเมินตัวอย่าง 05', role: 'staff', hash: '871486000799ae0e699ede249182a04a6049aebd56b476776506e02989c00765', salt: '78950edfb7abc45b8325e80f4408c5b54e5c540b2466177d98e285a7ec341a86', iter: 120000 }
+        { id: '90000001', username: 'mock_evaluator_01', displayName: 'ผู้ประเมิน 01', role: 'teacher', hash: '0465287cd53b077b6e2150f54a1fbd60e75e64fcdd00e92d16b61082932cdb55', salt: '67bf9c05e5b47e76055c6a20ad21c43a8fa1d134cc395b58d4467bcf80e7f6aa', iter: 120000 },
+        { id: '90000002', username: 'mock_evaluator_02', displayName: 'ผู้ประเมิน 02', role: 'staff', hash: '71f2f48b55a58ea7cce8f7a7a25d06e07c659b3e0abe1c2bf5d0754b6925cc01', salt: '670688480b2e1b2b392e230ea91c47cf440625e231a1997a2fa3c6ffedf8aa55', iter: 120000 },
+        { id: '90000003', username: 'mock_evaluator_03', displayName: 'ผู้ประเมิน 03', role: 'student', hash: 'd6c88e95c5f8c211466c6bb3d136d364f49f6e9e3c83400bd4161e617e63fb03', salt: '117972e9c25308044aab33d5f9b96b96b67ca2b6f7c456dc5ca201d6d892f040', iter: 120000 },
+        { id: '90000004', username: 'mock_evaluator_04', displayName: 'ผู้ประเมิน 04', role: 'teacher', hash: 'f8db6a63a0e3eb11364de51b03756d6d00a1898d9dd0b56b443be0db0cf8cf32', salt: '3aadc7730087b3d1d8d05650a3714cb1050464c47172e294d72df5ea06761609', iter: 120000 },
+        { id: '90000005', username: 'mock_evaluator_05', displayName: 'ผู้ประเมิน 05', role: 'staff', hash: '871486000799ae0e699ede249182a04a6049aebd56b476776506e02989c00765', salt: '78950edfb7abc45b8325e80f4408c5b54e5c540b2466177d98e285a7ec341a86', iter: 120000 }
     ];
 
     const users = [...existingFive];
@@ -46,7 +46,7 @@ function generateMockUsers(rng) {
         users.push({
             id,
             username: `mock_evaluator_${numStr}`,
-            displayName: `ผู้ประเมินตัวอย่าง ${numStr}`,
+            displayName: `ผู้ประเมิน ${numStr}`,
             role,
             hash: randomHex(rng, 64),
             salt: randomHex(rng, 64),

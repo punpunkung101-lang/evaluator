@@ -77,3 +77,26 @@ g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evalu
 ### ข้อควรระวังสำหรับเพื่อนร่วมทีม
 
 DB นี้ถูก track ใน Git แล้ว backend จะแก้ไฟล์เมื่อมีการล็อกอิน (`auth_sessions`) ห้าม `git add` ไฟล์ DB ที่ใช้งานแล้ว ก่อน commit ต้องไม่มีไฟล์ DB ใน stage เว้นแต่ตั้งใจรีเฟรช mock และตรวจ `auth_sessions` ว่าง, ถ้า `git pull` ติดเพราะ DB ในเครื่องเปลี่ยน ให้สำรองไฟล์ก่อนแล้ว `git restore`
+
+### ทำชุดสาธิตซ้ำจาก clean clone
+
+เครื่อง Windows ต้องมี Git, Node.js 22.13 ขึ้นไป (ใช้ `node:sqlite`), MSYS2 UCRT64 `g++` และ SQLite development package ตาม [คู่มือ backend](backend/README.md) รวมถึง Python 3 สำหรับตรวจผลฐานข้อมูล
+
+จาก root ของ clone:
+
+```powershell
+g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evaluator_backend.exe
+Remove-Item database/evaluator.db
+.\backend\evaluator_backend.exe
+```
+
+รอให้ backend สร้าง DB และแสดงข้อความ listening แล้วหยุด backend ด้วย Ctrl+C จากนั้น seed mock และเริ่ม backend ใหม่:
+
+```powershell
+sqlite3 database/evaluator.db ".read database/mock/mock-data.sql"
+.\backend\evaluator_backend.exe
+```
+
+เปิดอีก terminal แล้วตรวจ `Invoke-RestMethod http://127.0.0.1:8080/health` ว่าได้ `status: ok`; เปิด Live Server จาก root เพื่อเข้า `http://127.0.0.1:5500/frontend/admin/dashboard.html` และล็อกอินด้วย Admin ก่อนดูผล mock แบนเนอร์บนหน้า Admin ระบุว่าข้อมูลเป็นข้อมูลจำลอง สคริปต์ `node database/mock/generate-mock-data.cjs` สร้าง SQL ซ้ำได้แบบ deterministic โดยไม่ต้องใช้ dependency เพิ่ม
+
+การ clean-clone verification ทำใน clone แยกจาก commit แล้ว: build ด้วยคำสั่ง g++ ด้านบน, ลบ DB เฉพาะใน clone เพื่อให้ backend สร้าง schema/seed ใหม่ แล้วรัน SQL mock ตามคำสั่งนี้ การตรวจหน้าเว็บด้วย viewport จริงอาจต้องทำด้วยตนเอง; อย่าคัดลอก DB หรือไฟล์ที่ไม่อยู่ใน Git จากเครื่องต้นทาง

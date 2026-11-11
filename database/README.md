@@ -8,6 +8,8 @@
 
 submission จำลองใช้ ID ขึ้นต้น `mock-` ครอบคลุม 21 ระบบ โดยแต่ละระบบสุ่ม 10–20 ผู้ประเมิน (แยกกันระหว่างประสิทธิผลและความพึงพอใจ) ยกเว้น SYS019/SYS020 (ไม่มีข้อมูล), SYS017 (ประสิทธิผลอย่างเดียว) และ SYS018 (ความพึงพอใจอย่างเดียว) วันที่กระจายครอบคลุมทุกเดือนพฤษภาคม–พฤศจิกายน 2569 ข้อมูลนี้ใช้พัฒนาและตรวจหน้าจอเท่านั้น ห้ามรายงานว่าเป็นผลจริงของคณะ
 
+ชื่อแสดงของบัญชี mock ถูกจำกัดไม่เกิน 20 ตัวอักษรตาม CHECK constraint ของ schema เพื่อให้ seed ทำงานได้กับ DB ที่สร้างใหม่
+
 ไฟล์สคริปต์และ SQL ที่เกี่ยวข้อง:
 
 - `database/mock/generate-mock-data.cjs` สคริปต์ Node.js แบบ deterministic สำหรับสร้างชุดข้อมูล mock และเขียนไฟล์ SQL
@@ -38,6 +40,24 @@ sqlite3 database/evaluator.db < database/mock/reset-mock-data.sql
 ```
 
 *(หรือเปิด `database/evaluator.db` ใน DB Browser for SQLite แล้ว Execute SQL ไฟล์ `database/mock/reset-mock-data.sql`)*
+
+### สร้างชุด mock บนฐานข้อมูลใหม่จาก clean clone
+
+หลัง clone ให้ build และเปิด backend หนึ่งครั้งเพื่อสร้าง schema, Admin, systems และคำถาม จากนั้นหยุด backend แล้วโหลดชุด mock ที่ติดตามใน Git:
+
+```powershell
+g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evaluator_backend.exe
+Remove-Item database/evaluator.db
+.\backend\evaluator_backend.exe
+```
+
+เมื่อ backend เริ่มฟังแล้ว กด Ctrl+C แล้วรัน:
+
+```powershell
+sqlite3 database/evaluator.db ".read database/mock/mock-data.sql"
+```
+
+เปิด backend ใหม่จาก root และเปิด frontend ผ่าน Live Server จาก root ตาม README หลัก การสร้าง SQL แบบ deterministic ใช้ `node database/mock/generate-mock-data.cjs` (ต้องใช้ Node.js ที่รองรับ `node:sqlite`) โดยไม่เพิ่ม dependency
 
 **ผลการทดสอบจริงกับสำเนาโปรเจกต์ (ก่อน / หลัง รันคำสั่ง):**
 - ตาราง `users`: ก่อน **41** แถว (Admin + 40 mock) $\rightarrow$ หลัง **1** แถว (เหลือเฉพาะ Admin `00000000`)
