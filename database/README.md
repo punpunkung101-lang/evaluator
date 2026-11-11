@@ -59,6 +59,8 @@ sqlite3 database/evaluator.db ".read database/mock/mock-data.sql"
 
 เปิด backend ใหม่จาก root และเปิด frontend ผ่าน Live Server จาก root ตาม README หลัก การสร้าง SQL แบบ deterministic ใช้ `node database/mock/generate-mock-data.cjs` (ต้องใช้ Node.js ที่รองรับ `node:sqlite`) โดยไม่เพิ่ม dependency
 
+**ผล clean-clone verification (11 พฤศจิกายน 2569):** สร้าง clone แยกจาก commit แล้ว build ด้วย g++ สำเร็จ; backend สร้าง fresh DB ได้ 1 Admin, 21 systems และ 315 questions; generator รันสองครั้งได้ SQL SHA-256 ตรงกัน; หลัง import ได้ `integrity_check=ok`, foreign key violations 0, users 41, evaluations/satisfactions 279, assessment_answers 6,675, quantitative_records 284 และ auth_sessions 0 ก่อนทดสอบ login. Backend `/health` ตอบ `ok`, Admin login ผ่าน และ authenticated API คืน 284 quantitative กับ 279 evaluations. HTML หน้า portal/dashboard/results และ assets CSS/JS หลักตอบ HTTP 200. **ยังไม่ได้ตรวจการแสดงผล dashboard ใน browser จริง** จึงต้องตรวจกราฟและหน้า Admin ด้วยสายตาก่อนสาธิต
+
 **ผลการทดสอบจริงกับสำเนาโปรเจกต์ (ก่อน / หลัง รันคำสั่ง):**
 - ตาราง `users`: ก่อน **41** แถว (Admin + 40 mock) $\rightarrow$ หลัง **1** แถว (เหลือเฉพาะ Admin `00000000`)
 - ตาราง `evaluations`: ก่อน **279** แถว $\rightarrow$ หลัง **0** แถว
