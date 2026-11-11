@@ -15,42 +15,65 @@ submission จำลองใช้ ID ขึ้นต้น `mock-` ครอ�
 - `database/mock/reset-mock-data.sql` ลบข้อมูลจำลองและผู้ใช้ `mock_*` ทั้งหมด โดยคง Admin, ระบบ, คำถาม และข้อมูลจริงไว้
 - `database/mock/baseline-statuses.json` บันทึกสถานะ baseline ของทั้ง 21 ระบบ เพื่อพิสูจน์ว่าการสุ่ม 10–20 คนไม่ทำให้สถานะของระบบใดเปลี่ยน
 
-## รีเซ็ตผลประเมินให้เป็นศูนย์
+## การจัดการและรีเซ็ตข้อมูลผลประเมิน
 
-**วิธี 1: สร้างฐานข้อมูลเริ่มต้นใหม่**
+เลือกวิธีการตามลักษณะงานที่ต้องการ:
 
-1. ปิด Backend
-2. สำรองไฟล์ที่ต้องการเก็บ แล้วลบ `database/evaluator.db`
-3. เปิด Backend จาก root ของ repo Backend จะสร้าง DB ใหม่จาก schema และ seed
-4. ตรวจว่า `evaluations`, `satisfactions`, `assessment_answers` และ `quantitative_records` เป็นศูนย์; users เหลือ Admin และยังมี 21 ระบบ
+### (ก) กลับชุดข้อมูล mock ล่าสุด (จาก Git Baseline)
 
-ผลการทดสอบจริงกับสำเนาโฟลเดอร์ชั่วคราว: Backend สร้าง DB ใหม่สมบูรณ์, users เหลือ 1 รายการ (`Admin`), systems 21 รายการ, assessment_questions 571 รายการ, auth_sessions 0 รายการ และ evaluations/satisfactions/assessment_answers/quantitative_records เป็น 0
-
-**วิธี 2: ใช้ sqlite3 รัน reset script** จาก root ของ repo:
-
-```powershell
-sqlite3 database/evaluator.db ".read database/mock/reset-mock-data.sql"
-```
-
-ผลการทดสอบจริงกับสำเนา DB: users จาก 41 เหลือ 1 (เฉพาะ Admin `00000000`), evaluations จาก 279 เหลือ 0, quantitative_records จาก 284 เหลือ 0, assessment_answers จาก 6675 เหลือ 0, systems ยังคง 21 ระบบ และคำถามยังคง 571 รายการ
-
-**วิธี 3: ใช้ DB Browser for SQLite**
-
-เปิด `database/evaluator.db`, เลือก Execute SQL, เปิดและรันเนื้อหา `database/mock/reset-mock-data.sql`, แล้วกด Write Changes
-
-## กู้สถานะ mock ล่าสุดกลับมา
-
-หากต้องการกู้ชุดข้อมูล mock กลับมาเป็น baseline ล่าสุด:
+หากทดลองประเมินหรือแก้ไขข้อมูลไปแล้วต้องการคืนค่าฐานข้อมูลพัฒนาที่มี mock 10–20 คนต่อระบบกลับมาตาม baseline ล่าสุด:
 
 ```powershell
 git restore database/evaluator.db
 ```
 
-หรือสร้างชุด mock ใหม่ด้วยสคริปต์:
+*(หรือสร้างชุด mock ขึ้นใหม่ด้วยคำสั่ง `node database/mock/generate-mock-data.cjs`)*
+
+### (ข) ลบเฉพาะข้อมูลจำลอง (Mock Data) ออกจากฐานข้อมูล
+
+ใช้คำสั่งรันสคริปต์ `reset-mock-data.sql` เพื่อลบเฉพาะแถวจำลอง (ที่มี marker `mock-*` / `mock_*`) โดยรักษาบัญชีผู้ดูแลระบบ รายชื่อระบบ และคำถามทั้งหมดไว้:
 
 ```powershell
-node database/mock/generate-mock-data.cjs
+sqlite3 database/evaluator.db < database/mock/reset-mock-data.sql
 ```
+
+*(หรือเปิด `database/evaluator.db` ใน DB Browser for SQLite แล้ว Execute SQL ไฟล์ `database/mock/reset-mock-data.sql`)*
+
+**ผลการทดสอบจริงกับสำเนาโปรเจกต์ (ก่อน / หลัง รันคำสั่ง):**
+- ตาราง `users`: ก่อน **41** แถว (Admin + 40 mock) $\rightarrow$ หลัง **1** แถว (เหลือเฉพาะ Admin `00000000`)
+- ตาราง `evaluations`: ก่อน **279** แถว $\rightarrow$ หลัง **0** แถว
+- ตาราง `satisfactions`: ก่อน **279** แถว $\rightarrow$ หลัง **0** แถว
+- ตาราง `quantitative_records`: ก่อน **284** แถว $\rightarrow$ หลัง **0** แถว
+- ตาราง `assessment_answers`: ก่อน **6,675** แถว $\rightarrow$ หลัง **0** แถว
+- ตาราง `auth_sessions`: ก่อน **0** แถว $\rightarrow$ หลัง **0** แถว
+- ตาราง `systems`: ก่อน **21** แถว $\rightarrow$ หลัง **21** แถว (คงเดิมทุกระบบ)
+- ตาราง `assessment_questions`: ก่อน **571** แถว $\rightarrow$ หลัง **571** แถว (คงเดิมทุกคำถาม)
+
+### (ค) ล้างฐานข้อมูลเป็นศูนย์อย่างสมบูรณ์ (Clean Zero State)
+
+เมื่อต้องการเริ่มต้นระบบใหม่จากศูนย์แท้จริง โดยให้ backend สร้างโครงสร้างและข้อมูลเริ่มต้นใหม่ทั้งหมด:
+
+1. ปิด Backend process
+2. ลบไฟล์ฐานข้อมูล:
+   ```powershell
+   Remove-Item database/evaluator.db
+   ```
+3. เปิด Backend จาก root ของ repo:
+   ```powershell
+   .\backend\evaluator_backend.exe
+   ```
+Backend จะสร้าง `evaluator.db` ใหม่ พร้อมรัน `schema.sql`, `seed.sql`, `questions_seed.sql` และ migrations โดยอัตโนมัติ
+
+**ผลการทดสอบจริงกับสำเนาโปรเจกต์ (หลัง backend สร้าง DB ใหม่):**
+- ตาราง `users`: **1** แถว (เฉพาะ Admin `00000000`)
+- ตาราง `systems`: **21** แถว (ครบ 21 ระบบตาม catalog)
+- ตาราง `assessment_questions`: **315** แถว (210 คำถาม active + 105 คำถาม de-duped)
+- ตาราง `evaluations`: **0** แถว
+- ตาราง `satisfactions`: **0** แถว
+- ตาราง `quantitative_records`: **0** แถว
+- ตาราง `assessment_answers`: **0** แถว
+- ตาราง `auth_sessions`: **0** แถว
+- ตาราง `schema_migrations`: **2** แถว (`assessment_questions_csv_v1`, `assessment_questions_dedupe_v2`)
 
 ## ข้อควรระวังสำหรับเพื่อนร่วมทีม
 

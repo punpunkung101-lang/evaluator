@@ -64,11 +64,15 @@ g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evalu
 
 บัญชีผู้ดูแลเริ่มต้น: username `Admin`, password `00000000`, ID `00000000` (role `admin`) ส่วนการสมัครทั่วไปกำหนด ID 8 หลักอัตโนมัติ โดยเริ่มจาก `00000001`; username และชื่อที่ใช้แสดงรองรับไม่เกิน 20 ตัวอักษร
 
-## ข้อมูลตัวอย่างหน้า Admin
+## ข้อมูลตัวอย่างหน้า Admin และการรีเซ็ต
 
-`database/evaluator.db` ใน Git เป็น baseline สำหรับพัฒนาหน้า Admin และมี mock data ที่ติด marker ชัดเจน ครอบคลุม 21 ระบบ โดยแต่ละระบบสุ่ม 10–20 ผู้ประเมิน (จากกลุ่มผู้ใช้จำลอง 40 คน) ข้อมูลจำลองจะแสดงป้ายกำกับในหน้า Admin บัญชีที่ login ได้มีเพียง `Admin` / `00000000`; ผู้ใช้ `mock_*` ไม่มีรหัสผ่านที่ใช้งานได้
+`database/evaluator.db` ใน Git เป็น baseline สำหรับพัฒนาหน้า Admin และมี mock data ที่ติด marker ชัดเจน ครอบคลุม 21 ระบบ โดยแต่ละระบบสุ่ม 10–20 ผู้ประเมิน (จากกลุ่มผู้ใช้จำลอง 40 คน) ยกเว้น SYS019/SYS020 (ไม่มีข้อมูล), SYS017 (ประสิทธิผลอย่างเดียว) และ SYS018 (ความพึงพอใจอย่างเดียว) บัญชีที่ login ได้มีเพียง `Admin` / `00000000`; ผู้ใช้ `mock_*` ไม่มีรหัสผ่านที่ใช้งานได้
 
-ดูวิธีรีเซ็ตผลประเมินเป็นศูนย์, สร้าง DB เริ่มต้นใหม่, และใส่ mock data กลับได้ที่ [`database/README.md`](database/README.md) หรือรัน `database/mock/reset-mock-data.sql` / `database/mock/mock-data.sql` ผ่าน sqlite3 หรือ DB Browser for SQLite
+การจัดการข้อมูลในฐานข้อมูล:
+- **(ก) กลับ mock ล่าสุด:** `git restore database/evaluator.db`
+- **(ข) ลบเฉพาะ mock:** `sqlite3 database/evaluator.db < database/mock/reset-mock-data.sql`
+- **(ค) ล้างเป็นศูนย์:** ลบ `database/evaluator.db` แล้วเปิด backend ใหม่
+ดูรายละเอียดและจำนวนแถวที่ได้จากการทดสอบจริงได้ที่ [`database/README.md`](database/README.md)
 
 ### ข้อควรระวังสำหรับเพื่อนร่วมทีม
 
