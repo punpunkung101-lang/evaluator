@@ -88,6 +88,7 @@
                 id: user.id, username: user.username, displayName: user.displayName,
                 name: user.displayName || user.name, role: user.role
             } : null;
+            document.dispatchEvent(new root.CustomEvent("evaluator:authchange", { detail: { user: activeUser } }));
             this.bindAuthControls();
             document.querySelectorAll(".auth-control-wrap").forEach(wrapper => {
                 const control = wrapper.querySelector("[data-auth-control]");

@@ -45,6 +45,12 @@ test('the shared header has one theme and language control with Thai and English
     assert.doesNotMatch(locale, /q-admin-language|ev-theme/, 'page locale must not target the removed header controls');
 });
 
+test('the shared header updates admin and guest navigation on auth changes without reload', () => {
+    const header = fs.readFileSync(path.join(root, 'frontend/assets/js/layout/site-header.js'), 'utf8');
+    assert.match(header, /document\.addEventListener\("evaluator:authchange",\s*event\s*=>\s*\{[\s\S]*?activeUser\s*=\s*event\.detail\?\.user\s*\|\|\s*null;[\s\S]*?renderHeaderNavigation\(navigation,\s*activeUser\?\.role\s*===\s*"admin"\s*\?\s*"admin"\s*:\s*activeUser\s*\?\s*"user"\s*:\s*"guest",\s*contactDialogId\);/);
+    assert.doesNotMatch(header, /evaluator:authchange[\s\S]{0,500}location\.(?:reload|assign)/);
+});
+
 test('the homepage uses the shared system catalog instead of a duplicate list', () => {
     const html = fs.readFileSync(path.join(root, 'frontend/user/index.html'), 'utf8');
     const app = fs.readFileSync(path.join(root, 'frontend/assets/js/user/app.js'), 'utf8');

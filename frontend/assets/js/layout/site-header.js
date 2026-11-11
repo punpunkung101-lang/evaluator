@@ -221,6 +221,10 @@
 
         const languageButton = header.querySelector("#language-toggle");
         let activeUser = null;
+        document.addEventListener("evaluator:authchange", event => {
+            activeUser = event.detail?.user || null;
+            renderHeaderNavigation(navigation, activeUser?.role === "admin" ? "admin" : activeUser ? "user" : "guest", contactDialogId);
+        });
         const applyLanguage = lang => {
             const language = lang === "en" ? "en" : "th";
             document.documentElement.lang = language;

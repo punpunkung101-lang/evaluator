@@ -8,6 +8,7 @@ const authSource = fs.readFileSync(path.resolve(__dirname, 'auth.js'), 'utf8');
 
 function createAuth(fetch) {
     const values = new Map();
+    const authEvents = [];
     const sessionStorage = {
         getItem: key => values.get(key) ?? null,
         setItem: (key, value) => values.set(key, String(value)),
@@ -17,11 +18,15 @@ function createAuth(fetch) {
         documentElement: { dataset: {} },
         querySelectorAll: () => [],
         getElementById: id => id === 'auth-control-styles' ? {} : null,
-        addEventListener: () => {}
+        addEventListener: () => {},
+        dispatchEvent: event => { authEvents.push(event); return true; }
     };
-    const context = { window: {}, document, sessionStorage, fetch, AbortController, setTimeout, clearTimeout, console };
+    const context = {
+        window: { CustomEvent: class CustomEvent { constructor(type, options) { this.type = type; this.detail = options.detail; } } },
+        document, sessionStorage, fetch, AbortController, setTimeout, clearTimeout, console
+    };
     vm.runInNewContext(authSource, context);
-    return { auth: context.window.EvaluatorAuth, sessionStorage };
+    return { auth: context.window.EvaluatorAuth, sessionStorage, authEvents };
 }
 
 function response(body, status = 200) {
@@ -71,6 +76,18 @@ test('logout clears the browser token and profile even when the request complete
     await auth.logout();
     assert.equal(sessionStorage.getItem('evaluatorToken'), null);
     assert.equal(sessionStorage.getItem('evaluatorProfile'), null);
+});
+
+test('rendering login and logout dispatches auth changes immediately for shared navigation', async () => {
+    const { auth, authEvents } = createAuth(async () => response({ success: true }));
+    await auth.renderAuthButton({ id: '00000000', username: 'Admin', displayName: 'Admin', role: 'admin' });
+    await auth.renderAuthButton(null);
+
+    assert.equal(authEvents.length, 2);
+    assert.equal(authEvents[0].type, 'evaluator:authchange');
+    assert.equal(authEvents[0].detail.user.role, 'admin');
+    assert.equal(authEvents[1].type, 'evaluator:authchange');
+    assert.equal(authEvents[1].detail.user, null);
 });
 
 test('the satisfaction landing page stays browsable before login and verifies only when starting', () => {
