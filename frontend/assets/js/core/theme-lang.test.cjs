@@ -29,18 +29,18 @@ function loadThemeController(storedTheme) {
     return window.ThemeLang;
 }
 
-test('theme normalization accepts the three themes and falls back for invalid or empty values', () => {
+test('theme normalization accepts light and dark and migrates legacy navy and falls back for invalid or empty values', () => {
     const themes = loadThemeController();
     assert.equal(themes.normalizeTheme('light'), 'light');
     assert.equal(themes.normalizeTheme('dark'), 'dark');
-    assert.equal(themes.normalizeTheme('navy'), 'navy');
+    assert.equal(themes.normalizeTheme('navy'), 'dark');
     assert.equal(themes.normalizeTheme('unknown'), 'light');
     assert.equal(themes.normalizeTheme(''), 'light');
     assert.equal(themes.normalizeTheme(null), 'light');
 });
 
 test('stored theme values normalize safely and unknown values use the light default', () => {
-    assert.equal(loadThemeController('navy').getTheme(), 'navy');
+    assert.equal(loadThemeController('navy').getTheme(), 'dark');
     assert.equal(loadThemeController('old-theme').getTheme(), 'light');
     assert.equal(loadThemeController('').getTheme(), 'light');
 });

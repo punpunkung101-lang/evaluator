@@ -102,8 +102,6 @@
 
 [data-theme="light"] { color-scheme: light; }
 [data-theme="dark"] { color-scheme: dark; }
-[data-theme="navy"] { color-scheme: dark; }
-
 /* ==========================================================================
    DARK THEME VARIABLES
    Activated when <html data-theme="dark"> or body.dark
@@ -187,77 +185,4 @@ body.dark {
     --ev-gold: #e5bb62;
 }
 
-[data-theme="navy"] {
-    --primary: #8bc4ff;
-    --primary-hover: #b2d9ff;
-    --primary-light: #1b3a5a;
-    --primary-border: #426b94;
-    --primary-focus: rgba(139, 196, 255, 0.35);
 
-    --secondary: #b3c7dc;
-    --secondary-hover: #d7e4f1;
-    --secondary-light: #193653;
-
-    --bg-page: #071a2f;
-    --bg-surface: #102a46;
-    --bg-subtle: #183654;
-    --bg-sidebar: #0b213a;
-    --bg-hover: #214363;
-
-    --text-primary: #f2f7fc;
-    --text-secondary: #c6d7e8;
-    --text-muted: #a5bdd5;
-    --text-disabled: #7892ac;
-
-    --border: #31506f;
-    --border-strong: #4b6b8a;
-    --border-focus: #8bc4ff;
-
-    --success: #54d6a4;
-    --success-bg: #103d3b;
-    --success-border: #276f62;
-    --success-text: #8be6c2;
-
-    --warning: #ffc45c;
-    --warning-bg: #49370f;
-    --warning-border: #836224;
-    --warning-text: #ffd98d;
-
-    --danger: #ff8585;
-    --danger-bg: #4b202b;
-    --danger-border: #823746;
-    --danger-text: #ffb1b1;
-    --danger-border-strong: #bd5262;
-
-    --info: #75d3ff;
-    --info-bg: #123a53;
-    --info-border: #286382;
-    --info-text: #a7e6ff;
-
-    --chart-effectiveness: #56b4e9;
-    --chart-satisfaction: #f0a202;
-    --chart-before: #f2f7fc;
-    --chart-level-1: #ff8585;
-    --chart-level-2: #ffc078;
-    --chart-level-3: #8aa0be;
-    --chart-level-4: #75d3ff;
-    --chart-level-5: #0284c7;
-    --chart-grid: #65809c;
-    --chart-axis: #c6d7e8;
-    --chart-track: #65809c;
-
-    --heading: #c1dcff;
-    --navy: #0d2743;
-    --navy-deep: #06172a;
-    --gold: #f1c86d;
-    --ink: #eaf2fb;
-    --muted: #a5bdd5;
-    --surface: #102a46;
-    --soft: #183654;
-    --line: #31506f;
-    --shadow: 0 14px 35px rgba(0, 0, 0, 0.4);
-
-    --ev-navy: #0d2743;
-    --ev-royal: #1b4268;
-    --ev-gold: #f1c86d;
-}

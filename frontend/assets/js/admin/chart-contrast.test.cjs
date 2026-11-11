@@ -87,7 +87,7 @@ function parseTokens(cssContent) {
     return themes;
 }
 
-test('tokens.css contains required chart tokens for all three themes and passes WCAG contrast', () => {
+test('tokens.css contains required chart tokens for all two themes and passes WCAG contrast', () => {
     const cssPath = path.resolve(__dirname, '../../css/tokens.css');
     const cssContent = fs.readFileSync(cssPath, 'utf8');
     const themes = parseTokens(cssContent);
@@ -106,7 +106,7 @@ test('tokens.css contains required chart tokens for all three themes and passes 
         '--chart-track'
     ];
 
-    const themeNames = ['light', 'dark', 'navy'];
+    const themeNames = ['light', 'dark'];
     for (const theme of themeNames) {
         assert.ok(themes[theme]['--bg-surface'], `Missing --bg-surface in theme ${theme}`);
         for (const token of requiredTokens) {
@@ -146,11 +146,11 @@ test('tokens.css contains required chart tokens for all three themes and passes 
     assert.equal(failures.length, 0, `Contrast failures:\n${failures.join('\n')}`);
 });
 
-test('adjacent chart levels have contrast >= 1.3:1 and levels have >= 3.0:1 vs --bg-surface across all three themes', () => {
+test('adjacent chart levels have contrast >= 1.3:1 and levels have >= 3.0:1 vs --bg-surface across all two themes', () => {
     const cssPath = path.resolve(__dirname, '../../css/tokens.css');
     const cssContent = fs.readFileSync(cssPath, 'utf8');
     const themes = parseTokens(cssContent);
-    const themeNames = ['light', 'dark', 'navy'];
+    const themeNames = ['light', 'dark'];
     const levelTokens = [
         '--chart-level-1',
         '--chart-level-2',
