@@ -36,7 +36,11 @@ const EvaluationAPI = {
             throw new Error(`ไม่สามารถเชื่อมต่อ C++ Backend (${API_CONFIG.backendBaseUrl}): ${error.message}`);
         }
         const body = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(body.error || `Backend ตอบกลับ HTTP ${response.status}`);
+        if (!response.ok) {
+            const error = new Error(body.error || `Backend ตอบกลับ HTTP ${response.status}`);
+            error.status = response.status;
+            throw error;
+        }
         return body;
     },
 

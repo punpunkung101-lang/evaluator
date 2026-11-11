@@ -3,6 +3,18 @@
  * Faculty of Allied Health Sciences, Naresuan University
  */
 
+function getSatisfactionSubmissionFailureReason(error) {
+    if (error?.status === 401) return "เซสชันหมดอายุ กรุณาเข้าสู่ระบบอีกครั้ง";
+
+    const message = String(error?.message || "");
+    if (/(ไม่สามารถเชื่อมต่อ C\+\+ Backend|Failed to fetch|NetworkError|ERR_CONNECTION_REFUSED|ECONNREFUSED|Load failed)/i.test(message)) {
+        const baseUrl = window.API_CONFIG?.backendBaseUrl || window.EvaluatorAPIBaseUrl || "http://127.0.0.1:8080";
+        return `ไม่สามารถเชื่อมต่อ backend ที่ ${baseUrl} ได้ กรุณาเริ่ม backend จาก repository root`;
+    }
+
+    return error?.message || "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ";
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
 
     // อ่านรหัสระบบจาก URL
@@ -406,8 +418,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             sessionStorage.removeItem(progressKey);
             finished = true;
             renderSummary(summary, true);
-        } catch {
-            error.textContent = label("บันทึกผลไม่สำเร็จ กรุณาลองอีกครั้ง", "Could not save your assessment. Please try again.");
+        } catch (submissionError) {
+            console.error("[Satisfaction] Submission failed", submissionError);
+            error.textContent = `${label("บันทึกผลไม่สำเร็จ กรุณาลองอีกครั้ง", "Could not save your assessment. Please try again.")} ${getSatisfactionSubmissionFailureReason(submissionError)}`;
             submitBtn.disabled = false;
         }
     });
