@@ -145,3 +145,54 @@ test('tokens.css contains required chart tokens for all three themes and passes 
 
     assert.equal(failures.length, 0, `Contrast failures:\n${failures.join('\n')}`);
 });
+
+test('adjacent chart levels have contrast >= 1.3:1 and levels have >= 3.0:1 vs --bg-surface across all three themes', () => {
+    const cssPath = path.resolve(__dirname, '../../css/tokens.css');
+    const cssContent = fs.readFileSync(cssPath, 'utf8');
+    const themes = parseTokens(cssContent);
+    const themeNames = ['light', 'dark', 'navy'];
+    const levelTokens = [
+        '--chart-level-1',
+        '--chart-level-2',
+        '--chart-level-3',
+        '--chart-level-4',
+        '--chart-level-5'
+    ];
+
+    const adjacentReport = [];
+    const failures = [];
+
+    for (const theme of themeNames) {
+        const surfaceHex = themes[theme]['--bg-surface'];
+        for (const token of levelTokens) {
+            const hex = themes[theme][token];
+            const ratio = contrastRatio(hex, surfaceHex);
+            if (ratio < 3.0) {
+                failures.push(`${token} in ${theme} (${hex} on ${surfaceHex}) has contrast ${ratio.toFixed(2)}:1, expected >= 3.0:1`);
+            }
+        }
+
+        for (let i = 0; i < levelTokens.length - 1; i++) {
+            const t1 = levelTokens[i];
+            const t2 = levelTokens[i + 1];
+            const hex1 = themes[theme][t1];
+            const hex2 = themes[theme][t2];
+            const ratio = contrastRatio(hex1, hex2);
+            const ratioFormatted = ratio.toFixed(2);
+            adjacentReport.push({
+                theme,
+                pair: `${t1} vs ${t2}`,
+                colors: `${hex1} vs ${hex2}`,
+                contrast: `${ratioFormatted}:1`
+            });
+            if (ratio < 1.30) {
+                failures.push(`${t1} vs ${t2} in ${theme} theme (${hex1} vs ${hex2}) has contrast ${ratioFormatted}:1, required >= 1.3:1`);
+            }
+        }
+    }
+
+    console.log('\n=== Adjacent Chart Level Contrast Report (Required >= 1.3:1) ===');
+    console.table(adjacentReport);
+
+    assert.equal(failures.length, 0, `Adjacent level contrast failures:\n${failures.join('\n')}`);
+});
