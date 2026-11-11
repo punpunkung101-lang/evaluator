@@ -23,14 +23,21 @@
      */
     function computeSystemComparison(rows, thresholds) {
         const items = (Array.isArray(rows) ? rows : []).map(row => {
-            const hasEff = row.effectivenessScore !== null && Number.isFinite(row.effectivenessScore);
-            const effAfter = hasEff ? clamp(row.afterScore ?? row.effectivenessScore) : null;
-            const rawBefore = row.beforeScore !== undefined ? row.beforeScore : row.effectiveness?.beforeScore;
-            const effBefore = hasEff && rawBefore !== null && rawBefore !== undefined && Number.isFinite(rawBefore)
-                ? clamp(rawBefore)
-                : null;
+            const rawAfter = row.afterScore !== undefined && row.afterScore !== null
+                ? row.afterScore
+                : row.effectivenessScore !== undefined && row.effectivenessScore !== null
+                    ? row.effectivenessScore
+                    : row.effectiveness?.afterScore;
+            const hasAfter = rawAfter !== null && rawAfter !== undefined && Number.isFinite(rawAfter);
+            const effAfter = hasAfter ? clamp(rawAfter) : null;
 
-            const hasSat = row.satisfactionAverage !== null && Number.isFinite(row.satisfactionAverage);
+            const rawBefore = row.beforeScore !== undefined && row.beforeScore !== null
+                ? row.beforeScore
+                : row.effectiveness?.beforeScore;
+            const hasBefore = rawBefore !== null && rawBefore !== undefined && Number.isFinite(rawBefore);
+            const effBefore = hasBefore ? clamp(rawBefore) : null;
+
+            const hasSat = row.satisfactionAverage !== null && row.satisfactionAverage !== undefined && Number.isFinite(row.satisfactionAverage);
             // Convert 1-5 scale to 0-100%: (avg - 1) / 4 * 100
             const satScore = hasSat ? clamp((row.satisfactionAverage - 1) / 4 * 100) : null;
 
@@ -41,14 +48,26 @@
                 lowSample: Boolean(row.lowSample),
                 preliminary: Boolean(row.preliminary),
                 combined: row.combined,
+                before: {
+                    hasData: hasBefore,
+                    score: effBefore,
+                    width: effBefore !== null ? effBefore : 0,
+                    label: hasBefore ? `${formatNumber(effBefore)} / 100` : null
+                },
+                after: {
+                    hasData: hasAfter,
+                    score: effAfter,
+                    width: effAfter !== null ? effAfter : 0,
+                    label: hasAfter ? `${formatNumber(effAfter)} / 100` : null
+                },
                 effectiveness: {
-                    hasData: hasEff,
+                    hasData: hasAfter,
                     afterScore: effAfter,
                     beforeScore: effBefore,
                     summary: row.effectiveness?.summary || "no-data",
                     afterWidth: effAfter !== null ? effAfter : 0,
                     beforeMark: effBefore !== null ? effBefore : null,
-                    label: hasEff ? `${formatNumber(effAfter)} / 100` : null
+                    label: hasAfter ? `${formatNumber(effAfter)} / 100` : null
                 },
                 satisfaction: {
                     hasData: hasSat,

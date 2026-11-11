@@ -39,8 +39,20 @@ test('renderSystemComparison outputs accessible semantic HTML with grid ticks, l
     assert.ok(html.includes('style="left:0%"'));
     assert.ok(html.includes('style="left:100%"'));
     assert.ok(html.includes('results.html?system=SYS001'));
-    assert.ok(html.includes('chart-mark before-mark'));
-    assert.ok(html.includes('style="left:80%"'));
+    // 3 bars for SYS001: before (hatched), after (effectiveness), satisfaction
+    assert.ok(html.includes('chart-fill before-hatched'));
+    assert.ok(html.includes('style="width:80%"'));
+    assert.ok(html.includes('80.0 / 100'));
+    assert.ok(html.includes('chart-fill effectiveness'));
+    assert.ok(html.includes('style="width:100%"'));
+    assert.ok(html.includes('100.0 / 100'));
+    assert.ok(html.includes('chart-fill satisfaction'));
+    assert.ok(html.includes('style="width:87.5%"'));
+    assert.ok(html.includes('4.50 / 5'));
+    // Legend swatches
+    assert.ok(html.includes('chart-legend-swatch before-hatched'));
+    assert.ok(html.includes('chart-legend-swatch effectiveness'));
+    assert.ok(html.includes('chart-legend-swatch satisfaction'));
     // SYS019 has no data
     assert.ok(html.includes('chart-track empty'));
     // Footnote present

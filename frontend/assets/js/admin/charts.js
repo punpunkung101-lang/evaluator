@@ -55,10 +55,24 @@
 
         // Render each system row
         const rowsHtml = model.items.map(item => {
-            const eff = item.effectiveness;
+            const before = item.before || {
+                hasData: item.effectiveness?.beforeScore !== null && item.effectiveness?.beforeScore !== undefined,
+                score: item.effectiveness?.beforeScore,
+                width: item.effectiveness?.beforeScore ?? 0,
+                label: item.effectiveness?.beforeScore !== null && item.effectiveness?.beforeScore !== undefined
+                    ? `${item.effectiveness.beforeScore.toFixed(1)} / 100`
+                    : null
+            };
+            const after = item.after || {
+                hasData: item.effectiveness?.hasData,
+                score: item.effectiveness?.afterScore,
+                width: item.effectiveness?.afterWidth ?? 0,
+                label: item.effectiveness?.label
+            };
             const sat = item.satisfaction;
 
-            const effText = eff.hasData ? eff.label : t("priority_no_data_value");
+            const beforeText = before.hasData ? before.label : t("priority_no_data_value");
+            const afterText = after.hasData ? after.label : t("priority_no_data_value");
             const satText = sat.hasData ? sat.label : t("priority_no_data_value");
             const statusLabel = t(statusTextKey[item.status] || "priority_status_no_data");
 
@@ -67,29 +81,41 @@
             if (item.preliminary) warnings.push(`<span class="priority-warning-tag">${t("priority_preliminary")}</span>`);
 
             // Screen reader summary
-            const srText = `${item.name} (${item.systemId}): ${t("priority_effectiveness")} ${effText}, ${t("priority_satisfaction")} ${satText}. ${t("priority_status")}: ${statusLabel}.`;
+            const srText = `${item.name} (${item.systemId}): ${t("chart_bar_before")} ${beforeText}, ${t("chart_bar_after")} ${afterText}, ${t("chart_bar_satisfaction")} ${satText}. ${t("priority_status")}: ${statusLabel}.`;
 
-            // Effectiveness bar
-            let effBarHtml = '';
-            if (eff.hasData) {
-                const markHtml = eff.beforeMark !== null
-                    ? `<span class="chart-mark before-mark" style="left:${eff.beforeMark}%" title="${t("chart_before_mark")}: ${eff.beforeScore} / 100" aria-hidden="true"></span>`
-                    : '';
-                effBarHtml = `<div class="chart-bar-wrap">
+            // Bar 1: Before (hatched --chart-before)
+            let beforeBarHtml = '';
+            if (before.hasData) {
+                beforeBarHtml = `<div class="chart-bar-wrap">
                     <div class="chart-track" aria-hidden="true">
-                        <div class="chart-fill effectiveness" style="width:${eff.afterWidth}%"></div>
-                        ${markHtml}
+                        <div class="chart-fill before-hatched" style="width:${before.width}%"></div>
                     </div>
-                    <span class="chart-value">${esc(effText)}</span>
+                    <span class="chart-value">${esc(beforeText)}</span>
                 </div>`;
             } else {
-                effBarHtml = `<div class="chart-bar-wrap no-data">
+                beforeBarHtml = `<div class="chart-bar-wrap no-data">
                     <div class="chart-track empty" aria-hidden="true"></div>
-                    <span class="chart-value empty">${esc(effText)}</span>
+                    <span class="chart-value empty">${esc(beforeText)}</span>
                 </div>`;
             }
 
-            // Satisfaction bar
+            // Bar 2: After (solid --chart-effectiveness)
+            let afterBarHtml = '';
+            if (after.hasData) {
+                afterBarHtml = `<div class="chart-bar-wrap">
+                    <div class="chart-track" aria-hidden="true">
+                        <div class="chart-fill effectiveness" style="width:${after.width}%"></div>
+                    </div>
+                    <span class="chart-value">${esc(afterText)}</span>
+                </div>`;
+            } else {
+                afterBarHtml = `<div class="chart-bar-wrap no-data">
+                    <div class="chart-track empty" aria-hidden="true"></div>
+                    <span class="chart-value empty">${esc(afterText)}</span>
+                </div>`;
+            }
+
+            // Bar 3: Satisfaction (solid --chart-satisfaction)
             let satBarHtml = '';
             if (sat.hasData) {
                 satBarHtml = `<div class="chart-bar-wrap">
@@ -122,30 +148,34 @@
                         ${model.ticks.map(t => `<div class="chart-grid-line" style="left:${t}%"></div>`).join("")}
                     </div>
                     <div class="chart-row-bar">
-                        <span class="chart-bar-type">${t("priority_effectiveness")}</span>
-                        ${effBarHtml}
+                        <span class="chart-bar-type">${t("chart_bar_before")}</span>
+                        ${beforeBarHtml}
                     </div>
                     <div class="chart-row-bar">
-                        <span class="chart-bar-type">${t("priority_satisfaction")}</span>
+                        <span class="chart-bar-type">${t("chart_bar_after")}</span>
+                        ${afterBarHtml}
+                    </div>
+                    <div class="chart-row-bar">
+                        <span class="chart-bar-type">${t("chart_bar_satisfaction")}</span>
                         ${satBarHtml}
                     </div>
                 </div>
             </div>`;
         }).join("");
 
-        // Legend
+        // Legend with 3 swatches
         const legendHtml = `<div class="chart-legend" aria-label="${t("priority_legend_aria")}">
             <span class="chart-legend-item">
+                <i class="chart-legend-swatch before-hatched" aria-hidden="true"></i>
+                <span>${t("chart_bar_before")}</span>
+            </span>
+            <span class="chart-legend-item">
                 <i class="chart-legend-swatch effectiveness" aria-hidden="true"></i>
-                <span>${t("priority_effectiveness")}</span>
+                <span>${t("chart_bar_after")}</span>
             </span>
             <span class="chart-legend-item">
                 <i class="chart-legend-swatch satisfaction" aria-hidden="true"></i>
-                <span>${t("priority_satisfaction")}</span>
-            </span>
-            <span class="chart-legend-item">
-                <i class="chart-legend-mark before-mark" aria-hidden="true"></i>
-                <span>${t("chart_before_mark")}</span>
+                <span>${t("chart_bar_satisfaction")}</span>
             </span>
             <span class="chart-legend-note">${t("chart_effectiveness_note")}</span>
         </div>`;
