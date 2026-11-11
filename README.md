@@ -53,7 +53,7 @@ Frontend ตั้ง API base เป็น `http://127.0.0.1:8080` โดยป
 Backend สร้างหรือเปิด `database/evaluator.db` และนำ schema/ข้อมูลตั้งต้นจาก `database/schema.sql` และ `database/seed.sql` มาใช้
 
 ```powershell
-g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evaluator_backend.exe
+g++ -std=c++17 backend/src/main.cpp backend/src/http_server.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evaluator_backend.exe
 .\backend\evaluator_backend.exe
 ```
 
@@ -85,7 +85,7 @@ DB นี้ถูก track ใน Git แล้ว backend จะแก้ไ�
 จาก root ของ clone:
 
 ```powershell
-g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evaluator_backend.exe
+g++ -std=c++17 backend/src/main.cpp backend/src/http_server.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evaluator_backend.exe
 Remove-Item database/evaluator.db
 .\backend\evaluator_backend.exe
 ```

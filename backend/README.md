@@ -96,7 +96,7 @@ pkg-config --cflags --libs sqlite3
 จากนั้น Build:
 
 ``` powershell
-g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evaluator_backend.exe
+g++ -std=c++17 backend/src/main.cpp backend/src/http_server.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evaluator_backend.exe
 ```
 
 ถ้า Build สำเร็จ จะได้ไฟล์:
@@ -190,7 +190,7 @@ cmake -S backend -B backend/build -G "MinGW Makefiles"
 cmake --build backend/build
 ```
 
-ไฟล์โปรแกรมที่ได้จะอยู่ในโฟลเดอร์ Build ตามการตั้งค่าของ CMake
+ไฟล์โปรแกรมที่ได้คือ `backend/evaluator_backend.exe` ตามค่าเริ่มต้นของโครงการ หากมี backend เปิดอยู่ให้หยุด process ตามปกติก่อน build
 
 ### 9. การแก้ปัญหาเบื้องต้น
 
@@ -316,7 +316,7 @@ pkg-config --cflags --libs sqlite3
 Build the backend:
 
 ``` powershell
-g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evaluator_backend.exe
+g++ -std=c++17 backend/src/main.cpp backend/src/http_server.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evaluator_backend.exe
 ```
 
 If the build succeeds, the executable will be created at:
@@ -414,8 +414,7 @@ cmake -S backend -B backend/build -G "MinGW Makefiles"
 cmake --build backend/build
 ```
 
-The executable will be placed in the CMake build directory according to
-the project configuration.
+The executable is written to `backend/evaluator_backend.exe` by default. Stop an existing backend process normally before rebuilding so the linker can replace it.
 
 ### 9. Troubleshooting
 

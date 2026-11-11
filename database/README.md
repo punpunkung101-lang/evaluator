@@ -46,7 +46,7 @@ sqlite3 database/evaluator.db < database/mock/reset-mock-data.sql
 หลัง clone ให้ build และเปิด backend หนึ่งครั้งเพื่อสร้าง schema, Admin, systems และคำถาม จากนั้นหยุด backend แล้วโหลดชุด mock ที่ติดตามใน Git:
 
 ```powershell
-g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evaluator_backend.exe
+g++ -std=c++17 backend/src/main.cpp backend/src/http_server.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evaluator_backend.exe
 Remove-Item database/evaluator.db
 .\backend\evaluator_backend.exe
 ```

@@ -64,7 +64,7 @@ static void bindText(sqlite3_stmt*q,int i,const Json&j){std::string s=text(j);sq
 static void bindNum(sqlite3_stmt*q,int i,const Json&j){if(j.type==Json::Number)sqlite3_bind_double(q,i,j.number());else sqlite3_bind_null(q,i);}
 static std::string questionRows(sqlite3*db,const std::string&system,const std::string&type,int&status){sqlite3_stmt*q=nullptr;const char*sql="SELECT id,assessment_type,sort_order,text,text_en,active FROM assessment_questions WHERE system_id=? AND (?='' OR assessment_type=?) AND active=1 ORDER BY sort_order,id";if(sqlite3_prepare_v2(db,sql,-1,&q,nullptr)!=SQLITE_OK){status=500;return errorJson("question query failed");}sqlite3_bind_text(q,1,system.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,2,type.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,3,type.c_str(),-1,SQLITE_TRANSIENT);std::string o="[";bool first=true;while(sqlite3_step(q)==SQLITE_ROW){if(!first)o+=',';first=false;o+="{\"id\":"+quote(col(q,0))+",\"assessmentType\":"+quote(col(q,1))+",\"order\":"+std::to_string(sqlite3_column_int(q,2))+",\"text\":"+quote(col(q,3))+",\"text_en\":"+quote(col(q,4))+",\"active\":"+(sqlite3_column_int(q,5)?"true":"false")+"}";}sqlite3_finalize(q);status=200;return o+"]";}
 static bool saveAnswerSet(sqlite3*db,const std::string&eid,const std::string&type,const std::string&phase,const Json&answers,const Json&questions){if(answers.type!=Json::Array)return true;for(size_t i=0;i<answers.array.size();++i){const Json&a=answers.array[i];if(a.type==Json::Null)continue;std::string qid,qtext;if(questions.type==Json::Array&&i<questions.array.size()){qid=text(questions.array[i].get("id"));qtext=text(questions.array[i].get("text"));}if(qid.empty()&&type=="effectiveness"){sqlite3_stmt*find=nullptr;sqlite3_prepare_v2(db,"SELECT id,text FROM assessment_questions WHERE system_id=(SELECT system_id FROM evaluations WHERE id=?) AND assessment_type='effectiveness' ORDER BY sort_order LIMIT 1 OFFSET ?",-1,&find,nullptr);sqlite3_bind_text(find,1,eid.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_int(find,2,(int)i);if(sqlite3_step(find)==SQLITE_ROW){qid=col(find,0);qtext=col(find,1);}sqlite3_finalize(find);}if(qtext.empty())qtext="คำถาม "+std::to_string(i+1);sqlite3_stmt*q=nullptr;const char*sql="INSERT INTO assessment_answers(evaluation_id,question_id,assessment_type,phase,question_text,answer_value) VALUES(?,?,?,?,?,?) ON CONFLICT(evaluation_id,question_id,assessment_type,phase) DO UPDATE SET question_text=excluded.question_text,answer_value=excluded.answer_value";if(sqlite3_prepare_v2(db,sql,-1,&q,nullptr)!=SQLITE_OK)return false;sqlite3_bind_text(q,1,eid.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,2,qid.empty()?nullptr:qid.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,3,type.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,4,phase.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,5,qtext.c_str(),-1,SQLITE_TRANSIENT);std::string v=raw(a);sqlite3_bind_text(q,6,v.c_str(),-1,SQLITE_TRANSIENT);bool ok=sqlite3_step(q)==SQLITE_DONE;sqlite3_finalize(q);if(!ok)return false;}return true;}
-static std::string handle(sqlite3*db,const std::string&method,const std::string&path,const std::string&body,const std::string&token,int&status){
+std::string handle(sqlite3*db,const std::string&method,const std::string&path,const std::string&body,const std::string&token,int&status){
  std::string route=path.substr(0,path.find('?'));
  if(method=="GET"&&route=="/health"){status=200;return "{\"status\":\"ok\"}";}
  if(method=="GET"&&route=="/auth/me"){std::string id,u,d,r;if(!sessionUser(db,token,id,u,d,r)){status=401;return errorJson("login required");}status=200;return userJson(id,u,d,r);}
@@ -79,7 +79,7 @@ static std::string handle(sqlite3*db,const std::string&method,const std::string&
  if(method=="GET"&&route=="/evaluations"){std::string uid,u,d,r;if(!adminSession(db,token,uid,u,d,r,status))return errorJson(status==401?"login required":"ไม่มีสิทธิ์เข้าถึง Admin");sqlite3_stmt*q=nullptr;const char*sql="SELECT e.id,e.system_id,e.system_name,e.evaluator_id,e.evaluator_name,e.user_role,e.before_answers,e.after_answers,e.before_average,e.after_average,e.comparable_count,COALESCE(s.answers,'[]'),s.average,e.feedback,e.submitted_at FROM evaluations e LEFT JOIN satisfactions s ON s.evaluation_id=e.id ORDER BY e.submitted_at DESC";if(sqlite3_prepare_v2(db,sql,-1,&q,nullptr)!=SQLITE_OK){status=500;return errorJson("database query failed");}std::string o="[";bool first=true;while(sqlite3_step(q)==SQLITE_ROW){if(!first)o+=',';first=false;o+=recordJson(q);}sqlite3_finalize(q);status=200;return o+"]";}
  status=404;return errorJson("not found");
 }
-static bool initialize(sqlite3*db){
+bool initialize(sqlite3*db){
  std::ifstream f("database/schema.sql");if(!f){std::cerr<<"Cannot read database/schema.sql (run from project root)\n";return false;}std::stringstream schema;schema<<f.rdbuf();if(!exec(db,schema.str()))return false;
  std::ifstream seed("database/seed.sql");if(seed){std::stringstream data;data<<seed.rdbuf();if(!exec(db,data.str()))return false;}
  sqlite3_stmt*q=nullptr;sqlite3_prepare_v2(db,"SELECT 1 FROM schema_migrations WHERE name='assessment_questions_csv_v1'",-1,&q,nullptr);bool seeded=sqlite3_step(q)==SQLITE_ROW;sqlite3_finalize(q);
@@ -92,35 +92,3 @@ static bool initialize(sqlite3*db){
  }
  return true;
 }
-static void client(SOCKET sock,sqlite3*db){
- DWORD timeout=3000;
- setsockopt(sock,SOL_SOCKET,SO_RCVTIMEO,(const char*)&timeout,sizeof timeout);
- setsockopt(sock,SOL_SOCKET,SO_SNDTIMEO,(const char*)&timeout,sizeof timeout);
- std::string req;char buf[8192];int n;size_t headerEnd=std::string::npos,contentLength=0;bool complete=false;
- while((n=recv(sock,buf,sizeof buf,0))>0){
-  req.append(buf,n);
-  if(headerEnd==std::string::npos){
-   headerEnd=req.find("\r\n\r\n");
-   if(headerEnd!=std::string::npos){
-    std::string headers=req.substr(0,headerEnd),lowerHeaders=headers;
-    std::transform(lowerHeaders.begin(),lowerHeaders.end(),lowerHeaders.begin(),[](unsigned char c){return (char)std::tolower(c);});
-    size_t h=lowerHeaders.find("content-length:");
-    if(h!=std::string::npos)contentLength=std::strtoul(lowerHeaders.c_str()+h+15,nullptr,10);
-   }
-  }
-  if(headerEnd!=std::string::npos&&req.size()>=headerEnd+4+contentLength){complete=true;break;}
- }
- if(!complete){std::cerr<<"Incomplete HTTP request; closing stalled connection\n";closesocket(sock);return;}
- std::istringstream first(req.substr(0,req.find("\r\n")));std::string method,path,version;first>>method>>path>>version;
- std::string body=req.substr(headerEnd+4,contentLength),token,headers=req.substr(0,headerEnd),lowerHeaders=headers;
- std::transform(lowerHeaders.begin(),lowerHeaders.end(),lowerHeaders.begin(),[](unsigned char c){return (char)std::tolower(c);});
- size_t a=lowerHeaders.find("authorization:");
- if(a!=std::string::npos){size_t v=a+15;while(v<headers.size()&&headers[v]==' ')++v;if(lowerHeaders.compare(v,7,"bearer ")==0){size_t e=headers.find("\r\n",v);token=headers.substr(v+7,e==std::string::npos?e:e-v-7);}}
- int status=200;std::string out=handle(db,method,path,body,token,status);
- std::string label=status==200?"OK":status==201?"Created":status==400?"Bad Request":status==401?"Unauthorized":status==403?"Forbidden":status==404?"Not Found":status==409?"Conflict":"Internal Server Error";
- std::string resp;
- if(method=="OPTIONS")resp="HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: GET, POST, DELETE, OPTIONS\r\nAccess-Control-Allow-Headers: Content-Type, Authorization\r\nConnection: close\r\nContent-Length: 0\r\n\r\n";
- else resp="HTTP/1.1 "+std::to_string(status)+" "+label+"\r\nContent-Type: application/json; charset=utf-8\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: GET, POST, DELETE, OPTIONS\r\nAccess-Control-Allow-Headers: Content-Type, Authorization\r\nConnection: close\r\nContent-Length: "+std::to_string(out.size())+"\r\n\r\n"+out;
- size_t sent=0;while(sent<resp.size()){int count=send(sock,resp.data()+sent,(int)(resp.size()-sent),0);if(count<=0)break;sent+=(size_t)count;}
- closesocket(sock);
-}int main(int argc,char**argv){int port=argc>1?std::atoi(argv[1]):8080;sqlite3*db=nullptr;if(sqlite3_open("database/evaluator.db",&db)!=SQLITE_OK){std::cerr<<"Cannot open database/evaluator.db\n";return 1;}if(!initialize(db))return 1;WSADATA w;if(WSAStartup(MAKEWORD(2,2),&w)){std::cerr<<"Winsock startup failed\n";return 1;}SOCKET server=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);sockaddr_in addr{};addr.sin_family=AF_INET;addr.sin_addr.s_addr=htonl(INADDR_ANY);addr.sin_port=htons((u_short)port);int yes=1;setsockopt(server,SOL_SOCKET,SO_REUSEADDR,(char*)&yes,sizeof yes);if(bind(server,(sockaddr*)&addr,sizeof addr)==SOCKET_ERROR||listen(server,SOMAXCONN)==SOCKET_ERROR){std::cerr<<"Cannot listen on port "<<port<<"\n";return 1;}std::cout<<"Evaluator C++ API listening on http://localhost:"<<port<<"\nDatabase: database/evaluator.db\n";for(;;){SOCKET s=accept(server,nullptr,nullptr);if(s!=INVALID_SOCKET)client(s,db);}sqlite3_close(db);WSACleanup();return 0;}
