@@ -35,7 +35,6 @@ function parseTokens(cssContent) {
     const themes = {
         light: {},
         dark: {},
-        navy: {}
     };
 
     let i = 0;
@@ -62,8 +61,6 @@ function parseTokens(cssContent) {
                     targetThemes.push('light');
                 } else if (sel.includes('[data-theme="dark"]') || sel === 'body.dark') {
                     targetThemes.push('dark');
-                } else if (sel.includes('[data-theme="navy"]')) {
-                    targetThemes.push('navy');
                 }
             }
 

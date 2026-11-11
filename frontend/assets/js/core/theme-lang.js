@@ -1035,7 +1035,7 @@
     /* =====================================================================
        PREFERENCE STORAGE HELPERS
        ===================================================================== */
-    const THEME_KEY = "it_eval_theme";   // "light" | "dark" | "navy"
+    const THEME_KEY = "it_eval_theme";   // "light" | "dark"
     const LANG_KEY  = "it_eval_lang";    // "th"   | "en"
 
     function normalizeTheme(value) {
@@ -1043,8 +1043,12 @@
     }
 
     function getTheme() {
-        try { return normalizeTheme(localStorage.getItem(THEME_KEY)); }
-        catch (_) { return "light"; }
+        try {
+            const stored = localStorage.getItem(THEME_KEY);
+            const normalized = normalizeTheme(stored);
+            if (stored !== normalized) localStorage.setItem(THEME_KEY, normalized);
+            return normalized;
+        } catch (_) { return "light"; }
     }
 
     function getLang() {
