@@ -70,8 +70,8 @@ g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evalu
 
 การจัดการข้อมูลในฐานข้อมูล:
 - **(ก) กลับ mock ล่าสุด:** `git restore database/evaluator.db`
-- **(ข) ลบเฉพาะ mock:** `sqlite3 database/evaluator.db < database/mock/reset-mock-data.sql`
-- **(ค) ล้างเป็นศูนย์:** ลบ `database/evaluator.db` แล้วเปิด backend ใหม่
+- **(ข) ลบเฉพาะ mock:** `sqlite3 database/evaluator.db < database/mock/reset-mock-data.sql` *(แนะนำวิธีนี้หากต้องการคงคำถาม 571 แถวทั้งหมดตามฐานข้อมูลที่ commit)*
+- **(ค) ล้างเป็นศูนย์:** ลบ `database/evaluator.db` แล้วเปิด backend ใหม่ *(วิธีนี้ backend จะ seed คำถามเริ่มต้น 315 ข้อตาม `questions_seed.sql` ซึ่งต่างจาก DB ที่ commit ที่มี 571 แถว)*
 ดูรายละเอียดและจำนวนแถวที่ได้จากการทดสอบจริงได้ที่ [`database/README.md`](database/README.md)
 
 ### ข้อควรระวังสำหรับเพื่อนร่วมทีม

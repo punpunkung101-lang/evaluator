@@ -67,13 +67,18 @@ Backend จะสร้าง `evaluator.db` ใหม่ พร้อมรั�
 **ผลการทดสอบจริงกับสำเนาโปรเจกต์ (หลัง backend สร้าง DB ใหม่):**
 - ตาราง `users`: **1** แถว (เฉพาะ Admin `00000000`)
 - ตาราง `systems`: **21** แถว (ครบ 21 ระบบตาม catalog)
-- ตาราง `assessment_questions`: **315** แถว (210 คำถาม active + 105 คำถาม de-duped)
+- ตาราง `assessment_questions`: **315** แถว (210 คำถามประสิทธิผล active + 105 คำถามความพึงพอใจ active)
 - ตาราง `evaluations`: **0** แถว
 - ตาราง `satisfactions`: **0** แถว
 - ตาราง `quantitative_records`: **0** แถว
 - ตาราง `assessment_answers`: **0** แถว
 - ตาราง `auth_sessions`: **0** แถว
 - ตาราง `schema_migrations`: **2** แถว (`assessment_questions_csv_v1`, `assessment_questions_dedupe_v2`)
+
+> [!IMPORTANT]
+> **หมายเหตุเรื่องจำนวนแถว `assessment_questions` (315 vs 571 แถว):**
+> ฐานข้อมูลที่สร้างใหม่จากวิธี (ค) จะได้คำถาม **315** ข้อ (มาจาก `questions_seed.sql` ทั้งหมด 210 ข้อประสิทธิผล + 105 ข้อความพึงพอใจ ซึ่งเป็นชุดคำถาม active ที่ระบบใช้งานจริง) ต่างจาก `evaluator.db` ที่ commit ไว้ใน Git ซึ่งมี **571** แถว เนื่องจากฐานข้อมูลใน Git มีข้อมูลประวัติการพัฒนาเดิมติดอยู่ด้วย ได้แก่ คำถาม generic 25 ข้อที่ `system_id` เป็น NULL และคำถาม duplicate เก่า 231 ข้อที่ถูก de-dupe เป็น inactive (`active = 0`)
+> **ข้อแนะนำ:** หากต้องการคงคำถามทั้งหมด 571 แถวตามฐานข้อมูลที่ commit ไว้ แนะนำให้เลือกใช้ **วิธี (ข)** (`reset-mock-data.sql`) แทนวิธี (ค)
 
 ## ข้อควรระวังสำหรับเพื่อนร่วมทีม
 
