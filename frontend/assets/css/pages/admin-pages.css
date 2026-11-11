@@ -610,6 +610,7 @@
 
 .chart-track.empty {
     background: transparent;
+    border-color: var(--chart-track);
     border-style: dashed;
 }
 
