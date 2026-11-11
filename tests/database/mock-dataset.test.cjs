@@ -8,6 +8,7 @@ const {
     convertToModels,
     validateDataset
 } = require('../../database/mock/generate-mock-data.cjs');
+const EffectivenessScoring = require('../../frontend/assets/js/admin/effectiveness-scoring.js');
 
 const baselinePath = path.resolve(__dirname, '../../database/mock/baseline-statuses.json');
 const baselineStatuses = JSON.parse(fs.readFileSync(baselinePath, 'utf8'));
@@ -101,4 +102,41 @@ test('dates span all 7 months from May to November 2026', () => {
     for (const m of expectedMonths) {
         assert.ok(months.has(m), `Expected month ${m} to be present in dataset`);
     }
+});
+
+test('mock dataset contains repeat submissions and latestPerEvaluator deduplication works', () => {
+    const dataset = generateMockDataset();
+
+    // Check repeat quantitative submission for SYS001 / 90000001
+    const quantSubmissions = dataset.quantSeeds.filter(
+        q => q.systemId === 'SYS001' && q.userId === '90000001'
+    );
+    assert.ok(quantSubmissions.length >= 2, 'Expected at least 2 quantitative submissions for 90000001 on SYS001');
+    const quantOlder = quantSubmissions.find(q => q.id.endsWith('-older'));
+    const quantLatest = quantSubmissions.find(q => q.id.endsWith('-latest'));
+    assert.ok(quantOlder && quantLatest, 'Expected both older and latest quantitative submissions');
+    assert.ok(Date.parse(quantOlder.submittedAt) < Date.parse(quantLatest.submittedAt), 'Older submittedAt must be before latest submittedAt');
+    assert.notDeepEqual(quantOlder.values, quantLatest.values, 'Older and latest quantitative values must differ');
+
+    // Check repeat satisfaction evaluation for SYS001 / 90000001
+    const evalSubmissions = dataset.evalSeeds.filter(
+        e => e.systemId === 'SYS001' && e.userId === '90000001'
+    );
+    assert.ok(evalSubmissions.length >= 2, 'Expected at least 2 satisfaction evaluations for 90000001 on SYS001');
+    const evalOlder = evalSubmissions.find(e => e.id.endsWith('-older'));
+    const evalLatest = evalSubmissions.find(e => e.id.endsWith('-latest'));
+    assert.ok(evalOlder && evalLatest, 'Expected both older and latest satisfaction evaluations');
+    assert.ok(Date.parse(evalOlder.submittedAt) < Date.parse(evalLatest.submittedAt), 'Older submittedAt must be before latest submittedAt');
+    assert.notDeepEqual(evalOlder.satisfactionAnswers, evalLatest.satisfactionAnswers, 'Older and latest satisfaction answers must differ');
+    assert.notEqual(evalOlder.satisfactionAverage, evalLatest.satisfactionAverage, 'Older and latest satisfaction average must differ');
+
+    // Test EffectivenessScoring.latestPerEvaluator deduplication on quantitative submissions
+    const deduplicatedQuant = EffectivenessScoring.latestPerEvaluator(quantSubmissions);
+    assert.equal(deduplicatedQuant.length, 1, 'latestPerEvaluator should reduce repeat quantitative submissions to 1');
+    assert.equal(deduplicatedQuant[0].id, quantLatest.id, 'latestPerEvaluator must choose the latest quantitative submission');
+
+    // Test EffectivenessScoring.latestPerEvaluator deduplication on satisfaction evaluations
+    const deduplicatedEval = EffectivenessScoring.latestPerEvaluator(evalSubmissions);
+    assert.equal(deduplicatedEval.length, 1, 'latestPerEvaluator should reduce repeat evaluations to 1');
+    assert.equal(deduplicatedEval[0].id, evalLatest.id, 'latestPerEvaluator must choose the latest evaluation');
 });

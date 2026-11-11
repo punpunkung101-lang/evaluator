@@ -190,8 +190,15 @@ function generateMockDataset(seed = 42819) {
 
         // 1. Effectiveness Records
         if (cfg.nEff > 0) {
-            // Pick nEff unique users
-            const effUserPool = shuffle(users).slice(0, cfg.nEff);
+            // Pick nEff unique users (ensure 90000001 is included for SYS001 to test repeat submissions)
+            let effUserPool;
+            if (sysId === 'SYS001') {
+                const u0 = users.find(u => u.id === '90000001') || users[0];
+                const rest = shuffle(users.filter(u => u.id !== u0.id));
+                effUserPool = [u0, ...rest.slice(0, cfg.nEff - 1)];
+            } else {
+                effUserPool = shuffle(users).slice(0, cfg.nEff);
+            }
             const dates = generateDates(cfg.nEff, sysId.charCodeAt(5) || 1);
 
             // Generate mean-preserving perturbations delta for n users: sum(deltas) = 0
@@ -249,8 +256,15 @@ function generateMockDataset(seed = 42819) {
 
         // 2. Satisfaction Records (evaluations + satisfactions)
         if (cfg.nSat > 0) {
-            // Pick nSat unique users (independent sample from users)
-            const satUserPool = shuffle(users).slice(0, cfg.nSat);
+            // Pick nSat unique users (ensure 90000001 is included for SYS001 to test repeat submissions)
+            let satUserPool;
+            if (sysId === 'SYS001') {
+                const u0 = users.find(u => u.id === '90000001') || users[0];
+                const rest = shuffle(users.filter(u => u.id !== u0.id));
+                satUserPool = [u0, ...rest.slice(0, cfg.nSat - 1)];
+            } else {
+                satUserPool = shuffle(users).slice(0, cfg.nSat);
+            }
             const dates = generateDates(cfg.nSat, (sysId.charCodeAt(5) || 1) + 7);
 
             // Likert answer templates per tier
