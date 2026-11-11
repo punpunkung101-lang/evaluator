@@ -13,114 +13,1030 @@
 #include <string>
 #include <vector>
 
-struct Json {
-    enum Type { Null, Bool, Number, String, Array, Object } type = Null;
+struct Json
+{
+    enum Type
+    {
+        Null,
+        Bool,
+        Number,
+        String,
+        Array,
+        Object
+    } type = Null;
     std::string value;
     std::vector<Json> array;
     std::map<std::string, Json> object;
-    const Json& get(const std::string& key) const { static Json empty; auto it=object.find(key); return it==object.end()?empty:it->second; }
-    std::string str(const std::string& fallback="") const { return type==String||type==Number?value:fallback; }
-    double number(double fallback=0) const { return type==Number?std::strtod(value.c_str(),nullptr):fallback; }
+    const Json &get(const std::string &key) const
+    {
+        static Json empty;
+        auto it = object.find(key);
+        return it == object.end() ? empty : it->second;
+    }
+    std::string str(const std::string &fallback = "") const { return type == String || type == Number ? value : fallback; }
+    double number(double fallback = 0) const { return type == Number ? std::strtod(value.c_str(), nullptr) : fallback; }
 };
-class Parser {
-    const std::string& s; size_t i=0;
-    void ws(){while(i<s.size()&&std::isspace((unsigned char)s[i]))++i;}
-    std::string string(){std::string o;++i;while(i<s.size()){char c=s[i++];if(c=='"')break;if(c=='\\'&&i<s.size()){char e=s[i++];switch(e){case 'n':o+='\n';break;case 'r':o+='\r';break;case 't':o+='\t';break;default:o+=e;}}else o+=c;}return o;}
-    Json value(){ws();Json j;if(i>=s.size())return j;char c=s[i];if(c=='"'){j.type=Json::String;j.value=string();}else if(c=='{'){j.type=Json::Object;++i;ws();while(i<s.size()&&s[i]!='}'){if(s[i]!=','){std::string k=string();ws();++i;j.object[k]=value();}else ++i;ws();}if(i<s.size())++i;}else if(c=='['){j.type=Json::Array;++i;ws();while(i<s.size()&&s[i]!=']'){if(s[i]!=',')j.array.push_back(value());else ++i;ws();}if(i<s.size())++i;}else if(s.compare(i,4,"true")==0){j.type=Json::Bool;j.value="true";i+=4;}else if(s.compare(i,5,"false")==0){j.type=Json::Bool;j.value="false";i+=5;}else if(s.compare(i,4,"null")==0)i+=4;else{j.type=Json::Number;size_t b=i;while(i<s.size()&&(std::isdigit((unsigned char)s[i])||s[i]=='-'||s[i]=='+'||s[i]=='.'||s[i]=='e'||s[i]=='E'))++i;j.value=s.substr(b,i-b);}return j;}
-public: explicit Parser(const std::string& x):s(x){} Json parse(){return value();}
+class Parser
+{
+    const std::string &s;
+    size_t i = 0;
+    void ws()
+    {
+        while (i < s.size() && std::isspace((unsigned char)s[i]))
+            ++i;
+    }
+    std::string string()
+    {
+        std::string o;
+        ++i;
+        while (i < s.size())
+        {
+            char c = s[i++];
+            if (c == '"')
+                break;
+            if (c == '\\' && i < s.size())
+            {
+                char e = s[i++];
+                switch (e)
+                {
+                case 'n':
+                    o += '\n';
+                    break;
+                case 'r':
+                    o += '\r';
+                    break;
+                case 't':
+                    o += '\t';
+                    break;
+                default:
+                    o += e;
+                }
+            }
+            else
+                o += c;
+        }
+        return o;
+    }
+    Json value()
+    {
+        ws();
+        Json j;
+        if (i >= s.size())
+            return j;
+        char c = s[i];
+        if (c == '"')
+        {
+            j.type = Json::String;
+            j.value = string();
+        }
+        else if (c == '{')
+        {
+            j.type = Json::Object;
+            ++i;
+            ws();
+            while (i < s.size() && s[i] != '}')
+            {
+                if (s[i] != ',')
+                {
+                    std::string k = string();
+                    ws();
+                    ++i;
+                    j.object[k] = value();
+                }
+                else
+                    ++i;
+                ws();
+            }
+            if (i < s.size())
+                ++i;
+        }
+        else if (c == '[')
+        {
+            j.type = Json::Array;
+            ++i;
+            ws();
+            while (i < s.size() && s[i] != ']')
+            {
+                if (s[i] != ',')
+                    j.array.push_back(value());
+                else
+                    ++i;
+                ws();
+            }
+            if (i < s.size())
+                ++i;
+        }
+        else if (s.compare(i, 4, "true") == 0)
+        {
+            j.type = Json::Bool;
+            j.value = "true";
+            i += 4;
+        }
+        else if (s.compare(i, 5, "false") == 0)
+        {
+            j.type = Json::Bool;
+            j.value = "false";
+            i += 5;
+        }
+        else if (s.compare(i, 4, "null") == 0)
+            i += 4;
+        else
+        {
+            j.type = Json::Number;
+            size_t b = i;
+            while (i < s.size() && (std::isdigit((unsigned char)s[i]) || s[i] == '-' || s[i] == '+' || s[i] == '.' || s[i] == 'e' || s[i] == 'E'))
+                ++i;
+            j.value = s.substr(b, i - b);
+        }
+        return j;
+    }
+
+public:
+    explicit Parser(const std::string &x) : s(x) {}
+    Json parse() { return value(); }
 };
-static std::string quote(const std::string&s){std::string o="\"";for(unsigned char c:s){switch(c){case '"':o+="\\\"";break;case '\\':o+="\\\\";break;case '\n':o+="\\n";break;case '\r':o+="\\r";break;case '\t':o+="\\t";break;default:if(c<32){char b[7];std::snprintf(b,sizeof b,"\\u%04x",c);o+=b;}else o+=c;}}return o+'"';}
-static std::string raw(const Json&j){if(j.type==Json::Array){std::string o="[";for(size_t i=0;i<j.array.size();++i){if(i)o+=',';o+=raw(j.array[i]);}return o+"]";}if(j.type==Json::Null)return "null";if(j.type==Json::String)return quote(j.value);if(j.type==Json::Object)return "{}";return j.value;}
-static std::string text(const Json&j){return j.type==Json::String?j.value:j.type==Json::Null?"":j.value;}
-static size_t utf8Length(const std::string&s){size_t count=0;for(unsigned char c:s)if((c&0xC0)!=0x80)++count;return count;}
-static std::string col(sqlite3_stmt*q,int n){const unsigned char*p=sqlite3_column_text(q,n);return p?(const char*)p:"";}
-static bool exec(sqlite3*db,const std::string&sql){char*e=nullptr;int rc=sqlite3_exec(db,sql.c_str(),nullptr,nullptr,&e);if(rc!=SQLITE_OK){std::cerr<<(e?e:sqlite3_errmsg(db))<<"\n";sqlite3_free(e);return false;}return true;}
-static std::string errorJson(const std::string&message){return "{\"error\":"+quote(message)+"}";}
-static std::string hex(const unsigned char*data,size_t n){static const char*d="0123456789abcdef";std::string o;o.reserve(n*2);for(size_t i=0;i<n;++i){o+=d[data[i]>>4];o+=d[data[i]&15];}return o;}
-static bool passwordHash(const std::string&password,std::string&saltHex,std::string&hashHex){unsigned char salt[16],out[32];if(BCryptGenRandom(nullptr,salt,sizeof salt,BCRYPT_USE_SYSTEM_PREFERRED_RNG)<0)return false;BCRYPT_ALG_HANDLE alg=nullptr;if(BCryptOpenAlgorithmProvider(&alg,BCRYPT_SHA256_ALGORITHM,nullptr,BCRYPT_ALG_HANDLE_HMAC_FLAG)<0)return false;NTSTATUS rc=BCryptDeriveKeyPBKDF2(alg,(PUCHAR)password.data(),(ULONG)password.size(),salt,sizeof salt,120000,out,sizeof out,0);BCryptCloseAlgorithmProvider(alg,0);if(rc<0)return false;saltHex=hex(salt,sizeof salt);hashHex=hex(out,sizeof out);return true;}
-static std::string derive(const std::string&password,const std::string&saltHex){if(saltHex.size()!=32)return "";unsigned char salt[16],out[32];auto digit=[](char c){return c>='0'&&c<='9'?c-'0':c>='a'&&c<='f'?c-'a'+10:c>='A'&&c<='F'?c-'A'+10:-1;};for(size_t i=0;i<16;++i){int a=digit(saltHex[2*i]),b=digit(saltHex[2*i+1]);if(a<0||b<0)return "";salt[i]=(unsigned char)((a<<4)|b);}BCRYPT_ALG_HANDLE alg=nullptr;if(BCryptOpenAlgorithmProvider(&alg,BCRYPT_SHA256_ALGORITHM,nullptr,BCRYPT_ALG_HANDLE_HMAC_FLAG)<0)return "";NTSTATUS rc=BCryptDeriveKeyPBKDF2(alg,(PUCHAR)password.data(),(ULONG)password.size(),salt,sizeof salt,120000,out,sizeof out,0);BCryptCloseAlgorithmProvider(alg,0);return rc<0?"":hex(out,sizeof out);}
-static bool constantEqual(const std::string&a,const std::string&b){if(a.size()!=b.size())return false;unsigned char d=0;for(size_t i=0;i<a.size();++i)d|=(unsigned char)(a[i]^b[i]);return d==0;}
-static bool sessionUser(sqlite3*db,const std::string&token,std::string&id,std::string&username,std::string&display,std::string&role){if(token.empty())return false;sqlite3_stmt*q=nullptr;if(sqlite3_prepare_v2(db,"SELECT u.id,u.username,u.display_name,u.role FROM auth_sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?",-1,&q,nullptr)!=SQLITE_OK)return false;sqlite3_bind_text(q,1,token.c_str(),-1,SQLITE_TRANSIENT);bool ok=sqlite3_step(q)==SQLITE_ROW;if(ok){id=col(q,0);username=col(q,1);display=col(q,2);role=col(q,3);}sqlite3_finalize(q);return ok;}
-static bool adminSession(sqlite3*db,const std::string&token,std::string&id,std::string&username,std::string&display,std::string&role,int&status){if(!sessionUser(db,token,id,username,display,role)){status=401;return false;}if(role!="admin"){status=403;return false;}return true;}
-static bool newSession(sqlite3*db,const std::string&id,std::string&token){unsigned char b[32];if(BCryptGenRandom(nullptr,b,sizeof b,BCRYPT_USE_SYSTEM_PREFERRED_RNG)<0)return false;token=hex(b,sizeof b);sqlite3_stmt*q=nullptr;if(sqlite3_prepare_v2(db,"INSERT INTO auth_sessions(token,user_id) VALUES(?,?)",-1,&q,nullptr)!=SQLITE_OK)return false;sqlite3_bind_text(q,1,token.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,2,id.c_str(),-1,SQLITE_TRANSIENT);bool ok=sqlite3_step(q)==SQLITE_DONE;sqlite3_finalize(q);return ok;}
-static std::string userJson(const std::string&id,const std::string&u,const std::string&display,const std::string&role,const std::string&token=""){std::string s="{\"success\":true,\"user\":{\"id\":"+quote(id)+",\"username\":"+quote(u)+",\"displayName\":"+quote(display)+",\"role\":"+quote(role)+"}";if(!token.empty())s+=",\"token\":"+quote(token);return s+"}";}
-static std::string param(const std::string&path,const std::string&key){size_t q=path.find('?');if(q==std::string::npos)return "";std::string x=path.substr(q+1),p=key+"=";size_t i=x.find(p);if(i==std::string::npos)return "";size_t e=x.find('&',i);return x.substr(i+p.size(),e==std::string::npos?e:e-i-p.size());}
-static std::string auth(sqlite3*db,const std::string&path,const std::string&body,const std::string&token,int&status){
- Json j=Parser(body).parse();
- if(path=="/auth/session"){std::string id,u,d,r;if(!sessionUser(db,token,id,u,d,r)){status=401;return errorJson("login required");}status=200;return userJson(id,u,d,r);}
- if(path=="/auth/logout"){sqlite3_stmt*q=nullptr;sqlite3_prepare_v2(db,"DELETE FROM auth_sessions WHERE token=?",-1,&q,nullptr);sqlite3_bind_text(q,1,token.c_str(),-1,SQLITE_TRANSIENT);sqlite3_step(q);sqlite3_finalize(q);status=200;return "{\"success\":true}";}
- std::string username=text(j.get("username")),password=text(j.get("password"));if(username.empty()||utf8Length(username)>20||password.size()<8){status=400;return errorJson("username must be 1-20 characters and password at least 8 characters");}
- if(path=="/auth/register"){
-  std::string display=text(j.get("displayName")),role=text(j.get("role"));if(display.empty()||utf8Length(display)>20){status=400;return errorJson("display name must be 1-20 characters");}if(role!="student"&&role!="teacher"&&role!="staff")role="student";
-  std::string salt,hash;if(!passwordHash(password,salt,hash)){status=500;return errorJson("password hashing failed");}
-  sqlite3_stmt*seq=nullptr;if(sqlite3_prepare_v2(db,"SELECT COALESCE(MAX(CAST(id AS INTEGER)),0)+1 FROM users WHERE length(id)=8 AND id NOT GLOB '*[^0-9]*'",-1,&seq,nullptr)!=SQLITE_OK){status=500;return errorJson("could not allocate user ID");}sqlite3_step(seq);unsigned int n=(unsigned int)sqlite3_column_int64(seq,0);sqlite3_finalize(seq);if(n>99999999){status=409;return errorJson("no user IDs available");}char b[9];std::snprintf(b,sizeof b,"%08u",n);std::string id=b;
-  sqlite3_stmt*q=nullptr;if(sqlite3_prepare_v2(db,"INSERT INTO users(id,username,display_name,role,password_hash,password_salt,password_iterations) VALUES(?,?,?,?,?,?,120000)",-1,&q,nullptr)!=SQLITE_OK){status=500;return errorJson("account creation failed");}sqlite3_bind_text(q,1,id.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,2,username.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,3,display.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,4,role.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,5,hash.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,6,salt.c_str(),-1,SQLITE_TRANSIENT);int rc=sqlite3_step(q);sqlite3_finalize(q);if(rc!=SQLITE_DONE){status=rc==SQLITE_CONSTRAINT?409:500;return errorJson(rc==SQLITE_CONSTRAINT?"username already exists":"account creation failed");}
-  std::string session;if(!newSession(db,id,session)){status=500;return errorJson("session creation failed");}status=201;return userJson(id,username,display,role,session);
- }
- sqlite3_stmt*q=nullptr;if(sqlite3_prepare_v2(db,"SELECT id,username,display_name,role,password_hash,password_salt FROM users WHERE username=? COLLATE NOCASE OR id=? LIMIT 1",-1,&q,nullptr)!=SQLITE_OK){status=500;return errorJson("login failed");}sqlite3_bind_text(q,1,username.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,2,username.c_str(),-1,SQLITE_TRANSIENT);if(sqlite3_step(q)!=SQLITE_ROW){sqlite3_finalize(q);status=401;return errorJson("invalid username or password");}std::string id=col(q,0),u=col(q,1),d=col(q,2),r=col(q,3),saved=col(q,4),salt=col(q,5);sqlite3_finalize(q);if(!constantEqual(saved,derive(password,salt))){status=401;return errorJson("invalid username or password");}std::string session;if(!newSession(db,id,session)){status=500;return errorJson("session creation failed");}status=200;return userJson(id,u,d,r,session);
+static std::string quote(const std::string &s)
+{
+    std::string o = "\"";
+    for (unsigned char c : s)
+    {
+        switch (c)
+        {
+        case '"':
+            o += "\\\"";
+            break;
+        case '\\':
+            o += "\\\\";
+            break;
+        case '\n':
+            o += "\\n";
+            break;
+        case '\r':
+            o += "\\r";
+            break;
+        case '\t':
+            o += "\\t";
+            break;
+        default:
+            if (c < 32)
+            {
+                char b[7];
+                std::snprintf(b, sizeof b, "\\u%04x", c);
+                o += b;
+            }
+            else
+                o += c;
+        }
+    }
+    return o + '"';
 }
-static std::string recordJson(sqlite3_stmt*q){return "{\"id\":"+quote(col(q,0))+",\"systemId\":"+quote(col(q,1))+",\"systemName\":"+quote(col(q,2))+",\"evaluatorId\":"+quote(col(q,3))+",\"evaluatorName\":"+quote(col(q,4))+",\"userRole\":"+quote(col(q,5))+",\"beforeAnswers\":"+col(q,6)+",\"afterAnswers\":"+col(q,7)+",\"beforeAverage\":"+(sqlite3_column_type(q,8)==SQLITE_NULL?"null":std::to_string(sqlite3_column_double(q,8)))+",\"afterAverage\":"+(sqlite3_column_type(q,9)==SQLITE_NULL?"null":std::to_string(sqlite3_column_double(q,9)))+",\"comparableCount\":"+std::to_string(sqlite3_column_int(q,10))+",\"satisfactionAnswers\":"+col(q,11)+",\"satisfactionAverage\":"+(sqlite3_column_type(q,12)==SQLITE_NULL?"null":std::to_string(sqlite3_column_double(q,12)))+",\"feedback\":"+quote(col(q,13))+",\"submittedAt\":"+quote(col(q,14))+"}";}
-static void bindText(sqlite3_stmt*q,int i,const Json&j){std::string s=text(j);sqlite3_bind_text(q,i,s.c_str(),-1,SQLITE_TRANSIENT);}
-static void bindNum(sqlite3_stmt*q,int i,const Json&j){if(j.type==Json::Number)sqlite3_bind_double(q,i,j.number());else sqlite3_bind_null(q,i);}
-static std::string questionRows(sqlite3*db,const std::string&system,const std::string&type,int&status){sqlite3_stmt*q=nullptr;const char*sql="SELECT id,assessment_type,sort_order,text,text_en,active FROM assessment_questions WHERE system_id=? AND (?='' OR assessment_type=?) AND active=1 ORDER BY sort_order,id";if(sqlite3_prepare_v2(db,sql,-1,&q,nullptr)!=SQLITE_OK){status=500;return errorJson("question query failed");}sqlite3_bind_text(q,1,system.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,2,type.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,3,type.c_str(),-1,SQLITE_TRANSIENT);std::string o="[";bool first=true;while(sqlite3_step(q)==SQLITE_ROW){if(!first)o+=',';first=false;o+="{\"id\":"+quote(col(q,0))+",\"assessmentType\":"+quote(col(q,1))+",\"order\":"+std::to_string(sqlite3_column_int(q,2))+",\"text\":"+quote(col(q,3))+",\"text_en\":"+quote(col(q,4))+",\"active\":"+(sqlite3_column_int(q,5)?"true":"false")+"}";}sqlite3_finalize(q);status=200;return o+"]";}
-static bool saveAnswerSet(sqlite3*db,const std::string&eid,const std::string&type,const std::string&phase,const Json&answers,const Json&questions){if(answers.type!=Json::Array)return true;for(size_t i=0;i<answers.array.size();++i){const Json&a=answers.array[i];if(a.type==Json::Null)continue;std::string qid,qtext;if(questions.type==Json::Array&&i<questions.array.size()){qid=text(questions.array[i].get("id"));qtext=text(questions.array[i].get("text"));}if(qid.empty()&&type=="effectiveness"){sqlite3_stmt*find=nullptr;sqlite3_prepare_v2(db,"SELECT id,text FROM assessment_questions WHERE system_id=(SELECT system_id FROM evaluations WHERE id=?) AND assessment_type='effectiveness' ORDER BY sort_order LIMIT 1 OFFSET ?",-1,&find,nullptr);sqlite3_bind_text(find,1,eid.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_int(find,2,(int)i);if(sqlite3_step(find)==SQLITE_ROW){qid=col(find,0);qtext=col(find,1);}sqlite3_finalize(find);}if(qtext.empty())qtext="คำถาม "+std::to_string(i+1);sqlite3_stmt*q=nullptr;const char*sql="INSERT INTO assessment_answers(evaluation_id,question_id,assessment_type,phase,question_text,answer_value) VALUES(?,?,?,?,?,?) ON CONFLICT(evaluation_id,question_id,assessment_type,phase) DO UPDATE SET question_text=excluded.question_text,answer_value=excluded.answer_value";if(sqlite3_prepare_v2(db,sql,-1,&q,nullptr)!=SQLITE_OK)return false;sqlite3_bind_text(q,1,eid.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,2,qid.empty()?nullptr:qid.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,3,type.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,4,phase.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,5,qtext.c_str(),-1,SQLITE_TRANSIENT);std::string v=raw(a);sqlite3_bind_text(q,6,v.c_str(),-1,SQLITE_TRANSIENT);bool ok=sqlite3_step(q)==SQLITE_DONE;sqlite3_finalize(q);if(!ok)return false;}return true;}
-static std::string handle(sqlite3*db,const std::string&method,const std::string&path,const std::string&body,const std::string&token,int&status){
- std::string route=path.substr(0,path.find('?'));
- if(method=="GET"&&route=="/health"){status=200;return "{\"status\":\"ok\"}";}
- if(method=="GET"&&route=="/auth/me"){std::string id,u,d,r;if(!sessionUser(db,token,id,u,d,r)){status=401;return errorJson("login required");}status=200;return userJson(id,u,d,r);}
- if(method=="POST"&&(route=="/auth/login"||route=="/auth/register"||route=="/auth/session"||route=="/auth/logout"))return auth(db,route,body,token,status);
- if(method=="GET"&&route=="/systems"){sqlite3_stmt*q=nullptr;sqlite3_prepare_v2(db,"SELECT id,name,name_en FROM systems WHERE active=1 ORDER BY sort_order,id",-1,&q,nullptr);std::string o="[";bool first=true;while(sqlite3_step(q)==SQLITE_ROW){if(!first)o+=',';first=false;o+="{\"id\":"+quote(col(q,0))+",\"name\":"+quote(col(q,1))+",\"name_en\":"+quote(col(q,2))+"}";}sqlite3_finalize(q);status=200;return o+"]";}
- if(method=="GET"&&route=="/questions"){std::string system=param(path,"system_id");if(system.empty()){status=400;return errorJson("system_id is required");}return questionRows(db,system,param(path,"assessment_type"),status);}
- if(method=="POST"&&route=="/questions/replace"){std::string uid,u,d,r;if(!adminSession(db,token,uid,u,d,r,status))return errorJson(status==401?"login required":"ไม่มีสิทธิ์เข้าถึง Admin");Json j=Parser(body).parse();std::string system=text(j.get("systemId"));const Json&items=j.get("questions");if(system.empty()||items.type!=Json::Array){status=400;return errorJson("systemId and questions are required");}if(!exec(db,"BEGIN IMMEDIATE")){status=500;return errorJson("database transaction failed");}sqlite3_stmt*del=nullptr;sqlite3_prepare_v2(db,"DELETE FROM assessment_questions WHERE system_id=?",-1,&del,nullptr);sqlite3_bind_text(del,1,system.c_str(),-1,SQLITE_TRANSIENT);bool ok=sqlite3_step(del)==SQLITE_DONE;sqlite3_finalize(del);for(size_t i=0;ok&&i<items.array.size();++i){const Json&q=items.array[i];std::string id=text(q.get("id")),typ=text(q.get("type")),th=text(q.get("text")),en=text(q.get("text_en"));if(id.empty()||th.empty())continue;std::string kind=typ=="satisfaction"?"satisfaction":"effectiveness";sqlite3_stmt*ins=nullptr;const char*sql="INSERT INTO assessment_questions(id,system_id,assessment_type,section,text,text_en,answer_type,sort_order,active) VALUES(?,?,?,?,?,?,?,?,1)";ok=sqlite3_prepare_v2(db,sql,-1,&ins,nullptr)==SQLITE_OK;if(ok){sqlite3_bind_text(ins,1,id.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,2,system.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,3,kind.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,4,kind.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,5,th.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,6,en.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,7,"likert5",-1,SQLITE_STATIC);sqlite3_bind_int(ins,8,(int)q.get("order").number());ok=sqlite3_step(ins)==SQLITE_DONE;}sqlite3_finalize(ins);}if(!ok||!exec(db,"COMMIT")){exec(db,"ROLLBACK");status=500;return errorJson("question update failed");}status=200;return "{\"success\":true}";}
- if(method=="POST"&&route=="/evaluations"){Json j=Parser(body).parse();if(j.type!=Json::Object||text(j.get("systemId")).empty()){status=400;return errorJson("systemId is required");}std::string uid,u,d,role;if(!sessionUser(db,token,uid,u,d,role)){status=401;return errorJson("กรุณาเข้าสู่ระบบก่อนส่งแบบประเมิน");}if(role=="admin")role="staff";if(!exec(db,"BEGIN IMMEDIATE")){status=500;return errorJson("database transaction failed");}std::string id=text(j.get("id"));if(id.empty())id="eval_"+std::to_string(GetTickCount64());Json before=j.get("beforeAnswers"),after=j.get("afterAnswers"),sat=j.get("satisfactionAnswers");if(before.type!=Json::Array)before.type=Json::Array;if(after.type!=Json::Array)after.type=Json::Array;if(sat.type!=Json::Array)sat.type=Json::Array;sqlite3_stmt*q=nullptr;const char*sql="INSERT INTO evaluations(id,system_id,system_name,evaluator_id,evaluator_name,user_role,before_answers,after_answers,before_average,after_average,comparable_count,feedback,submitted_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET system_id=excluded.system_id,system_name=excluded.system_name,evaluator_id=excluded.evaluator_id,evaluator_name=excluded.evaluator_name,user_role=excluded.user_role,before_answers=excluded.before_answers,after_answers=excluded.after_answers,before_average=excluded.before_average,after_average=excluded.after_average,comparable_count=excluded.comparable_count,feedback=excluded.feedback,submitted_at=excluded.submitted_at";bool ok=sqlite3_prepare_v2(db,sql,-1,&q,nullptr)==SQLITE_OK;if(ok){std::string b=raw(before),a=raw(after);sqlite3_bind_text(q,1,id.c_str(),-1,SQLITE_TRANSIENT);bindText(q,2,j.get("systemId"));bindText(q,3,j.get("systemName"));sqlite3_bind_text(q,4,uid.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,5,d.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,6,role.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,7,b.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,8,a.c_str(),-1,SQLITE_TRANSIENT);bindNum(q,9,j.get("beforeAverage"));bindNum(q,10,j.get("afterAverage"));sqlite3_bind_int(q,11,(int)j.get("comparableCount").number());bindText(q,12,j.get("feedback"));std::string date=text(j.get("submittedAt"));sqlite3_bind_text(q,13,date.c_str(),-1,SQLITE_TRANSIENT);ok=sqlite3_step(q)==SQLITE_DONE;}sqlite3_finalize(q);if(ok){std::string answers=raw(sat);sqlite3_stmt*s=nullptr;sqlite3_prepare_v2(db,"INSERT INTO satisfactions(evaluation_id,answers,average) VALUES(?,?,?) ON CONFLICT(evaluation_id) DO UPDATE SET answers=excluded.answers,average=excluded.average",-1,&s,nullptr);sqlite3_bind_text(s,1,id.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(s,2,answers.c_str(),-1,SQLITE_TRANSIENT);bindNum(s,3,j.get("satisfactionAverage"));ok=sqlite3_step(s)==SQLITE_DONE;sqlite3_finalize(s);}if(ok){sqlite3_stmt*x=nullptr;sqlite3_prepare_v2(db,"DELETE FROM assessment_answers WHERE evaluation_id=?",-1,&x,nullptr);sqlite3_bind_text(x,1,id.c_str(),-1,SQLITE_TRANSIENT);ok=sqlite3_step(x)==SQLITE_DONE;sqlite3_finalize(x);}if(ok){Json questions=j.get("satisfactionQuestions");ok=saveAnswerSet(db,id,"effectiveness","before",before,Json())&&saveAnswerSet(db,id,"effectiveness","after",after,Json())&&saveAnswerSet(db,id,"satisfaction","submitted",sat,questions);}if(!ok||!exec(db,"COMMIT")){exec(db,"ROLLBACK");status=500;return errorJson("database write failed");}status=201;return "{\"id\":"+quote(id)+",\"success\":true}";}
- if(method=="POST"&&route=="/quantitative"){std::string uid,u,d,r;if(!sessionUser(db,token,uid,u,d,r)){status=401;return errorJson("กรุณาเข้าสู่ระบบก่อนส่งแบบประเมิน");}Json j=Parser(body).parse();std::string id=text(j.get("id")),sys=text(j.get("systemId"));if(id.empty()||sys.empty()||j.type!=Json::Object){status=400;return errorJson("id and systemId are required");}sqlite3_stmt*q=nullptr;const char*sql="INSERT INTO quantitative_records(id,user_id,system_id,record_json,submitted_at) VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET record_json=excluded.record_json,submitted_at=excluded.submitted_at WHERE user_id=excluded.user_id";if(sqlite3_prepare_v2(db,sql,-1,&q,nullptr)!=SQLITE_OK){status=500;return errorJson("quantitative record could not be saved");}sqlite3_bind_text(q,1,id.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,2,uid.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,3,sys.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(q,4,body.c_str(),(int)body.size(),SQLITE_TRANSIENT);std::string date=text(j.get("submittedAt"));sqlite3_bind_text(q,5,date.c_str(),-1,SQLITE_TRANSIENT);bool ok=sqlite3_step(q)==SQLITE_DONE;sqlite3_finalize(q);if(!ok||sqlite3_changes(db)==0){status=403;return errorJson("ไม่สามารถบันทึกผลประเมินรายการนี้");}status=201;return "{\"success\":true,\"id\":"+quote(id)+"}";}
- if(method=="GET"&&route=="/quantitative"){std::string uid,u,d,r;if(!adminSession(db,token,uid,u,d,r,status))return errorJson(status==401?"login required":"ไม่มีสิทธิ์เข้าถึง Admin");sqlite3_stmt*q=nullptr;sqlite3_prepare_v2(db,"SELECT record_json FROM quantitative_records ORDER BY submitted_at DESC",-1,&q,nullptr);std::string o="[";bool first=true;while(sqlite3_step(q)==SQLITE_ROW){if(!first)o+=',';first=false;o+=col(q,0);}sqlite3_finalize(q);status=200;return o+"]";}
- if(method=="DELETE"&&route=="/evaluations"){std::string uid,u,d,r;if(!adminSession(db,token,uid,u,d,r,status))return errorJson(status==401?"login required":"ไม่มีสิทธิ์เข้าถึง Admin");if(!exec(db,"BEGIN IMMEDIATE")||!exec(db,"DELETE FROM satisfactions")||!exec(db,"DELETE FROM evaluations")||!exec(db,"COMMIT")){exec(db,"ROLLBACK");status=500;return errorJson("database clear failed");}status=200;return "{\"success\":true}";}
- if(method=="GET"&&route=="/evaluations"){std::string uid,u,d,r;if(!adminSession(db,token,uid,u,d,r,status))return errorJson(status==401?"login required":"ไม่มีสิทธิ์เข้าถึง Admin");sqlite3_stmt*q=nullptr;const char*sql="SELECT e.id,e.system_id,e.system_name,e.evaluator_id,e.evaluator_name,e.user_role,e.before_answers,e.after_answers,e.before_average,e.after_average,e.comparable_count,COALESCE(s.answers,'[]'),s.average,e.feedback,e.submitted_at FROM evaluations e LEFT JOIN satisfactions s ON s.evaluation_id=e.id ORDER BY e.submitted_at DESC";if(sqlite3_prepare_v2(db,sql,-1,&q,nullptr)!=SQLITE_OK){status=500;return errorJson("database query failed");}std::string o="[";bool first=true;while(sqlite3_step(q)==SQLITE_ROW){if(!first)o+=',';first=false;o+=recordJson(q);}sqlite3_finalize(q);status=200;return o+"]";}
- status=404;return errorJson("not found");
+static std::string raw(const Json &j)
+{
+    if (j.type == Json::Array)
+    {
+        std::string o = "[";
+        for (size_t i = 0; i < j.array.size(); ++i)
+        {
+            if (i)
+                o += ',';
+            o += raw(j.array[i]);
+        }
+        return o + "]";
+    }
+    if (j.type == Json::Null)
+        return "null";
+    if (j.type == Json::String)
+        return quote(j.value);
+    if (j.type == Json::Object)
+        return "{}";
+    return j.value;
 }
-static bool initialize(sqlite3*db){
- std::ifstream f("database/schema.sql");if(!f){std::cerr<<"Cannot read database/schema.sql (run from project root)\n";return false;}std::stringstream schema;schema<<f.rdbuf();if(!exec(db,schema.str()))return false;
- std::ifstream seed("database/seed.sql");if(seed){std::stringstream data;data<<seed.rdbuf();if(!exec(db,data.str()))return false;}
- sqlite3_stmt*q=nullptr;sqlite3_prepare_v2(db,"SELECT 1 FROM schema_migrations WHERE name='assessment_questions_csv_v1'",-1,&q,nullptr);bool seeded=sqlite3_step(q)==SQLITE_ROW;sqlite3_finalize(q);
- if(!seeded){std::ifstream questions("database/questions_seed.sql");if(!questions){std::cerr<<"Cannot read database/questions_seed.sql\n";return false;}std::stringstream data;data<<questions.rdbuf();if(!exec(db,data.str()))return false;if(!exec(db,"INSERT INTO schema_migrations(name) VALUES('assessment_questions_csv_v1')"))return false;}
- q=nullptr;sqlite3_prepare_v2(db,"SELECT 1 FROM schema_migrations WHERE name='assessment_questions_dedupe_v2'",-1,&q,nullptr);bool deduped=sqlite3_step(q)==SQLITE_ROW;sqlite3_finalize(q);
- if(!deduped){
-  if(!exec(db,"BEGIN IMMEDIATE"))return false;
-  const char*dedupe="UPDATE assessment_questions SET active=0 WHERE assessment_type='effectiveness' AND system_id IN (SELECT id FROM systems) AND sort_order BETWEEN 11 AND 21 AND id=system_id||'-EFF-'||printf('%02d',sort_order)";
-  if(!exec(db,dedupe)||!exec(db,"INSERT INTO schema_migrations(name) VALUES('assessment_questions_dedupe_v2')")||!exec(db,"COMMIT")){exec(db,"ROLLBACK");return false;}
- }
- return true;
+static std::string text(const Json &j) { return j.type == Json::String ? j.value : j.type == Json::Null ? ""
+                                                                                                        : j.value; }
+static size_t utf8Length(const std::string &s)
+{
+    size_t count = 0;
+    for (unsigned char c : s)
+        if ((c & 0xC0) != 0x80)
+            ++count;
+    return count;
 }
-static void client(SOCKET sock,sqlite3*db){
- DWORD timeout=3000;
- setsockopt(sock,SOL_SOCKET,SO_RCVTIMEO,(const char*)&timeout,sizeof timeout);
- setsockopt(sock,SOL_SOCKET,SO_SNDTIMEO,(const char*)&timeout,sizeof timeout);
- std::string req;char buf[8192];int n;size_t headerEnd=std::string::npos,contentLength=0;bool complete=false;
- while((n=recv(sock,buf,sizeof buf,0))>0){
-  req.append(buf,n);
-  if(headerEnd==std::string::npos){
-   headerEnd=req.find("\r\n\r\n");
-   if(headerEnd!=std::string::npos){
-    std::string headers=req.substr(0,headerEnd),lowerHeaders=headers;
-    std::transform(lowerHeaders.begin(),lowerHeaders.end(),lowerHeaders.begin(),[](unsigned char c){return (char)std::tolower(c);});
-    size_t h=lowerHeaders.find("content-length:");
-    if(h!=std::string::npos)contentLength=std::strtoul(lowerHeaders.c_str()+h+15,nullptr,10);
-   }
-  }
-  if(headerEnd!=std::string::npos&&req.size()>=headerEnd+4+contentLength){complete=true;break;}
- }
- if(!complete){std::cerr<<"Incomplete HTTP request; closing stalled connection\n";closesocket(sock);return;}
- std::istringstream first(req.substr(0,req.find("\r\n")));std::string method,path,version;first>>method>>path>>version;
- std::string body=req.substr(headerEnd+4,contentLength),token,headers=req.substr(0,headerEnd),lowerHeaders=headers;
- std::transform(lowerHeaders.begin(),lowerHeaders.end(),lowerHeaders.begin(),[](unsigned char c){return (char)std::tolower(c);});
- size_t a=lowerHeaders.find("authorization:");
- if(a!=std::string::npos){size_t v=a+15;while(v<headers.size()&&headers[v]==' ')++v;if(lowerHeaders.compare(v,7,"bearer ")==0){size_t e=headers.find("\r\n",v);token=headers.substr(v+7,e==std::string::npos?e:e-v-7);}}
- int status=200;std::string out=handle(db,method,path,body,token,status);
- std::string label=status==200?"OK":status==201?"Created":status==400?"Bad Request":status==401?"Unauthorized":status==403?"Forbidden":status==404?"Not Found":status==409?"Conflict":"Internal Server Error";
- std::string resp;
- if(method=="OPTIONS")resp="HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: GET, POST, DELETE, OPTIONS\r\nAccess-Control-Allow-Headers: Content-Type, Authorization\r\nConnection: close\r\nContent-Length: 0\r\n\r\n";
- else resp="HTTP/1.1 "+std::to_string(status)+" "+label+"\r\nContent-Type: application/json; charset=utf-8\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: GET, POST, DELETE, OPTIONS\r\nAccess-Control-Allow-Headers: Content-Type, Authorization\r\nConnection: close\r\nContent-Length: "+std::to_string(out.size())+"\r\n\r\n"+out;
- size_t sent=0;while(sent<resp.size()){int count=send(sock,resp.data()+sent,(int)(resp.size()-sent),0);if(count<=0)break;sent+=(size_t)count;}
- closesocket(sock);
-}int main(int argc,char**argv){int port=argc>1?std::atoi(argv[1]):8080;sqlite3*db=nullptr;if(sqlite3_open("database/evaluator.db",&db)!=SQLITE_OK){std::cerr<<"Cannot open database/evaluator.db\n";return 1;}if(!initialize(db))return 1;WSADATA w;if(WSAStartup(MAKEWORD(2,2),&w)){std::cerr<<"Winsock startup failed\n";return 1;}SOCKET server=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);sockaddr_in addr{};addr.sin_family=AF_INET;addr.sin_addr.s_addr=htonl(INADDR_ANY);addr.sin_port=htons((u_short)port);int yes=1;setsockopt(server,SOL_SOCKET,SO_REUSEADDR,(char*)&yes,sizeof yes);if(bind(server,(sockaddr*)&addr,sizeof addr)==SOCKET_ERROR||listen(server,SOMAXCONN)==SOCKET_ERROR){std::cerr<<"Cannot listen on port "<<port<<"\n";return 1;}std::cout<<"Evaluator C++ API listening on http://localhost:"<<port<<"\nDatabase: database/evaluator.db\n";for(;;){SOCKET s=accept(server,nullptr,nullptr);if(s!=INVALID_SOCKET)client(s,db);}sqlite3_close(db);WSACleanup();return 0;}
+static std::string col(sqlite3_stmt *q, int n)
+{
+    const unsigned char *p = sqlite3_column_text(q, n);
+    return p ? (const char *)p : "";
+}
+static bool exec(sqlite3 *db, const std::string &sql)
+{
+    char *e = nullptr;
+    int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &e);
+    if (rc != SQLITE_OK)
+    {
+        std::cerr << (e ? e : sqlite3_errmsg(db)) << "\n";
+        sqlite3_free(e);
+        return false;
+    }
+    return true;
+}
+static std::string errorJson(const std::string &message) { return "{\"error\":" + quote(message) + "}"; }
+static std::string hex(const unsigned char *data, size_t n)
+{
+    static const char *d = "0123456789abcdef";
+    std::string o;
+    o.reserve(n * 2);
+    for (size_t i = 0; i < n; ++i)
+    {
+        o += d[data[i] >> 4];
+        o += d[data[i] & 15];
+    }
+    return o;
+}
+static bool passwordHash(const std::string &password, std::string &saltHex, std::string &hashHex)
+{
+    unsigned char salt[16], out[32];
+    if (BCryptGenRandom(nullptr, salt, sizeof salt, BCRYPT_USE_SYSTEM_PREFERRED_RNG) < 0)
+        return false;
+    BCRYPT_ALG_HANDLE alg = nullptr;
+    if (BCryptOpenAlgorithmProvider(&alg, BCRYPT_SHA256_ALGORITHM, nullptr, BCRYPT_ALG_HANDLE_HMAC_FLAG) < 0)
+        return false;
+    NTSTATUS rc = BCryptDeriveKeyPBKDF2(alg, (PUCHAR)password.data(), (ULONG)password.size(), salt, sizeof salt, 120000, out, sizeof out, 0);
+    BCryptCloseAlgorithmProvider(alg, 0);
+    if (rc < 0)
+        return false;
+    saltHex = hex(salt, sizeof salt);
+    hashHex = hex(out, sizeof out);
+    return true;
+}
+static std::string derive(const std::string &password, const std::string &saltHex)
+{
+    if (saltHex.size() != 32)
+        return "";
+    unsigned char salt[16], out[32];
+    auto digit = [](char c)
+    { return c >= '0' && c <= '9' ? c - '0' : c >= 'a' && c <= 'f' ? c - 'a' + 10
+                                          : c >= 'A' && c <= 'F'   ? c - 'A' + 10
+                                                                   : -1; };
+    for (size_t i = 0; i < 16; ++i)
+    {
+        int a = digit(saltHex[2 * i]), b = digit(saltHex[2 * i + 1]);
+        if (a < 0 || b < 0)
+            return "";
+        salt[i] = (unsigned char)((a << 4) | b);
+    }
+    BCRYPT_ALG_HANDLE alg = nullptr;
+    if (BCryptOpenAlgorithmProvider(&alg, BCRYPT_SHA256_ALGORITHM, nullptr, BCRYPT_ALG_HANDLE_HMAC_FLAG) < 0)
+        return "";
+    NTSTATUS rc = BCryptDeriveKeyPBKDF2(alg, (PUCHAR)password.data(), (ULONG)password.size(), salt, sizeof salt, 120000, out, sizeof out, 0);
+    BCryptCloseAlgorithmProvider(alg, 0);
+    return rc < 0 ? "" : hex(out, sizeof out);
+}
+static bool constantEqual(const std::string &a, const std::string &b)
+{
+    if (a.size() != b.size())
+        return false;
+    unsigned char d = 0;
+    for (size_t i = 0; i < a.size(); ++i)
+        d |= (unsigned char)(a[i] ^ b[i]);
+    return d == 0;
+}
+static bool sessionUser(sqlite3 *db, const std::string &token, std::string &id, std::string &username, std::string &display, std::string &role)
+{
+    if (token.empty())
+        return false;
+    sqlite3_stmt *q = nullptr;
+    if (sqlite3_prepare_v2(db, "SELECT u.id,u.username,u.display_name,u.role FROM auth_sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?", -1, &q, nullptr) != SQLITE_OK)
+        return false;
+    sqlite3_bind_text(q, 1, token.c_str(), -1, SQLITE_TRANSIENT);
+    bool ok = sqlite3_step(q) == SQLITE_ROW;
+    if (ok)
+    {
+        id = col(q, 0);
+        username = col(q, 1);
+        display = col(q, 2);
+        role = col(q, 3);
+    }
+    sqlite3_finalize(q);
+    return ok;
+}
+static bool adminSession(sqlite3 *db, const std::string &token, std::string &id, std::string &username, std::string &display, std::string &role, int &status)
+{
+    if (!sessionUser(db, token, id, username, display, role))
+    {
+        status = 401;
+        return false;
+    }
+    if (role != "admin")
+    {
+        status = 403;
+        return false;
+    }
+    return true;
+}
+static bool newSession(sqlite3 *db, const std::string &id, std::string &token)
+{
+    unsigned char b[32];
+    if (BCryptGenRandom(nullptr, b, sizeof b, BCRYPT_USE_SYSTEM_PREFERRED_RNG) < 0)
+        return false;
+    token = hex(b, sizeof b);
+    sqlite3_stmt *q = nullptr;
+    if (sqlite3_prepare_v2(db, "INSERT INTO auth_sessions(token,user_id) VALUES(?,?)", -1, &q, nullptr) != SQLITE_OK)
+        return false;
+    sqlite3_bind_text(q, 1, token.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(q, 2, id.c_str(), -1, SQLITE_TRANSIENT);
+    bool ok = sqlite3_step(q) == SQLITE_DONE;
+    sqlite3_finalize(q);
+    return ok;
+}
+static std::string userJson(const std::string &id, const std::string &u, const std::string &display, const std::string &role, const std::string &token = "")
+{
+    std::string s = "{\"success\":true,\"user\":{\"id\":" + quote(id) + ",\"username\":" + quote(u) + ",\"displayName\":" + quote(display) + ",\"role\":" + quote(role) + "}";
+    if (!token.empty())
+        s += ",\"token\":" + quote(token);
+    return s + "}";
+}
+static std::string param(const std::string &path, const std::string &key)
+{
+    size_t q = path.find('?');
+    if (q == std::string::npos)
+        return "";
+    std::string x = path.substr(q + 1), p = key + "=";
+    size_t i = x.find(p);
+    if (i == std::string::npos)
+        return "";
+    size_t e = x.find('&', i);
+    return x.substr(i + p.size(), e == std::string::npos ? e : e - i - p.size());
+}
+static std::string auth(sqlite3 *db, const std::string &path, const std::string &body, const std::string &token, int &status)
+{
+    Json j = Parser(body).parse();
+    if (path == "/auth/session")
+    {
+        std::string id, u, d, r;
+        if (!sessionUser(db, token, id, u, d, r))
+        {
+            status = 401;
+            return errorJson("login required");
+        }
+        status = 200;
+        return userJson(id, u, d, r);
+    }
+    if (path == "/auth/logout")
+    {
+        sqlite3_stmt *q = nullptr;
+        sqlite3_prepare_v2(db, "DELETE FROM auth_sessions WHERE token=?", -1, &q, nullptr);
+        sqlite3_bind_text(q, 1, token.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_step(q);
+        sqlite3_finalize(q);
+        status = 200;
+        return "{\"success\":true}";
+    }
+    std::string username = text(j.get("username")), password = text(j.get("password"));
+    if (username.empty() || utf8Length(username) > 20 || password.size() < 8)
+    {
+        status = 400;
+        return errorJson("username must be 1-20 characters and password at least 8 characters");
+    }
+    if (path == "/auth/register")
+    {
+        std::string display = text(j.get("displayName")), role = text(j.get("role"));
+        if (display.empty() || utf8Length(display) > 20)
+        {
+            status = 400;
+            return errorJson("display name must be 1-20 characters");
+        }
+        if (role != "student" && role != "teacher" && role != "staff")
+            role = "student";
+        std::string salt, hash;
+        if (!passwordHash(password, salt, hash))
+        {
+            status = 500;
+            return errorJson("password hashing failed");
+        }
+        sqlite3_stmt *seq = nullptr;
+        if (sqlite3_prepare_v2(db, "SELECT COALESCE(MAX(CAST(id AS INTEGER)),0)+1 FROM users WHERE length(id)=8 AND id NOT GLOB '*[^0-9]*'", -1, &seq, nullptr) != SQLITE_OK)
+        {
+            status = 500;
+            return errorJson("could not allocate user ID");
+        }
+        sqlite3_step(seq);
+        unsigned int n = (unsigned int)sqlite3_column_int64(seq, 0);
+        sqlite3_finalize(seq);
+        if (n > 99999999)
+        {
+            status = 409;
+            return errorJson("no user IDs available");
+        }
+        char b[9];
+        std::snprintf(b, sizeof b, "%08u", n);
+        std::string id = b;
+        sqlite3_stmt *q = nullptr;
+        if (sqlite3_prepare_v2(db, "INSERT INTO users(id,username,display_name,role,password_hash,password_salt,password_iterations) VALUES(?,?,?,?,?,?,120000)", -1, &q, nullptr) != SQLITE_OK)
+        {
+            status = 500;
+            return errorJson("account creation failed");
+        }
+        sqlite3_bind_text(q, 1, id.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(q, 2, username.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(q, 3, display.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(q, 4, role.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(q, 5, hash.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(q, 6, salt.c_str(), -1, SQLITE_TRANSIENT);
+        int rc = sqlite3_step(q);
+        sqlite3_finalize(q);
+        if (rc != SQLITE_DONE)
+        {
+            status = rc == SQLITE_CONSTRAINT ? 409 : 500;
+            return errorJson(rc == SQLITE_CONSTRAINT ? "username already exists" : "account creation failed");
+        }
+        std::string session;
+        if (!newSession(db, id, session))
+        {
+            status = 500;
+            return errorJson("session creation failed");
+        }
+        status = 201;
+        return userJson(id, username, display, role, session);
+    }
+    sqlite3_stmt *q = nullptr;
+    if (sqlite3_prepare_v2(db, "SELECT id,username,display_name,role,password_hash,password_salt FROM users WHERE username=? COLLATE NOCASE OR id=? LIMIT 1", -1, &q, nullptr) != SQLITE_OK)
+    {
+        status = 500;
+        return errorJson("login failed");
+    }
+    sqlite3_bind_text(q, 1, username.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(q, 2, username.c_str(), -1, SQLITE_TRANSIENT);
+    if (sqlite3_step(q) != SQLITE_ROW)
+    {
+        sqlite3_finalize(q);
+        status = 401;
+        return errorJson("invalid username or password");
+    }
+    std::string id = col(q, 0), u = col(q, 1), d = col(q, 2), r = col(q, 3), saved = col(q, 4), salt = col(q, 5);
+    sqlite3_finalize(q);
+    if (!constantEqual(saved, derive(password, salt)))
+    {
+        status = 401;
+        return errorJson("invalid username or password");
+    }
+    std::string session;
+    if (!newSession(db, id, session))
+    {
+        status = 500;
+        return errorJson("session creation failed");
+    }
+    status = 200;
+    return userJson(id, u, d, r, session);
+}
+static std::string recordJson(sqlite3_stmt *q) { return "{\"id\":" + quote(col(q, 0)) + ",\"systemId\":" + quote(col(q, 1)) + ",\"systemName\":" + quote(col(q, 2)) + ",\"evaluatorId\":" + quote(col(q, 3)) + ",\"evaluatorName\":" + quote(col(q, 4)) + ",\"userRole\":" + quote(col(q, 5)) + ",\"beforeAnswers\":" + col(q, 6) + ",\"afterAnswers\":" + col(q, 7) + ",\"beforeAverage\":" + (sqlite3_column_type(q, 8) == SQLITE_NULL ? "null" : std::to_string(sqlite3_column_double(q, 8))) + ",\"afterAverage\":" + (sqlite3_column_type(q, 9) == SQLITE_NULL ? "null" : std::to_string(sqlite3_column_double(q, 9))) + ",\"comparableCount\":" + std::to_string(sqlite3_column_int(q, 10)) + ",\"satisfactionAnswers\":" + col(q, 11) + ",\"satisfactionAverage\":" + (sqlite3_column_type(q, 12) == SQLITE_NULL ? "null" : std::to_string(sqlite3_column_double(q, 12))) + ",\"feedback\":" + quote(col(q, 13)) + ",\"submittedAt\":" + quote(col(q, 14)) + "}"; }
+static void bindText(sqlite3_stmt *q, int i, const Json &j)
+{
+    std::string s = text(j);
+    sqlite3_bind_text(q, i, s.c_str(), -1, SQLITE_TRANSIENT);
+}
+static void bindNum(sqlite3_stmt *q, int i, const Json &j)
+{
+    if (j.type == Json::Number)
+        sqlite3_bind_double(q, i, j.number());
+    else
+        sqlite3_bind_null(q, i);
+}
+static std::string questionRows(sqlite3 *db, const std::string &system, const std::string &type, int &status)
+{
+    sqlite3_stmt *q = nullptr;
+    const char *sql = "SELECT id,assessment_type,sort_order,text,text_en,active FROM assessment_questions WHERE system_id=? AND (?='' OR assessment_type=?) AND active=1 ORDER BY sort_order,id";
+    if (sqlite3_prepare_v2(db, sql, -1, &q, nullptr) != SQLITE_OK)
+    {
+        status = 500;
+        return errorJson("question query failed");
+    }
+    sqlite3_bind_text(q, 1, system.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(q, 2, type.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(q, 3, type.c_str(), -1, SQLITE_TRANSIENT);
+    std::string o = "[";
+    bool first = true;
+    while (sqlite3_step(q) == SQLITE_ROW)
+    {
+        if (!first)
+            o += ',';
+        first = false;
+        o += "{\"id\":" + quote(col(q, 0)) + ",\"assessmentType\":" + quote(col(q, 1)) + ",\"order\":" + std::to_string(sqlite3_column_int(q, 2)) + ",\"text\":" + quote(col(q, 3)) + ",\"text_en\":" + quote(col(q, 4)) + ",\"active\":" + (sqlite3_column_int(q, 5) ? "true" : "false") + "}";
+    }
+    sqlite3_finalize(q);
+    status = 200;
+    return o + "]";
+}
+static bool saveAnswerSet(sqlite3 *db, const std::string &eid, const std::string &type, const std::string &phase, const Json &answers, const Json &questions)
+{
+    if (answers.type != Json::Array)
+        return true;
+    for (size_t i = 0; i < answers.array.size(); ++i)
+    {
+        const Json &a = answers.array[i];
+        if (a.type == Json::Null)
+            continue;
+        std::string qid, qtext;
+        if (questions.type == Json::Array && i < questions.array.size())
+        {
+            qid = text(questions.array[i].get("id"));
+            qtext = text(questions.array[i].get("text"));
+        }
+        if (qid.empty() && type == "effectiveness")
+        {
+            sqlite3_stmt *find = nullptr;
+            sqlite3_prepare_v2(db, "SELECT id,text FROM assessment_questions WHERE system_id=(SELECT system_id FROM evaluations WHERE id=?) AND assessment_type='effectiveness' ORDER BY sort_order LIMIT 1 OFFSET ?", -1, &find, nullptr);
+            sqlite3_bind_text(find, 1, eid.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_int(find, 2, (int)i);
+            if (sqlite3_step(find) == SQLITE_ROW)
+            {
+                qid = col(find, 0);
+                qtext = col(find, 1);
+            }
+            sqlite3_finalize(find);
+        }
+        if (qtext.empty())
+            qtext = "คำถาม " + std::to_string(i + 1);
+        sqlite3_stmt *q = nullptr;
+        const char *sql = "INSERT INTO assessment_answers(evaluation_id,question_id,assessment_type,phase,question_text,answer_value) VALUES(?,?,?,?,?,?) ON CONFLICT(evaluation_id,question_id,assessment_type,phase) DO UPDATE SET question_text=excluded.question_text,answer_value=excluded.answer_value";
+        if (sqlite3_prepare_v2(db, sql, -1, &q, nullptr) != SQLITE_OK)
+            return false;
+        sqlite3_bind_text(q, 1, eid.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(q, 2, qid.empty() ? nullptr : qid.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(q, 3, type.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(q, 4, phase.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(q, 5, qtext.c_str(), -1, SQLITE_TRANSIENT);
+        std::string v = raw(a);
+        sqlite3_bind_text(q, 6, v.c_str(), -1, SQLITE_TRANSIENT);
+        bool ok = sqlite3_step(q) == SQLITE_DONE;
+        sqlite3_finalize(q);
+        if (!ok)
+            return false;
+    }
+    return true;
+}
+static std::string handle(sqlite3 *db, const std::string &method, const std::string &path, const std::string &body, const std::string &token, int &status)
+{
+    std::string route = path.substr(0, path.find('?'));
+    if (method == "GET" && route == "/health")
+    {
+        status = 200;
+        return "{\"status\":\"ok\"}";
+    }
+    if (method == "GET" && route == "/auth/me")
+    {
+        std::string id, u, d, r;
+        if (!sessionUser(db, token, id, u, d, r))
+        {
+            status = 401;
+            return errorJson("login required");
+        }
+        status = 200;
+        return userJson(id, u, d, r);
+    }
+    if (method == "POST" && (route == "/auth/login" || route == "/auth/register" || route == "/auth/session" || route == "/auth/logout"))
+        return auth(db, route, body, token, status);
+    if (method == "GET" && route == "/systems")
+    {
+        sqlite3_stmt *q = nullptr;
+        sqlite3_prepare_v2(db, "SELECT id,name,name_en FROM systems WHERE active=1 ORDER BY sort_order,id", -1, &q, nullptr);
+        std::string o = "[";
+        bool first = true;
+        while (sqlite3_step(q) == SQLITE_ROW)
+        {
+            if (!first)
+                o += ',';
+            first = false;
+            o += "{\"id\":" + quote(col(q, 0)) + ",\"name\":" + quote(col(q, 1)) + ",\"name_en\":" + quote(col(q, 2)) + "}";
+        }
+        sqlite3_finalize(q);
+        status = 200;
+        return o + "]";
+    }
+    if (method == "GET" && route == "/questions")
+    {
+        std::string system = param(path, "system_id");
+        if (system.empty())
+        {
+            status = 400;
+            return errorJson("system_id is required");
+        }
+        return questionRows(db, system, param(path, "assessment_type"), status);
+    }
+    if (method == "POST" && route == "/questions/replace")
+    {
+        std::string uid, u, d, r;
+        if (!adminSession(db, token, uid, u, d, r, status))
+            return errorJson(status == 401 ? "login required" : "ไม่มีสิทธิ์เข้าถึง Admin");
+        Json j = Parser(body).parse();
+        std::string system = text(j.get("systemId"));
+        const Json &items = j.get("questions");
+        if (system.empty() || items.type != Json::Array)
+        {
+            status = 400;
+            return errorJson("systemId and questions are required");
+        }
+        if (!exec(db, "BEGIN IMMEDIATE"))
+        {
+            status = 500;
+            return errorJson("database transaction failed");
+        }
+        sqlite3_stmt *del = nullptr;
+        sqlite3_prepare_v2(db, "DELETE FROM assessment_questions WHERE system_id=?", -1, &del, nullptr);
+        sqlite3_bind_text(del, 1, system.c_str(), -1, SQLITE_TRANSIENT);
+        bool ok = sqlite3_step(del) == SQLITE_DONE;
+        sqlite3_finalize(del);
+        for (size_t i = 0; ok && i < items.array.size(); ++i)
+        {
+            const Json &q = items.array[i];
+            std::string id = text(q.get("id")), typ = text(q.get("type")), th = text(q.get("text")), en = text(q.get("text_en"));
+            if (id.empty() || th.empty())
+                continue;
+            std::string kind = typ == "satisfaction" ? "satisfaction" : "effectiveness";
+            sqlite3_stmt *ins = nullptr;
+            const char *sql = "INSERT INTO assessment_questions(id,system_id,assessment_type,section,text,text_en,answer_type,sort_order,active) VALUES(?,?,?,?,?,?,?,?,1)";
+            ok = sqlite3_prepare_v2(db, sql, -1, &ins, nullptr) == SQLITE_OK;
+            if (ok)
+            {
+                sqlite3_bind_text(ins, 1, id.c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(ins, 2, system.c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(ins, 3, kind.c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(ins, 4, kind.c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(ins, 5, th.c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(ins, 6, en.c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(ins, 7, "likert5", -1, SQLITE_STATIC);
+                sqlite3_bind_int(ins, 8, (int)q.get("order").number());
+                ok = sqlite3_step(ins) == SQLITE_DONE;
+            }
+            sqlite3_finalize(ins);
+        }
+        if (!ok || !exec(db, "COMMIT"))
+        {
+            exec(db, "ROLLBACK");
+            status = 500;
+            return errorJson("question update failed");
+        }
+        status = 200;
+        return "{\"success\":true}";
+    }
+    if (method == "POST" && route == "/evaluations")
+    {
+        Json j = Parser(body).parse();
+        if (j.type != Json::Object || text(j.get("systemId")).empty())
+        {
+            status = 400;
+            return errorJson("systemId is required");
+        }
+        std::string uid, u, d, role;
+        if (!sessionUser(db, token, uid, u, d, role))
+        {
+            status = 401;
+            return errorJson("กรุณาเข้าสู่ระบบก่อนส่งแบบประเมิน");
+        }
+        if (role == "admin")
+            role = "staff";
+        if (!exec(db, "BEGIN IMMEDIATE"))
+        {
+            status = 500;
+            return errorJson("database transaction failed");
+        }
+        std::string id = text(j.get("id"));
+        if (id.empty())
+            id = "eval_" + std::to_string(GetTickCount64());
+        Json before = j.get("beforeAnswers"), after = j.get("afterAnswers"), sat = j.get("satisfactionAnswers");
+        if (before.type != Json::Array)
+            before.type = Json::Array;
+        if (after.type != Json::Array)
+            after.type = Json::Array;
+        if (sat.type != Json::Array)
+            sat.type = Json::Array;
+        sqlite3_stmt *q = nullptr;
+        const char *sql = "INSERT INTO evaluations(id,system_id,system_name,evaluator_id,evaluator_name,user_role,before_answers,after_answers,before_average,after_average,comparable_count,feedback,submitted_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET system_id=excluded.system_id,system_name=excluded.system_name,evaluator_id=excluded.evaluator_id,evaluator_name=excluded.evaluator_name,user_role=excluded.user_role,before_answers=excluded.before_answers,after_answers=excluded.after_answers,before_average=excluded.before_average,after_average=excluded.after_average,comparable_count=excluded.comparable_count,feedback=excluded.feedback,submitted_at=excluded.submitted_at";
+        bool ok = sqlite3_prepare_v2(db, sql, -1, &q, nullptr) == SQLITE_OK;
+        if (ok)
+        {
+            std::string b = raw(before), a = raw(after);
+            sqlite3_bind_text(q, 1, id.c_str(), -1, SQLITE_TRANSIENT);
+            bindText(q, 2, j.get("systemId"));
+            bindText(q, 3, j.get("systemName"));
+            sqlite3_bind_text(q, 4, uid.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(q, 5, d.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(q, 6, role.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(q, 7, b.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(q, 8, a.c_str(), -1, SQLITE_TRANSIENT);
+            bindNum(q, 9, j.get("beforeAverage"));
+            bindNum(q, 10, j.get("afterAverage"));
+            sqlite3_bind_int(q, 11, (int)j.get("comparableCount").number());
+            bindText(q, 12, j.get("feedback"));
+            std::string date = text(j.get("submittedAt"));
+            sqlite3_bind_text(q, 13, date.c_str(), -1, SQLITE_TRANSIENT);
+            ok = sqlite3_step(q) == SQLITE_DONE;
+        }
+        sqlite3_finalize(q);
+        if (ok)
+        {
+            std::string answers = raw(sat);
+            sqlite3_stmt *s = nullptr;
+            sqlite3_prepare_v2(db, "INSERT INTO satisfactions(evaluation_id,answers,average) VALUES(?,?,?) ON CONFLICT(evaluation_id) DO UPDATE SET answers=excluded.answers,average=excluded.average", -1, &s, nullptr);
+            sqlite3_bind_text(s, 1, id.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(s, 2, answers.c_str(), -1, SQLITE_TRANSIENT);
+            bindNum(s, 3, j.get("satisfactionAverage"));
+            ok = sqlite3_step(s) == SQLITE_DONE;
+            sqlite3_finalize(s);
+        }
+        if (ok)
+        {
+            sqlite3_stmt *x = nullptr;
+            sqlite3_prepare_v2(db, "DELETE FROM assessment_answers WHERE evaluation_id=?", -1, &x, nullptr);
+            sqlite3_bind_text(x, 1, id.c_str(), -1, SQLITE_TRANSIENT);
+            ok = sqlite3_step(x) == SQLITE_DONE;
+            sqlite3_finalize(x);
+        }
+        if (ok)
+        {
+            Json questions = j.get("satisfactionQuestions");
+            ok = saveAnswerSet(db, id, "effectiveness", "before", before, Json()) && saveAnswerSet(db, id, "effectiveness", "after", after, Json()) && saveAnswerSet(db, id, "satisfaction", "submitted", sat, questions);
+        }
+        if (!ok || !exec(db, "COMMIT"))
+        {
+            exec(db, "ROLLBACK");
+            status = 500;
+            return errorJson("database write failed");
+        }
+        status = 201;
+        return "{\"id\":" + quote(id) + ",\"success\":true}";
+    }
+    if (method == "POST" && route == "/quantitative")
+    {
+        std::string uid, u, d, r;
+        if (!sessionUser(db, token, uid, u, d, r))
+        {
+            status = 401;
+            return errorJson("กรุณาเข้าสู่ระบบก่อนส่งแบบประเมิน");
+        }
+        Json j = Parser(body).parse();
+        std::string id = text(j.get("id")), sys = text(j.get("systemId"));
+        if (id.empty() || sys.empty() || j.type != Json::Object)
+        {
+            status = 400;
+            return errorJson("id and systemId are required");
+        }
+        sqlite3_stmt *q = nullptr;
+        const char *sql = "INSERT INTO quantitative_records(id,user_id,system_id,record_json,submitted_at) VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET record_json=excluded.record_json,submitted_at=excluded.submitted_at WHERE user_id=excluded.user_id";
+        if (sqlite3_prepare_v2(db, sql, -1, &q, nullptr) != SQLITE_OK)
+        {
+            status = 500;
+            return errorJson("quantitative record could not be saved");
+        }
+        sqlite3_bind_text(q, 1, id.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(q, 2, uid.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(q, 3, sys.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(q, 4, body.c_str(), (int)body.size(), SQLITE_TRANSIENT);
+        std::string date = text(j.get("submittedAt"));
+        sqlite3_bind_text(q, 5, date.c_str(), -1, SQLITE_TRANSIENT);
+        bool ok = sqlite3_step(q) == SQLITE_DONE;
+        sqlite3_finalize(q);
+        if (!ok || sqlite3_changes(db) == 0)
+        {
+            status = 403;
+            return errorJson("ไม่สามารถบันทึกผลประเมินรายการนี้");
+        }
+        status = 201;
+        return "{\"success\":true,\"id\":" + quote(id) + "}";
+    }
+    if (method == "GET" && route == "/quantitative")
+    {
+        std::string uid, u, d, r;
+        if (!adminSession(db, token, uid, u, d, r, status))
+            return errorJson(status == 401 ? "login required" : "ไม่มีสิทธิ์เข้าถึง Admin");
+        sqlite3_stmt *q = nullptr;
+        sqlite3_prepare_v2(db, "SELECT record_json FROM quantitative_records ORDER BY submitted_at DESC", -1, &q, nullptr);
+        std::string o = "[";
+        bool first = true;
+        while (sqlite3_step(q) == SQLITE_ROW)
+        {
+            if (!first)
+                o += ',';
+            first = false;
+            o += col(q, 0);
+        }
+        sqlite3_finalize(q);
+        status = 200;
+        return o + "]";
+    }
+    if (method == "DELETE" && route == "/evaluations")
+    {
+        std::string uid, u, d, r;
+        if (!adminSession(db, token, uid, u, d, r, status))
+            return errorJson(status == 401 ? "login required" : "ไม่มีสิทธิ์เข้าถึง Admin");
+        if (!exec(db, "BEGIN IMMEDIATE") || !exec(db, "DELETE FROM satisfactions") || !exec(db, "DELETE FROM evaluations") || !exec(db, "COMMIT"))
+        {
+            exec(db, "ROLLBACK");
+            status = 500;
+            return errorJson("database clear failed");
+        }
+        status = 200;
+        return "{\"success\":true}";
+    }
+    if (method == "GET" && route == "/evaluations")
+    {
+        std::string uid, u, d, r;
+        if (!adminSession(db, token, uid, u, d, r, status))
+            return errorJson(status == 401 ? "login required" : "ไม่มีสิทธิ์เข้าถึง Admin");
+        sqlite3_stmt *q = nullptr;
+        const char *sql = "SELECT e.id,e.system_id,e.system_name,e.evaluator_id,e.evaluator_name,e.user_role,e.before_answers,e.after_answers,e.before_average,e.after_average,e.comparable_count,COALESCE(s.answers,'[]'),s.average,e.feedback,e.submitted_at FROM evaluations e LEFT JOIN satisfactions s ON s.evaluation_id=e.id ORDER BY e.submitted_at DESC";
+        if (sqlite3_prepare_v2(db, sql, -1, &q, nullptr) != SQLITE_OK)
+        {
+            status = 500;
+            return errorJson("database query failed");
+        }
+        std::string o = "[";
+        bool first = true;
+        while (sqlite3_step(q) == SQLITE_ROW)
+        {
+            if (!first)
+                o += ',';
+            first = false;
+            o += recordJson(q);
+        }
+        sqlite3_finalize(q);
+        status = 200;
+        return o + "]";
+    }
+    status = 404;
+    return errorJson("not found");
+}
+static bool initialize(sqlite3 *db)
+{
+    std::ifstream f("database/schema.sql");
+    if (!f)
+    {
+        std::cerr << "Cannot read database/schema.sql (run from project root)\n";
+        return false;
+    }
+    std::stringstream schema;
+    schema << f.rdbuf();
+    if (!exec(db, schema.str()))
+        return false;
+    std::ifstream seed("database/seed.sql");
+    if (seed)
+    {
+        std::stringstream data;
+        data << seed.rdbuf();
+        if (!exec(db, data.str()))
+            return false;
+    }
+    sqlite3_stmt *q = nullptr;
+    sqlite3_prepare_v2(db, "SELECT 1 FROM schema_migrations WHERE name='assessment_questions_csv_v1'", -1, &q, nullptr);
+    bool seeded = sqlite3_step(q) == SQLITE_ROW;
+    sqlite3_finalize(q);
+    if (!seeded)
+    {
+        std::ifstream questions("database/questions_seed.sql");
+        if (!questions)
+        {
+            std::cerr << "Cannot read database/questions_seed.sql\n";
+            return false;
+        }
+        std::stringstream data;
+        data << questions.rdbuf();
+        if (!exec(db, data.str()))
+            return false;
+        if (!exec(db, "INSERT INTO schema_migrations(name) VALUES('assessment_questions_csv_v1')"))
+            return false;
+    }
+    q = nullptr;
+    sqlite3_prepare_v2(db, "SELECT 1 FROM schema_migrations WHERE name='assessment_questions_dedupe_v2'", -1, &q, nullptr);
+    bool deduped = sqlite3_step(q) == SQLITE_ROW;
+    sqlite3_finalize(q);
+    if (!deduped)
+    {
+        if (!exec(db, "BEGIN IMMEDIATE"))
+            return false;
+        const char *dedupe = "UPDATE assessment_questions SET active=0 WHERE assessment_type='effectiveness' AND system_id IN (SELECT id FROM systems) AND sort_order BETWEEN 11 AND 21 AND id=system_id||'-EFF-'||printf('%02d',sort_order)";
+        if (!exec(db, dedupe) || !exec(db, "INSERT INTO schema_migrations(name) VALUES('assessment_questions_dedupe_v2')") || !exec(db, "COMMIT"))
+        {
+            exec(db, "ROLLBACK");
+            return false;
+        }
+    }
+    return true;
+}
+static void client(SOCKET sock, sqlite3 *db)
+{
+    DWORD timeout = 3000;
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeout, sizeof timeout);
+    setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char *)&timeout, sizeof timeout);
+    std::string req;
+    char buf[8192];
+    int n;
+    size_t headerEnd = std::string::npos, contentLength = 0;
+    bool complete = false;
+    while ((n = recv(sock, buf, sizeof buf, 0)) > 0)
+    {
+        req.append(buf, n);
+        if (headerEnd == std::string::npos)
+        {
+            headerEnd = req.find("\r\n\r\n");
+            if (headerEnd != std::string::npos)
+            {
+                std::string headers = req.substr(0, headerEnd), lowerHeaders = headers;
+                std::transform(lowerHeaders.begin(), lowerHeaders.end(), lowerHeaders.begin(), [](unsigned char c)
+                               { return (char)std::tolower(c); });
+                size_t h = lowerHeaders.find("content-length:");
+                if (h != std::string::npos)
+                    contentLength = std::strtoul(lowerHeaders.c_str() + h + 15, nullptr, 10);
+            }
+        }
+        if (headerEnd != std::string::npos && req.size() >= headerEnd + 4 + contentLength)
+        {
+            complete = true;
+            break;
+        }
+    }
+    if (!complete)
+    {
+        std::cerr << "Incomplete HTTP request; closing stalled connection\n";
+        closesocket(sock);
+        return;
+    }
+    std::istringstream first(req.substr(0, req.find("\r\n")));
+    std::string method, path, version;
+    first >> method >> path >> version;
+    std::string body = req.substr(headerEnd + 4, contentLength), token, headers = req.substr(0, headerEnd), lowerHeaders = headers;
+    std::transform(lowerHeaders.begin(), lowerHeaders.end(), lowerHeaders.begin(), [](unsigned char c)
+                   { return (char)std::tolower(c); });
+    size_t a = lowerHeaders.find("authorization:");
+    if (a != std::string::npos)
+    {
+        size_t v = a + 15;
+        while (v < headers.size() && headers[v] == ' ')
+            ++v;
+        if (lowerHeaders.compare(v, 7, "bearer ") == 0)
+        {
+            size_t e = headers.find("\r\n", v);
+            token = headers.substr(v + 7, e == std::string::npos ? e : e - v - 7);
+        }
+    }
+    int status = 200;
+    std::string out = handle(db, method, path, body, token, status);
+    std::string label = status == 200 ? "OK" : status == 201 ? "Created"
+                                           : status == 400   ? "Bad Request"
+                                           : status == 401   ? "Unauthorized"
+                                           : status == 403   ? "Forbidden"
+                                           : status == 404   ? "Not Found"
+                                           : status == 409   ? "Conflict"
+                                                             : "Internal Server Error";
+    std::string resp;
+    if (method == "OPTIONS")
+        resp = "HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: GET, POST, DELETE, OPTIONS\r\nAccess-Control-Allow-Headers: Content-Type, Authorization\r\nConnection: close\r\nContent-Length: 0\r\n\r\n";
+    else
+        resp = "HTTP/1.1 " + std::to_string(status) + " " + label + "\r\nContent-Type: application/json; charset=utf-8\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: GET, POST, DELETE, OPTIONS\r\nAccess-Control-Allow-Headers: Content-Type, Authorization\r\nConnection: close\r\nContent-Length: " + std::to_string(out.size()) + "\r\n\r\n" + out;
+    size_t sent = 0;
+    while (sent < resp.size())
+    {
+        int count = send(sock, resp.data() + sent, (int)(resp.size() - sent), 0);
+        if (count <= 0)
+            break;
+        sent += (size_t)count;
+    }
+    closesocket(sock);
+}
+int main(int argc, char **argv)
+{
+    int port = argc > 1 ? std::atoi(argv[1]) : 8080;
+    sqlite3 *db = nullptr;
+    if (sqlite3_open("database/evaluator.db", &db) != SQLITE_OK)
+    {
+        std::cerr << "Cannot open database/evaluator.db\n";
+        return 1;
+    }
+    if (!initialize(db))
+        return 1;
+    WSADATA w;
+    if (WSAStartup(MAKEWORD(2, 2), &w))
+    {
+        std::cerr << "Winsock startup failed\n";
+        return 1;
+    }
+    SOCKET server = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    sockaddr_in addr{};
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_port = htons((u_short)port);
+    int yes = 1;
+    setsockopt(server, SOL_SOCKET, SO_REUSEADDR, (char *)&yes, sizeof yes);
+    if (bind(server, (sockaddr *)&addr, sizeof addr) == SOCKET_ERROR || listen(server, SOMAXCONN) == SOCKET_ERROR)
+    {
+        std::cerr << "Cannot listen on port " << port << "\n";
+        return 1;
+    }
+    std::cout << "Evaluator C++ API listening on http://localhost:" << port << "\nDatabase: database/evaluator.db\n";
+    for (;;)
+    {
+        SOCKET s = accept(server, nullptr, nullptr);
+        if (s != INVALID_SOCKET)
+            client(s, db);
+    }
+    sqlite3_close(db);
+    WSACleanup();
+    return 0;
+}

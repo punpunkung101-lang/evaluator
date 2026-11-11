@@ -44,6 +44,15 @@
         homeLink.href = home.href;
         homeLink.textContent = "กลับหน้าหลัก";
         panel.append(homeLink);
+        if (canRetry && window.EvaluatorDemo) {
+            // Backend unreachable: offer the explicit, read-only mock-data view (never automatic).
+            const demoUrl = new URL(location.href);
+            demoUrl.searchParams.set("demo", "1");
+            const demoLink = document.createElement("a");
+            demoLink.href = demoUrl.href;
+            demoLink.textContent = "ดูข้อมูลตัวอย่าง (Demo)";
+            panel.append(demoLink);
+        }
         const gate = document.createElement("main");
         gate.className = "admin-gate";
         gate.setAttribute("role", "alert");
@@ -53,6 +62,11 @@
     }
 
     const ready = (async () => {
+        if (window.EvaluatorDemo?.active) {
+            // Explicit read-only demo (?demo=1): mock snapshot only, no backend session needed.
+            document.documentElement.classList.remove(pendingClass);
+            return window.EvaluatorDemo.user;
+        }
         const token = sessionStorage.getItem("evaluatorToken");
         if (!token) {
             clearExpiredSession();

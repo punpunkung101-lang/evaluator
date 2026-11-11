@@ -74,6 +74,23 @@ g++ -std=c++17 backend/src/main.cpp -lsqlite3 -lws2_32 -lbcrypt -o backend/evalu
 - **(ค) ล้างเป็นศูนย์:** ลบ `database/evaluator.db` แล้วเปิด backend ใหม่ *(วิธีนี้ backend จะ seed คำถามเริ่มต้น 315 ข้อตาม `questions_seed.sql` ซึ่งต่างจาก DB ที่ commit ที่มี 571 แถว)*
 ดูรายละเอียดและจำนวนแถวที่ได้จากการทดสอบจริงได้ที่ [`database/README.md`](database/README.md)
 
+### โหมดข้อมูลตัวอย่าง (Demo) สำหรับดู Dashboard โดยไม่ต้องรัน backend
+
+เปิดหน้า Admin พร้อมต่อท้าย `?demo=1` เช่น `http://127.0.0.1:5500/frontend/admin/dashboard.html?demo=1` จะแสดงข้อมูล mock จาก `frontend/assets/data/mock-snapshot.js` ทันที (ตาราง 21 ระบบ, กราฟ, ผลรายระบบ) โดยไม่ต้อง build/รัน backend และไม่ต้อง login
+
+- โหมดนี้ **อ่านอย่างเดียว** ทุกคำขอ POST/PUT/DELETE ถูกปฏิเสธ จึงไม่มีอะไรถูกเขียนลง SQL; เมื่อไม่ได้เปิดโหมดนี้ ระบบเขียน/อ่าน SQLite ผ่าน C++ backend เหมือนเดิมทุกอย่าง
+- ออกจากโหมดได้ด้วย `?demo=0`, ลิงก์ที่แถบด้านล่างจอ หรือ login ตามปกติ
+- ถ้า backend ปิดอยู่ หน้า "ตรวจสอบสิทธิ์ไม่สำเร็จ" จะมีปุ่ม **ดูข้อมูลตัวอย่าง (Demo)** และถ้าฐานข้อมูลว่าง Dashboard จะมีลิงก์ไปโหมดนี้
+- snapshot สร้างจากแถว mock ใน `database/evaluator.db` (ต้องใช้ Node 22+): `node database/mock/export-mock-snapshot.cjs` และมีเทสต์ `tests/database/mock-snapshot.test.cjs` ตรวจว่าตรงกับ DB เสมอ
+
+**เพื่อนที่ clone แล้วต้องการข้อมูล mock ลงในฐานข้อมูลของตัวเอง** (ไม่ใช่แค่ดูเฉย ๆ):
+
+```powershell
+sqlite3 database/evaluator.db < database/mock/mock-data.sql
+```
+
+(หรือ `git restore database/evaluator.db` เพื่อกลับไปใช้ DB ที่ commit ไว้ ซึ่งมี mock อยู่แล้ว) จากนั้นรัน backend และ login `Admin` / `00000000` ตามปกติ
+
 ### ข้อควรระวังสำหรับเพื่อนร่วมทีม
 
 DB นี้ถูก track ใน Git แล้ว backend จะแก้ไฟล์เมื่อมีการล็อกอิน (`auth_sessions`) ห้าม `git add` ไฟล์ DB ที่ใช้งานแล้ว ก่อน commit ต้องไม่มีไฟล์ DB ใน stage เว้นแต่ตั้งใจรีเฟรช mock และตรวจ `auth_sessions` ว่าง, ถ้า `git pull` ติดเพราะ DB ในเครื่องเปลี่ยน ให้สำรองไฟล์ก่อนแล้ว `git restore`
