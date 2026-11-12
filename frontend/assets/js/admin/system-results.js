@@ -3,7 +3,7 @@
     const main = document.getElementById("system-results");
     if (!main) return;
     const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-    const fmt = value => Number.isFinite(value) ? value.toFixed(2) : "—";
+    const fmt = value => Number.isFinite(value) ? value.toFixed(2) : "ไม่มีข้อมูล";
     const signalLabels = { urgent: "ควรปรับปรุงเร่งด่วน", review: "ควรตรวจสอบเพิ่มเติม", strength: "จุดแข็งควรรักษา", insufficient: "ข้อมูลยังไม่เพียงพอ" };
 
     function table(headers, rows, empty) {

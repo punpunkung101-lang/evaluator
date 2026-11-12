@@ -10,6 +10,10 @@ const outputPath = path.join(__dirname, "mock-data.sql");
 const FIXED_HASH = "0000000000000000000000000000000000000000000000000000000000000000";
 const FIXED_SALT = "0000000000000000000000000000000000000000000000000000000000000000";
 
+// Intentionally omit mock respondents for empty-state dashboard testing.
+const SKIP_SYSTEMS = ["SYS008"];
+const SKIPPED_SYSTEM_SET = new Set(SKIP_SYSTEMS);
+
 const LOW = new Set(["SYS001", "SYS002", "SYS003", "SYS004"]);
 const MIDDLE = new Set(["SYS005", "SYS006", "SYS007", "SYS008", "SYS009", "SYS010", "SYS011", "SYS012", "SYS013"]);
 const BAND_SCORES = { low: [1, 2, 3, 2, 2], middle: [3, 4, 3, 4, 3], high: [4, 5, 4, 5, 4] };
@@ -89,6 +93,7 @@ function generateMockDataset() {
   const users = [];
   const evaluations = [];
   bank.systems.forEach((system, systemIndex) => {
+    if (SKIPPED_SYSTEM_SET.has(system.id)) return;
     for (let respondent = 1; respondent <= 15; respondent += 1) {
       const suffix = String(respondent).padStart(2, "0");
       const user = {
@@ -136,10 +141,15 @@ function generateMockDataset() {
 
 function validateMockDataset(dataset) {
   const errors = [];
-  if (dataset.users.length !== bank.systems.length * 15) errors.push("default mock must contain 15 accounts per system");
+  const activeMockSystems = bank.systems.filter(system => !SKIPPED_SYSTEM_SET.has(system.id));
+  if (dataset.users.length !== activeMockSystems.length * 15) errors.push("default mock must contain 15 accounts per non-skipped system");
+  for (const systemId of SKIP_SYSTEMS) {
+    if (dataset.users.some(user => user.username.includes(systemId))) errors.push(`${systemId}: skipped system must have no mock accounts`);
+    if (dataset.evaluations.some(evaluation => evaluation.systemId === systemId)) errors.push(`${systemId}: skipped system must have no mock submissions`);
+  }
   const ids = new Set(dataset.evaluations.map((evaluation) => evaluation.id));
   if (ids.size !== dataset.evaluations.length) errors.push("mock evaluation IDs must be unique");
-  for (const system of bank.systems) {
+  for (const system of activeMockSystems) {
     for (const assessmentType of ["effectiveness", "satisfaction"]) {
       const matching = dataset.evaluations.filter((evaluation) => evaluation.systemId === system.id && evaluation.assessmentType === assessmentType);
       if (matching.length < 10 || matching.length > 20) errors.push(`${system.id}/${assessmentType} needs 10–20 submissions`);
@@ -196,7 +206,7 @@ function generateMockSql(dataset = generateMockDataset()) {
 if (require.main === module) {
   const dataset = generateMockDataset();
   fs.writeFileSync(outputPath, generateMockSql(dataset), "utf8");
-  process.stdout.write(`Generated ${dataset.users.length} mock accounts and ${dataset.evaluations.length} submissions across 21 systems.\n`);
+  process.stdout.write(`Generated ${dataset.users.length} mock accounts and ${dataset.evaluations.length} submissions across ${bank.systems.length - SKIP_SYSTEMS.length} responding systems; intentionally skipped: ${SKIP_SYSTEMS.join(", ")}.\n`);
 }
 
-module.exports = { generateMockDataset, generateMockSql, validateMockDataset, bandForSystem };
+module.exports = { generateMockDataset, generateMockSql, validateMockDataset, bandForSystem, SKIP_SYSTEMS };

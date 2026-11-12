@@ -4,6 +4,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { DatabaseSync } = require("node:sqlite");
+const { SKIP_SYSTEMS } = require("../mock/generate-mock-data.cjs");
 
 const databaseDir = path.resolve(__dirname, "..");
 const repositoryRoot = path.resolve(databaseDir, "..");
@@ -32,25 +33,27 @@ function inspectDatabase(db) {
   const integrity = db.prepare("PRAGMA integrity_check").all();
   const foreignKeys = db.prepare("PRAGMA foreign_key_check").all();
   const sessions = db.prepare("SELECT COUNT(*) AS count FROM auth_sessions").get().count;
+  const skippedSystemEvaluations = Object.fromEntries(SKIP_SYSTEMS.map(systemId => [systemId, db.prepare("SELECT COUNT(*) AS count FROM evaluations WHERE system_id=?").get(systemId).count]));
   const counts = {};
   for (const table of ["users", "systems", "assessment_forms", "form_versions", "assessment_questions", "form_version_questions", "option_sets", "evaluations", "evaluation_answers", "auth_sessions", "app_settings"]) {
     counts[table] = db.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get().count;
   }
-  return { integrity, foreignKeys, sessions, counts };
+  return { integrity, foreignKeys, sessions, skippedSystemEvaluations, counts };
 }
 
 function assertDatabaseHealth(result) {
   if (result.integrity.length !== 1 || result.integrity[0].integrity_check !== "ok") throw new Error(`SQLite integrity_check failed: ${JSON.stringify(result.integrity)}`);
   if (result.foreignKeys.length) throw new Error(`SQLite foreign_key_check failed: ${JSON.stringify(result.foreignKeys.slice(0, 10))}`);
   if (result.sessions !== 0) throw new Error(`auth_sessions must be empty in the built baseline; found ${result.sessions}`);
-  if (result.counts.users !== 316) throw new Error(`Expected 316 users (Admin + 315 mock), found ${result.counts.users}`);
+  for (const [systemId, count] of Object.entries(result.skippedSystemEvaluations)) if (count !== 0) throw new Error(`${systemId} must have no evaluations; found ${count}`);
+  if (result.counts.users !== 301) throw new Error(`Expected 301 users (Admin + 300 mock), found ${result.counts.users}`);
   if (result.counts.systems !== 21 || result.counts.assessment_forms !== 42 || result.counts.form_versions !== 42) throw new Error("Expected 21 systems and 42 active forms/form versions");
   if (result.counts.assessment_questions !== 189) throw new Error(`Expected 189 bank questions, found ${result.counts.assessment_questions}`);
-  if (result.counts.evaluations !== 630) throw new Error(`Expected 630 mock submissions, found ${result.counts.evaluations}`);
+  if (result.counts.evaluations !== 600) throw new Error(`Expected 600 mock submissions across non-skipped systems, found ${result.counts.evaluations}`);
   if (result.counts.form_version_questions !== 1349) throw new Error(`Expected 1,349 form-question links, found ${result.counts.form_version_questions}`);
   if (result.counts.option_sets !== 37) throw new Error(`Expected 37 question-bank option sets, found ${result.counts.option_sets}`);
   if (result.counts.app_settings !== 1) throw new Error(`Expected one default improvement-scoring setting, found ${result.counts.app_settings}`);
-  if (result.counts.evaluation_answers !== 18759) throw new Error(`Expected 18,759 typed answers, found ${result.counts.evaluation_answers}`);
+  if (result.counts.evaluation_answers !== 17859) throw new Error(`Expected 17,859 typed answers, found ${result.counts.evaluation_answers}`);
 }
 
 function buildDatabase(outputPath = DEFAULT_OUTPUT) {

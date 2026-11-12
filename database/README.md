@@ -1,10 +1,10 @@
 # Database setup and mock baseline
 
-`database/evaluator.db` is the committed SQLite baseline. It contains the shared account/system catalog, 42 published forms (effectiveness and satisfaction for each system), the question bank, and synthetic submissions for local development. Mock rows are marked by `evaluations.is_mock = 1` and `mock-*` / `mock_*` IDs. They are not operational data and must not be reported as actual faculty results.
+`database/evaluator.db` is the committed SQLite baseline. It contains the shared account/system catalog, 42 published forms (effectiveness and satisfaction for each system), the question bank, and synthetic submissions for local development. SYS008 (ภาระงานสายสนับสนุน) intentionally has no mock respondents or submissions to exercise dashboard empty states. The other 20 systems each have 15 paired effectiveness/satisfaction submissions. Mock rows are marked by `evaluations.is_mock = 1` and `mock-*` / `mock_*` IDs. They are not operational data and must not be reported as actual faculty results.
 
 ## Pull and start
 
-After `git pull`, use the committed `database/evaluator.db` directly. It has 21 systems, 189 question definitions (1,349 published form links including shared Core questions), 42 published form versions, 315 mock accounts, 630 mock submissions (15 respondents per system for each assessment type), and the default Admin-adjustable improvement criteria. The baseline has no authentication sessions. Logging in adds a local session row; restore the tracked baseline before committing or when you need to clear local sessions:
+After `git pull`, use the committed `database/evaluator.db` directly. It has 21 systems, 189 question definitions (1,349 published form links including shared Core questions), 42 published form versions, 300 mock accounts, 600 mock submissions (15 respondents per assessment type for each of 20 systems; SYS008 is intentionally empty), and the default Admin-adjustable improvement criteria. The baseline has no authentication sessions. Logging in adds a local session row; restore the tracked baseline before committing or when you need to clear local sessions:
 
 ```powershell
 git restore database/evaluator.db
@@ -76,4 +76,4 @@ node database/build/build-db.cjs
 node --test "tests/**/*.test.cjs"
 ```
 
-The built database contains 316 users (Admin plus 315 mock accounts), 21 systems, 42 forms and versions, 189 question definitions, 1,349 form-question links, 630 submissions, and 18,759 typed answers. It also has one `improvement_scoring` setting row. `auth_sessions` is empty in the committed baseline. There are no `-journal`, `-wal`, or `-shm` files to commit. The exported Demo snapshot contains the same mock evaluations and system-specific published question payloads as the backend API.
+The built database contains 301 users (Admin plus 300 mock accounts), 21 systems, 42 forms and versions, 189 question definitions, 1,349 form-question links, 600 submissions, and 17,859 typed answers. SYS008 remains in the system catalog with its published questions but has zero evaluation and answer rows. It also has one `improvement_scoring` setting row. `auth_sessions` is empty in the committed baseline. There are no `-journal`, `-wal`, or `-shm` files to commit. The exported Demo snapshot contains the same typed systems, published questions, and mock evaluations as the backend API.

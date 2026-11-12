@@ -2,7 +2,7 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { generateMockDataset, generateMockSql, validateMockDataset, bandForSystem } = require("../../database/mock/generate-mock-data.cjs");
+const { generateMockDataset, generateMockSql, validateMockDataset, bandForSystem, SKIP_SYSTEMS } = require("../../database/mock/generate-mock-data.cjs");
 const bank = require("../../database/question-bank.json");
 
 test("mock accounts and submissions are deterministic", () => {
@@ -12,21 +12,28 @@ test("mock accounts and submissions are deterministic", () => {
   assert.equal(generateMockSql(first), generateMockSql(second));
 });
 
-test("all systems have 15 paired effectiveness and satisfaction submissions", () => {
+test("non-skipped systems have 15 paired submissions and skipped systems stay empty", () => {
   const dataset = generateMockDataset();
-  assert.equal(dataset.users.length, 315);
-  assert.equal(dataset.evaluations.length, 630);
+  const includedSystems = bank.systems.filter(system => !SKIP_SYSTEMS.includes(system.id));
+  assert.equal(dataset.users.length, includedSystems.length * 15);
+  assert.equal(dataset.evaluations.length, includedSystems.length * 30);
   assert.deepEqual(validateMockDataset(dataset), { valid: true, errors: [] });
-  for (const system of bank.systems) {
+  for (const system of includedSystems) {
     for (const type of ["effectiveness", "satisfaction"]) {
       assert.equal(dataset.evaluations.filter((row) => row.systemId === system.id && row.assessmentType === type).length, 15);
     }
+  }
+  for (const systemId of SKIP_SYSTEMS) {
+    assert.equal(dataset.users.filter(user => user.username.includes(systemId)).length, 0);
+    assert.equal(dataset.evaluations.filter(row => row.systemId === systemId).length, 0);
+    assert.equal(dataset.evaluations.filter(row => row.systemId === systemId && row.assessmentType === "effectiveness").length, 0);
+    assert.equal(dataset.evaluations.filter(row => row.systemId === systemId && row.assessmentType === "satisfaction").length, 0);
   }
 });
 
 test("satisfaction mock answers include shared S1–S4 and each system's Specific item", () => {
   const dataset = generateMockDataset();
-  for (const system of bank.systems) {
+  for (const system of bank.systems.filter(system => !SKIP_SYSTEMS.includes(system.id))) {
     for (const evaluation of dataset.evaluations.filter((row) => row.systemId === system.id && row.assessmentType === "satisfaction")) {
       const ids = new Set(evaluation.answers.map((answer) => answer.questionId));
       for (const id of ["S1", "S2", "S3", "S4", `${system.id}-SAT-SPEC-01`]) assert.ok(ids.has(id), `${evaluation.id} missing ${id}`);
@@ -58,7 +65,7 @@ test("mock responses follow visibility, role, contradiction, and N/A scoring rul
 
 test("satisfaction ratings cover low, middle, and high system groups", () => {
   const dataset = generateMockDataset();
-  for (const system of bank.systems) {
+  for (const system of bank.systems.filter(system => !SKIP_SYSTEMS.includes(system.id))) {
     const scores = dataset.evaluations
       .filter((row) => row.systemId === system.id && row.assessmentType === "satisfaction")
       .flatMap((row) => row.answers)

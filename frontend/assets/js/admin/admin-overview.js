@@ -4,7 +4,7 @@
     if (!root) return;
     const scriptUrl = document.currentScript?.src || "";
     const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-    const mean = (value, n) => Number.isFinite(value) ? `${value.toFixed(2)} / 5 (n=${n})` : "ยังไม่มีข้อมูล";
+    const mean = (value, n) => Number.isFinite(value) ? `${value.toFixed(2)} / 5 (n=${n})` : `ไม่มีข้อมูล (n=${n})`;
     const levels = { urgent: "ควรปรับปรุงเร่งด่วน", review: "ควรตรวจสอบเพิ่มเติม", strength: "จุดแข็งควรรักษา", insufficient: "ข้อมูลยังไม่เพียงพอ" };
     const order = { urgent: 0, review: 1, strength: 2, insufficient: 3 };
     const categoryNames = { usability: "ความง่ายในการใช้งาน", efficiency: "ประสิทธิภาพ", effectiveness: "ประสิทธิผล", data_quality: "คุณภาพข้อมูล", tracking_transparency: "การติดตามและความโปร่งใส", reliability: "ความน่าเชื่อถือ" };

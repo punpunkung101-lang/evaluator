@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const { DatabaseSync } = require('node:sqlite');
+const { SKIP_SYSTEMS } = require('../../database/mock/generate-mock-data.cjs');
 const root = path.resolve(__dirname, '../..');
 const db = new DatabaseSync(path.join(root, 'database/evaluator.db'), { readOnly: true });
 const source = fs.readFileSync(path.join(root, 'frontend/assets/data/mock-snapshot.js'), 'utf8');
@@ -22,8 +23,10 @@ test('demo snapshot is the same typed systems, published questions, and mock eva
         assert.ok(['effectiveness', 'satisfaction'].includes(evaluation.assessmentType));
         assert.ok(evaluation.answers.every(answer => answer.questionId && answer.answerType));
     }
-    assert.equal(snapshot.evaluations.filter(row => row.assessmentType === 'satisfaction').length, 315);
-    assert.equal(snapshot.evaluations.filter(row => row.assessmentType === 'effectiveness').length, 315);
+    const respondingSystems = snapshot.systems.filter(system => !SKIP_SYSTEMS.includes(system.id)).length;
+    assert.equal(snapshot.evaluations.filter(row => row.assessmentType === 'satisfaction').length, respondingSystems * 15);
+    assert.equal(snapshot.evaluations.filter(row => row.assessmentType === 'effectiveness').length, respondingSystems * 15);
+    for (const systemId of SKIP_SYSTEMS) assert.equal(snapshot.evaluations.filter(row => row.systemId === systemId).length, 0);
 });
 
 test('every system has S1-S4 and its specific satisfaction question in the demo payload', () => {
@@ -32,6 +35,15 @@ test('every system has S1-S4 and its specific satisfaction question in the demo 
         assert.deepEqual(questions.filter(q => q.indicator_group === 'core').map(q => q.id), ['S1', 'S2', 'S3', 'S4']);
         assert.equal(questions.filter(q => q.indicator_group === 'specific' && q.system_id === system.id).length, 1);
     }
+});
+
+test('skipped SYS008 keeps its system and questions but has no mock responses or answers', () => {
+    assert.ok(snapshot.systems.some(system => system.id === 'SYS008'));
+    assert.ok(snapshot.questions.SYS008.some(question => question.assessment_type === 'effectiveness'));
+    assert.ok(snapshot.questions.SYS008.some(question => question.assessment_type === 'satisfaction'));
+    assert.equal(snapshot.evaluations.filter(row => row.systemId === 'SYS008').length, 0);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM evaluations WHERE system_id='SYS008'").get().count, 0);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM evaluation_answers a JOIN evaluations e ON e.id=a.evaluation_id WHERE e.system_id='SYS008'").get().count, 0);
 });
 
 test('Admin scoring settings are exported from the same database used by the backend', () => {

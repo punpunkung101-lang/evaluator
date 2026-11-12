@@ -59,3 +59,16 @@ test('all-N/A chart data has no valid-rating share and retains the N/A share', (
     assert.deepEqual(result.high, [0]);
     assert.deepEqual(result.na, [100]);
 });
+
+test('a system with no submissions stays null-valued and counts as insufficient', () => {
+    const model = compute(systems, [], questions, scoring);
+    const emptySystem = model.systems.find(item => item.system.id === 'SYS008');
+    const charts = require('./admin-overview-model.js').prepareOverviewCharts(model, [], questions, scoring.DEFAULT_SCORING_CONFIG.improvement);
+    assert.equal(emptySystem.effectiveness.n, 0);
+    assert.equal(emptySystem.effectivenessAverage, null);
+    assert.equal(emptySystem.satisfaction, null);
+    assert.equal(emptySystem.signal.level, 'insufficient');
+    assert.equal(model.counts.insufficient, 21);
+    assert.equal(charts.averages.find(item => item.id === 'SYS008').effectiveness, null);
+    assert.equal(charts.averages.find(item => item.id === 'SYS008').satisfaction, null);
+});

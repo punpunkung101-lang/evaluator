@@ -9,7 +9,7 @@ const path = require("node:path");
 const { DatabaseSync } = require("node:sqlite");
 const { buildDatabase } = require("../../database/build/build-db.cjs");
 const { generateQuestionsSeed } = require("../../database/build/generate-questions-seed.cjs");
-const { generateMockSql } = require("../../database/mock/generate-mock-data.cjs");
+const { generateMockSql, SKIP_SYSTEMS } = require("../../database/mock/generate-mock-data.cjs");
 
 test("generated question and mock SQL match the committed text sources", () => {
   const root = path.resolve(__dirname, "../..");
@@ -39,17 +39,22 @@ test("database build is deterministic and round-trips all sources with healthy c
     assert.equal(db.prepare("SELECT COUNT(*) AS n FROM form_version_questions").get().n, 1349);
     assert.equal(db.prepare("SELECT COUNT(*) AS n FROM option_sets").get().n, 37);
     assert.equal(db.prepare("SELECT COUNT(*) AS n FROM app_settings WHERE setting_key='improvement_scoring'").get().n, 1);
-    assert.equal(db.prepare("SELECT COUNT(*) AS n FROM users WHERE substr(username,1,5)='mock_'").get().n, 315);
-    assert.equal(db.prepare("SELECT COUNT(*) AS n FROM evaluations WHERE is_mock=1").get().n, 630);
-    assert.equal(db.prepare("SELECT COUNT(*) AS n FROM evaluation_answers").get().n, 18759);
+    const respondingSystems = 21 - SKIP_SYSTEMS.length;
+    assert.equal(db.prepare("SELECT COUNT(*) AS n FROM users WHERE substr(username,1,5)='mock_'").get().n, respondingSystems * 15);
+    assert.equal(db.prepare("SELECT COUNT(*) AS n FROM evaluations WHERE is_mock=1").get().n, respondingSystems * 30);
+    assert.equal(db.prepare("SELECT COUNT(*) AS n FROM evaluation_answers").get().n, 17859);
+    for (const systemId of SKIP_SYSTEMS) {
+      assert.equal(db.prepare("SELECT COUNT(*) AS n FROM evaluations WHERE system_id=?").get(systemId).n, 0);
+      assert.ok(db.prepare("SELECT COUNT(*) AS n FROM assessment_questions WHERE system_id=?").get(systemId).n > 0);
+    }
 
     const perType = db.prepare("SELECT system_id,assessment_type,COUNT(*) AS n FROM evaluations GROUP BY system_id,assessment_type ORDER BY system_id,assessment_type").all();
-    assert.equal(perType.length, 42);
+    assert.equal(perType.length, respondingSystems * 2);
     assert.ok(perType.every((row) => row.n === 15));
     const unmatchedVersions = db.prepare("SELECT COUNT(*) AS n FROM evaluations e JOIN form_versions v ON v.id=e.form_version_id JOIN assessment_forms f ON f.id=v.form_id WHERE e.system_id<>f.system_id OR e.assessment_type<>f.assessment_type").get().n;
     assert.equal(unmatchedVersions, 0);
     const satisfactionCoverage = db.prepare("SELECT e.system_id,COUNT(DISTINCT e.evaluator_id) AS respondents,COUNT(DISTINCT a.question_id) AS questions FROM evaluations e JOIN evaluation_answers a ON a.evaluation_id=e.id WHERE e.assessment_type='satisfaction' GROUP BY e.system_id").all();
-    assert.equal(satisfactionCoverage.length, 21);
+    assert.equal(satisfactionCoverage.length, respondingSystems);
     assert.ok(satisfactionCoverage.every((row) => row.respondents === 15 && row.questions === 5));
     assert.equal(db.prepare("SELECT COUNT(*) AS n FROM evaluations WHERE is_mock=0").get().n, 0);
   } finally {
