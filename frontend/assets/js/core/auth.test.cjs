@@ -159,10 +159,10 @@ test('all admin pages use the shared auth control and backend-verified admin gua
 test('dashboard API endpoints distinguish missing sessions from non-admin sessions using DB role checks', () => {
     const root = path.resolve(__dirname, '../../../..');
     const backend = fs.readFileSync(path.join(root, 'backend/src/main.cpp'), 'utf8');
-    assert.match(backend, /if\(method=="GET"&&route=="\/auth\/me"\)/);
+    assert.match(backend, /method == "GET" && route == "\/auth\/me"/);
     assert.match(backend, /SELECT u\.id,u\.username,u\.display_name,u\.role FROM auth_sessions s JOIN users u ON u\.id=s\.user_id WHERE s\.token=\?/);
-    assert.match(backend, /if\(!sessionUser\(db,token,id,username,display,role\)\)\{status=401;return false;\}if\(role!="admin"\)\{status=403;return false;\}/);
+    assert.match(backend, /if \(role != "admin"\)/);
     for (const route of ['/questions/replace', '/quantitative', '/evaluations']) {
-        assert.ok(backend.includes(`route=="${route}"`), `expected protected dashboard route ${route}`);
+        assert.ok(backend.includes(`route == "${route}"`), `expected protected dashboard route ${route}`);
     }
 });

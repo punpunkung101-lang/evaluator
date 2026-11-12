@@ -45,33 +45,26 @@ test('the intro gets active question totals from the selected system and uses tr
     assert.match(systems, /window\.API_CONFIG\?\.backendBaseUrl/);
 });
 
-test('the new dedupe migration deactivates only duplicate effectiveness rows and is one-time', () => {
+test('backend startup rebuilds databases that do not match the versioned schema', () => {
     const backend = read('backend/src/main.cpp');
-    assert.match(backend, /assessment_questions_dedupe_v2/);
-    assert.match(backend, /UPDATE assessment_questions SET active=0 WHERE assessment_type='effectiveness'/);
-    assert.match(backend, /sort_order BETWEEN 11 AND 21/);
-    assert.match(backend, /id=system_id\|\|'-EFF-'\|\|printf\('%02d',sort_order\)/);
-    assert.match(backend, /if\(!deduped\)/);
-    assert.doesNotMatch(backend.slice(backend.indexOf("const char*dedupe"), backend.indexOf('return true;', backend.indexOf("const char*dedupe"))), /DELETE FROM (evaluations|assessment_answers|satisfactions)/);
+    assert.match(backend, /if \(userVersion != 2 \|\| !hasVersionedForms\)/);
+    assert.match(backend, /DROP TABLE IF EXISTS evaluation_answers/);
+    assert.match(backend, /DROP TABLE IF EXISTS form_versions/);
+    assert.match(backend, /PRAGMA user_version=0/);
 });
 
-test('new database seed has 10 effectiveness and 5 satisfaction questions per system', () => {
+test('generated question seed includes every system-specific bank question and satisfaction item', () => {
     const seed = read('database/questions_seed.sql');
-    const counts = new Map();
-    for (const match of seed.matchAll(/\('([^']+)','(SYS\d{3})','(effectiveness|satisfaction)'/g)) {
-        const [, id, systemId, type] = match;
-        const key = `${systemId}:${type}`;
-        counts.set(key, [...(counts.get(key) || []), id]);
+    const bank = JSON.parse(read('database/question-bank.json'));
+    for (const system of bank.systems) {
+        const specificEffectiveness = bank.questions.filter(q => q.system_id === system.id && q.assessment_type === 'effectiveness');
+        const specificSatisfaction = bank.questions.filter(q => q.system_id === system.id && q.assessment_type === 'satisfaction');
+        assert.ok(specificEffectiveness.length > 0, `${system.id} has effectiveness questions`);
+        assert.equal(specificSatisfaction.length, 1, `${system.id} has one specific satisfaction item`);
+        for (const question of [...specificEffectiveness, ...specificSatisfaction]) {
+            assert.ok(seed.includes(`'${question.id}'`), `${question.id} appears in generated SQL`);
+        }
     }
-    for (let i = 1; i <= 21; i++) {
-        const systemId = `SYS${String(i).padStart(3, '0')}`;
-        const effectiveness = counts.get(`${systemId}:effectiveness`) || [];
-        const satisfaction = counts.get(`${systemId}:satisfaction`) || [];
-        assert.equal(effectiveness.length, 10, `${systemId} effectiveness rows`);
-        assert.equal(satisfaction.length, 5, `${systemId} satisfaction rows`);
-        assert.ok(effectiveness.every((id, index) => id === `${systemId}-EFF-${String(index + 1).padStart(2, '0')}`));
-    }
-    assert.doesNotMatch(seed, /-EFF-(?:1[1-9]|2[01])'/);
 });
 
 test('admin cannot save default or cached questions for a system whose database load failed', () => {
