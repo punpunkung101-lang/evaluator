@@ -3,12 +3,13 @@
     const root = document.getElementById("admin-overview");
     if (!root) return;
     const scriptUrl = document.currentScript?.src || "";
+    const tr = (key, params) => window.t?.(key, params) || key;
     const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     const mean = (value, n) => Number.isFinite(value) ? `${value.toFixed(2)} / 5 (n=${n})` : `ไม่มีข้อมูล (n=${n})`;
-    const levels = { urgent: "ควรปรับปรุงเร่งด่วน", review: "ควรตรวจสอบเพิ่มเติม", strength: "จุดแข็งควรรักษา", insufficient: "ข้อมูลยังไม่เพียงพอ" };
+    const levels = { urgent: "admin_signal_urgent", review: "admin_signal_review", strength: "admin_signal_strength", insufficient: "admin_signal_insufficient" };
     const order = { urgent: 0, review: 1, strength: 2, insufficient: 3 };
-    const categoryNames = { usability: "ความง่ายในการใช้งาน", efficiency: "ประสิทธิภาพ", effectiveness: "ประสิทธิผล", data_quality: "คุณภาพข้อมูล", tracking_transparency: "การติดตามและความโปร่งใส", reliability: "ความน่าเชื่อถือ" };
-    const localizeReason = message => esc(Object.entries(categoryNames).reduce((text, [key, label]) => text.replaceAll(key, label), String(message ?? "")));
+    const categoryNames = { usability: "admin_category_usability", efficiency: "admin_category_efficiency", effectiveness: "admin_category_effectiveness", data_quality: "admin_category_data_quality", tracking_transparency: "admin_category_tracking", reliability: "admin_category_reliability" };
+    const localizeReason = message => esc(Object.entries(categoryNames).reduce((text, [key, label]) => text.replaceAll(key, tr(label)), String(message ?? "")));
 
     function statusPanel(message, error = false) {
         root.innerHTML = `<p class="admin-state${error ? " error" : ""}" role="${error ? "alert" : "status"}">${esc(message)}</p>${error ? '<button class="btn btn-secondary" id="overview-retry" type="button">ลองอีกครั้ง</button>' : ""}`;
@@ -20,8 +21,8 @@
         const details = model.systems.slice().sort((a, b) => (order[a.signal.level] ?? 4) - (order[b.signal.level] ?? 4) || a.system.id.localeCompare(b.system.id));
         const counts = model.counts;
         const cards = [
-            ["ควรปรับปรุงเร่งด่วน", counts.urgent], ["ควรตรวจสอบเพิ่มเติม", counts.review],
-            ["จุดแข็งควรรักษา", counts.strength], ["ข้อมูลยังไม่เพียงพอ", counts.insufficient]
+            [tr("admin_signal_urgent"), counts.urgent], [tr("admin_signal_review"), counts.review],
+            [tr("admin_signal_strength"), counts.strength], [tr("admin_signal_insufficient"), counts.insufficient]
         ].map(([title, count]) => `<article class="admin-kpi"><h2>${title}</h2><p>${count}</p></article>`).join("");
         const rows = details.map(item => {
             const signal = item.signal;
@@ -30,22 +31,23 @@
             const sat = item.satisfaction?.average ?? null;
             const href = new URL(window.EvaluatorRuntimeUrl.fromScript("../../../admin/results.html", scriptUrl));
             href.searchParams.set("system", item.system.id);
-            return `<tr><th scope="row"><a href="${esc(href.href)}">${esc(item.system.name)} (${esc(item.system.id)})</a></th>
-              <td>${esc(mean(score, item.effectiveness.n))}</td><td>${esc(mean(sat, item.satisfaction?.n || 0))}<small>ความรู้สึกผู้ใช้</small></td>
-              <td><strong class="priority-status priority-status-${esc(signal.level)}">${esc(levels[signal.level] || signal.label)}</strong></td><td>${reasons || "—"}</td></tr>`;
+            const systemName = document.documentElement.lang === "en" ? item.system.name_en || item.system.name : item.system.name;
+            return `<tr><th scope="row"><a href="${esc(href.href)}">${esc(systemName)} (${esc(item.system.id)})</a></th>
+              <td>${esc(mean(score, item.effectiveness.n))}</td><td>${esc(mean(sat, item.satisfaction?.n || 0))}<small>${document.documentElement.lang === "en" ? "User experience" : "ความรู้สึกผู้ใช้"}</small></td>
+              <td><strong class="priority-status priority-status-${esc(signal.level)}">${esc(tr(levels[signal.level]) || signal.label)}</strong></td><td>${reasons || "—"}</td></tr>`;
         }).join("");
         const signalConfig = data.scoringConfig || window.EffectivenessScoring.DEFAULT_SCORING_CONFIG.improvement;
         const chartData = window.AdminOverviewModel.prepareOverviewCharts(model, data.evaluations, data.questions, signalConfig);
         const bands = window.EffectivenessScoring.DEFAULT_SCORING_CONFIG.interpretationBands;
-        root.innerHTML = `<header class="admin-page-heading"><div><h1>ภาพรวมระบบ</h1><p>กราฟแสดงภาพรวม 21 ระบบ · ความพึงพอใจเป็นความรู้สึกผู้ใช้ ไม่ใช่สถิติระบบต้นทาง</p></div></header>
-          ${model.mockCount ? '<p class="admin-state notice" role="status">ข้อมูลตัวอย่างจากฐานข้อมูล mock · ไม่ใช่ผลจริง</p>' : ""}
-          <section class="admin-charts" aria-label="กราฟภาพรวม 21 ระบบ">
-            <article class="admin-panel admin-chart-card"><h2>1. สัดส่วนคะแนนตามระบบ</h2><p>คะแนน 1–2, 3 และ 4–5 แสดงเป็นสัดส่วนของคำตอบคะแนนที่ใช้ได้ เรียงตามระดับสัญญาณ</p><div id="overview-chart-bar" class="admin-chart-slot" role="img" aria-label="กราฟแท่งซ้อนสัดส่วนคะแนน 1–2, 3, 4–5 ของ 21 ระบบ"></div></article>
-            <article class="admin-panel admin-chart-card"><h2>2. จำนวนระบบตามระดับสัญญาณ</h2><p>ป้ายกำกับและจำนวนระบบประกอบการอ่านสี</p><div id="overview-chart-pie" class="admin-chart-slot" role="img" aria-label="กราฟวงกลมจำนวนระบบแยกตามระดับสัญญาณ"></div></article>
-            <article class="admin-panel admin-chart-card"><h2>3. ประสิทธิผลและความพึงพอใจ</h2><p>ความพึงพอใจสะท้อนความรู้สึกผู้ใช้ · เส้นประคือเกณฑ์ ${esc(signalConfig.categoryLowBelow ?? signalConfig.satisfactionLowBelow)}</p><div id="overview-chart-column" class="admin-chart-slot" role="img" aria-label="กราฟแท่งเปรียบเทียบค่าเฉลี่ยประสิทธิผลกับความรู้สึกผู้ใช้ของแต่ละระบบ พร้อมเส้นเกณฑ์"></div></article>
+        root.innerHTML = `<header class="admin-page-heading"><div><h1 data-i18n="admin_dashboard_title">ภาพรวมระบบ</h1><p data-i18n="admin_dashboard_subtitle">กราฟแสดงภาพรวม 21 ระบบ · ความพึงพอใจเป็นความรู้สึกผู้ใช้ ไม่ใช่สถิติระบบต้นทาง</p></div></header>
+          ${model.mockCount ? `<p class="admin-state notice" role="status">${esc(tr("admin_mock_notice"))}</p>` : ""}
+          <section class="admin-charts" aria-label="${esc(tr("admin_chart_score_aria", { count: model.systems.length }))}">
+            <article class="admin-panel admin-chart-card"><h2>${esc(tr("admin_chart_score_title"))}</h2><p>${esc(tr("admin_chart_score_desc"))}</p><div id="overview-chart-bar" class="admin-chart-slot" role="img" aria-label="${esc(tr("admin_chart_score_aria", { count: model.systems.length }))}"></div></article>
+            <article class="admin-panel admin-chart-card"><h2>${esc(tr("admin_chart_level_title"))}</h2><p>${esc(tr("admin_chart_level_desc"))}</p><div id="overview-chart-pie" class="admin-chart-slot" role="img" aria-label="${esc(tr("admin_chart_level_aria"))}"></div></article>
+            <article class="admin-panel admin-chart-card"><h2>${esc(tr("admin_chart_average_title"))}</h2><p>${esc(tr("admin_chart_average_desc", { threshold: signalConfig.categoryLowBelow ?? signalConfig.satisfactionLowBelow }))}</p><div id="overview-chart-column" class="admin-chart-slot" role="img" aria-label="${esc(tr("admin_chart_average_aria"))}"></div></article>
           </section>
           <div class="admin-kpi-grid priority-kpi-grid">${cards}</div>
-          <section class="admin-panel priority-table-panel"><h2>สัญญาณรายระบบ (${details.length} ระบบ)</h2><div class="admin-table-wrap priority-table-wrap" tabindex="0" role="region" aria-label="ตารางสัญญาณรายระบบ"><table><thead><tr><th>ระบบ</th><th>ประสิทธิผลเฉลี่ยรายหมวด · n</th><th>ความพึงพอใจ S1–S4 และข้อเฉพาะ · n</th><th>ระดับ</th><th>เหตุผลประกอบ</th></tr></thead><tbody>${rows}</tbody></table></div></section>
+          <section class="admin-panel priority-table-panel"><h2>${esc(tr("admin_signal_table", { count: details.length }))}</h2><div class="admin-table-wrap priority-table-wrap" tabindex="0" role="region" aria-label="${esc(tr("admin_signal_table", { count: details.length }))}"><table><thead><tr><th>${esc(tr("admin_col_system"))}</th><th>${esc(tr("admin_col_effectiveness_average"))}</th><th>${esc(tr("admin_col_satisfaction_average"))}</th><th>${esc(tr("admin_col_level"))}</th><th>${esc(tr("admin_col_reason"))}</th></tr></thead><tbody>${rows}</tbody></table></div></section>
           <details class="admin-panel signal-settings"><summary>เกณฑ์สัญญาณ “ควรปรับปรุง”</summary><p>แก้เกณฑ์ที่ใช้กับทุกระบบ ค่าในช่องสัดส่วนใช้ช่วง 0–1 (เช่น 0.3 = 30%)</p>
             <div class="signal-settings-grid">${[
                 ["minimumRespondents", "ผู้ตอบขั้นต่ำ (n)", 1, 100000, "1"], ["categoryLowBelow", "คะแนนหมวดต่ำกว่า", 1, 5, "0.01"],
@@ -55,7 +57,7 @@
                 ["urgentLowCategoryCount", "จำนวนหมวดต่ำระดับเร่งด่วน", 1, 6, "1"], ["urgentProblemShare", "สัดส่วนปัญหาระดับเร่งด่วน", 0, 1, "0.01"]
             ].map(([key, label, min, max, step]) => `<label>${label}<input type="number" data-setting="${key}" min="${min}" max="${max}" step="${step}" value="${esc(data.scoringConfig?.[key] ?? window.EffectivenessScoring.DEFAULT_SCORING_CONFIG.improvement[key])}"></label>`).join("")}
               <label>หมวดตัวชี้วัดที่นับ<input type="text" data-setting="coreCategories" value="${esc((data.scoringConfig?.coreCategories || window.EffectivenessScoring.DEFAULT_SCORING_CONFIG.improvement.coreCategories).join(", "))}"></label>
-            </div><button id="save-signal-settings" class="btn btn-secondary" type="button">บันทึกเกณฑ์</button><span id="signal-settings-status" role="status"></span></details>
+            </div><button id="save-signal-settings" class="btn btn-secondary" type="button">${esc(tr("admin_save_scoring"))}</button><span id="signal-settings-status" role="status"></span></details>
           <details class="admin-panel admin-method"><summary>วิธีคำนวณและการอ่านกราฟ</summary><ul>
             <li>ค่าเฉลี่ยรายหมวดคำนวณจากคำตอบ rating 1–5 ที่นับคะแนน ไม่นับ N/A และคำถามปลายเปิด; n คือจำนวนผู้ตอบไม่ซ้ำที่มีคะแนนใช้ได้ หมวดที่ไม่มีคะแนนจะแสดงว่าไม่มีข้อมูล</li>
             <li>ระดับคะแนนอิงช่วงจากการตั้งค่า: ${bands.map(b => `${b.min}–${b.max} ${esc(b.label)}`).join("; ")}.</li>
@@ -64,6 +66,7 @@
             <li>กราฟ 1 คือสัดส่วนคะแนนต่อระบบ; กราฟ 2 คือจำนวนระบบในแต่ละระดับสัญญาณ; กราฟ 3 เปรียบเทียบค่าเฉลี่ยประสิทธิผลและความรู้สึกผู้ใช้ โดยเส้นประคือเกณฑ์จาก config และ tooltip แสดง n</li>
             <li>ข้อมูลนี้เป็นการรับรู้ของผู้ตอบ ไม่ใช่สถิติระบบต้นทาง; หาก n ต่ำควรอ่านอย่างระมัดระวัง</li>
           </ul></details>`;
+        window.applyTranslations?.(root);
         window.AdminCharts.renderOverview(chartData);
         root.querySelector("#save-signal-settings").addEventListener("click", async () => {
             const status = root.querySelector("#signal-settings-status");
@@ -72,8 +75,8 @@
                 if (field.dataset.setting === "coreCategories") improvement.coreCategories = field.value.split(",").map(value => value.trim()).filter(Boolean);
                 else improvement[field.dataset.setting] = Number(field.value);
             }
-            try { await window.EvaluationAPI.saveImprovementSettings(improvement); status.textContent = "บันทึกเกณฑ์แล้ว"; await load(); }
-            catch (error) { status.textContent = `บันทึกไม่ได้: ${error.message}`; }
+            try { await window.EvaluationAPI.saveImprovementSettings(improvement); status.textContent = tr("admin_scoring_saved"); await load(); }
+            catch (error) { status.textContent = tr("admin_scoring_failed", { message: error.message }); }
         });
     }
 

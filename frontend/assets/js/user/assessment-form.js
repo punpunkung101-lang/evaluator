@@ -7,15 +7,23 @@
   let systemId = new URLSearchParams(location.search).get('system');
   const draftKey = (userId) => `assessmentDraft:v1:${userId}:${systemId}:${type}`;
   const escape = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const textOf = (q) => document.documentElement.lang === 'en' && q.text_en ? q.text_en : q.text;
-  const stepNames = { 1: 'ประสบการณ์เดิม', 2: 'ข้อมูลทั่วไป', 3: type === 'satisfaction' ? 'ความพึงพอใจ' : 'ตัวชี้วัด', 4: 'ปัญหาและข้อเสนอแนะ' };
+  const tr = (key, params) => root.t?.(key, params) || key;
+  const isEnglish = () => document.documentElement.lang === 'en';
+  const textOf = (q) => isEnglish() ? (q.text_en || (q.id === 'history_experience' ? tr('form_history_question') : q.text)) : q.text;
+  const optionText = (option) => {
+    if (!isEnglish()) return option.label || option.value;
+    if (option.label_en) return option.label_en;
+    const key = { used_old_system: 'form_history_used_old', never_used: 'form_history_never_used', offline_only: 'form_history_offline', yes: 'form_yes', no: 'form_no' }[option.value];
+    return key ? tr(key) : option.label || option.value;
+  };
+  const stepName = (step) => ({ 1: tr('form_step_history'), 2: tr('form_step_general'), 3: tr(type === 'satisfaction' ? 'form_step_satisfaction' : 'form_step_indicators'), 4: tr('form_step_problems') })[step] || tr('form_general_step', { step });
   const answerValues = (value) => Array.isArray(value) ? value : value && typeof value === 'object' ? (value.values || (value.value ? [value.value] : [])) : value == null ? [] : [value];
   let user, system, questions = [], optionSets = [], answers = {}, steps = [], stepIndex = 0, versionId = '', sending = false;
 
   function selectedRole() {
     const value = answers.respondent_role ?? answers.__respondentRole;
     const options = optionSets.find((set) => set.id === `roles_${systemId}`)?.options || optionSets.find((set) => set.id === 'roles_by_system')?.valuesBySystem?.[systemId] || [];
-    return options.find((option) => option.value === value)?.label || '';
+    return options.find((item) => item.value === value)?.label || '';
   }
   function context() { return { respondentRole: selectedRole(), system: { id: system?.id, has_tracking: system?.has_tracking } }; }
   function visible() { return root.NUAHSConditionalEngine.getVisibleQuestions(questions, answers, context()); }
@@ -37,13 +45,13 @@
     const choices = options.map((option, index) => {
       const id = `${question.id}-${index}`;
       const checked = current.includes(option.value) ? ' checked' : '';
-      return `<label class="choice-option" for="${escape(id)}"><input id="${escape(id)}" name="${escape(question.id)}" type="${typeAttr}" value="${escape(option.value)}"${checked}><span>${escape(option.label || option.value)}</span></label>`;
+      return `<label class="choice-option" for="${escape(id)}"><input id="${escape(id)}" name="${escape(question.id)}" type="${typeAttr}" value="${escape(option.value)}"${checked}><span>${escape(optionText(option))}</span></label>`;
     }).join('');
     const otherOption = options.find((option) => option.allow_other);
     const otherText = answers[question.id]?.otherText || '';
     const otherInput = otherOption && current.includes(otherOption.value)
-      ? `<label class="other-text">ระบุรายละเอียด<input data-other-for="${escape(question.id)}" type="text" value="${escape(otherText)}" maxlength="300" autocomplete="off"></label>` : '';
-    return `<fieldset class="answer-choices" data-question="${escape(question.id)}"><legend>${escape(textOf(question))}${question.required ? ' <span aria-hidden="true">*</span>' : ''}</legend>${choices}${question.answer_type === 'checkbox' && question.max_select ? `<small>เลือกได้ไม่เกิน ${question.max_select} ข้อ</small>` : ''}${otherInput}<p class="field-error" id="error-${escape(question.id)}" role="alert"></p></fieldset>`;
+      ? `<label class="other-text">${escape(tr('form_other_details'))}<input data-other-for="${escape(question.id)}" type="text" value="${escape(otherText)}" maxlength="300" autocomplete="off"></label>` : '';
+    return `<fieldset class="answer-choices" data-question="${escape(question.id)}"><legend>${escape(textOf(question))}${question.required ? ' <span aria-hidden="true">*</span>' : ''}</legend>${choices}${question.answer_type === 'checkbox' && question.max_select ? `<small>${escape(tr('form_select_limit', { count: question.max_select }))}</small>` : ''}${otherInput}<p class="field-error" id="error-${escape(question.id)}" role="alert"></p></fieldset>`;
   }
   function renderControl(question) {
     const options = valuesFor(question), value = answers[question.id];
@@ -53,15 +61,15 @@
     }
     if (question.answer_type === 'dropdown') {
       const selected = inputValue(question, value) ?? '';
-      return `<label class="answer-field">${escape(textOf(question))}${question.required ? ' <span aria-hidden="true">*</span>' : ''}<select data-question="${escape(question.id)}"><option value="">เลือกคำตอบ</option>${options.map((o) => `<option value="${escape(o.value)}"${o.value === selected ? ' selected' : ''}>${escape(o.label || o.value)}</option>`).join('')}</select>${options.some((o) => o.allow_other && o.value === selected) ? `<input data-other-for="${escape(question.id)}" type="text" maxlength="300" value="${escape(value?.otherText || '')}" placeholder="โปรดระบุ">` : ''}<small class="field-error" id="error-${escape(question.id)}" role="alert"></small></label>`;
+      return `<label class="answer-field">${escape(textOf(question))}${question.required ? ' <span aria-hidden="true">*</span>' : ''}<select data-question="${escape(question.id)}"><option value="">${escape(tr('form_select_answer'))}</option>${options.map((o) => `<option value="${escape(o.value)}"${o.value === selected ? ' selected' : ''}>${escape(optionText(o))}</option>`).join('')}</select>${options.some((o) => o.allow_other && o.value === selected) ? `<input data-other-for="${escape(question.id)}" type="text" maxlength="300" value="${escape(value?.otherText || '')}" placeholder="${escape(tr('form_specify'))}">` : ''}<small class="field-error" id="error-${escape(question.id)}" role="alert"></small></label>`;
     }
     if (question.answer_type === 'rating5') {
       const score = value === 'N/A' ? 'N/A' : String(value ?? '');
-      return `<fieldset class="answer-choices rating-options"><legend>${escape(textOf(question))}${question.required ? ' <span aria-hidden="true">*</span>' : ''}</legend><div class="rating-row">${[1, 2, 3, 4, 5].map((n) => `<label><input type="radio" name="${escape(question.id)}" value="${n}"${score === String(n) ? ' checked' : ''}><span>${n}</span></label>`).join('')}</div>${question.allow_na ? `<label class="choice-option"><input type="radio" name="${escape(question.id)}" value="N/A"${score === 'N/A' ? ' checked' : ''}><span>ไม่เกี่ยวข้อง / ไม่ทราบ</span></label>` : ''}<small>1 = น้อยที่สุด · 5 = มากที่สุด</small><p class="field-error" id="error-${escape(question.id)}" role="alert"></p></fieldset>`;
+      return `<fieldset class="answer-choices rating-options"><legend>${escape(textOf(question))}${question.required ? ' <span aria-hidden="true">*</span>' : ''}</legend><div class="rating-row">${[1, 2, 3, 4, 5].map((n) => `<label><input type="radio" name="${escape(question.id)}" value="${n}"${score === String(n) ? ' checked' : ''}><span>${n}</span></label>`).join('')}</div>${question.allow_na ? `<label class="choice-option"><input type="radio" name="${escape(question.id)}" value="N/A"${score === 'N/A' ? ' checked' : ''}><span>${escape(tr('form_na'))}</span></label>` : ''}<small>${escape(tr('form_rating_scale'))}</small><p class="field-error" id="error-${escape(question.id)}" role="alert"></p></fieldset>`;
     }
     if (question.answer_type === 'ranking') {
       const ranked = Array.isArray(value) ? value : [];
-      return `<fieldset class="answer-choices"><legend>${escape(textOf(question))}${question.required ? ' *' : ''}</legend>${options.map((option) => `<label class="answer-field">${escape(option.label || option.value)}<select data-rank-question="${escape(question.id)}" data-rank-value="${escape(option.value)}"><option value="">ไม่จัดอันดับ</option>${options.map((_, i) => `<option value="${i + 1}"${ranked.indexOf(option.value) === i ? ' selected' : ''}>${i + 1}</option>`).join('')}</select></label>`).join('')}<small class="field-error" id="error-${escape(question.id)}" role="alert"></small></fieldset>`;
+      return `<fieldset class="answer-choices"><legend>${escape(textOf(question))}${question.required ? ' *' : ''}</legend>${options.map((option) => `<label class="answer-field">${escape(optionText(option))}<select data-rank-question="${escape(question.id)}" data-rank-value="${escape(option.value)}"><option value="">${escape(tr('form_not_ranked'))}</option>${options.map((_, i) => `<option value="${i + 1}"${ranked.indexOf(option.value) === i ? ' selected' : ''}>${i + 1}</option>`).join('')}</select></label>`).join('')}<small class="field-error" id="error-${escape(question.id)}" role="alert"></small></fieldset>`;
     }
     const controlType = ({ short_text: 'text', long_text: 'textarea', number: 'number', date: 'date' })[question.answer_type] || 'text';
     const field = controlType === 'textarea' ? `<textarea data-question="${escape(question.id)}" rows="4" maxlength="2000">${escape(value || '')}</textarea>` : `<input data-question="${escape(question.id)}" type="${controlType}" value="${escape(value ?? '')}" ${controlType === 'number' ? 'step="any"' : ''}>`;
@@ -72,19 +80,19 @@
     const rows = visible().map((q) => {
       const raw = answers[q.id];
       const options = valuesFor(q);
-      const display = answerValues(raw).map((v) => options.find((o) => o.value === v)?.label || v).join(', ') || (raw === 'N/A' ? 'ไม่เกี่ยวข้อง / ไม่ทราบ' : '—');
+      const display = answerValues(raw).map((v) => { const option = options.find((o) => o.value === v); return option ? optionText(option) : v; }).join(', ') || (raw === 'N/A' ? tr('form_na') : tr('form_no_relation'));
       return `<li><strong>${escape(textOf(q))}</strong><span>${escape(display)}${raw?.otherText ? ` — ${escape(raw.otherText)}` : ''}</span></li>`;
     }).join('');
-    return `<section class="review-card"><h2>ตรวจทานคำตอบ</h2><p>${escape(system.name)} (${system.id}) · ${type === 'effectiveness' ? 'ประสิทธิผล' : 'ความพึงพอใจ'}</p><ol>${rows}</ol></section>`;
+    return `<section class="review-card"><h2>${escape(tr('form_review_title'))}</h2><p>${escape(isEnglish() ? system.name_en || system.name : system.name)} (${system.id}) · ${escape(tr(type === 'effectiveness' ? 'form_title_effectiveness' : 'form_title_satisfaction'))}</p><ol>${rows}</ol></section>`;
   }
   function progressMarkup() {
     const count = steps.length + 1, current = stepIndex;
-    return `<div class="form-progress" role="status" aria-label="ความคืบหน้า"><span>ขั้นที่ ${current + 1} จาก ${count}: ${current === steps.length ? 'ตรวจทาน' : escape(stepNames[steps[current]] || `ขั้น ${steps[current]}`)}</span><progress max="${count}" value="${current + 1}"></progress></div>`;
+    return `<div class="form-progress" role="status" aria-label="${escape(tr('form_progress_aria'))}"><span>${escape(tr('form_step_progress', { current: current + 1, count, step: current === steps.length ? tr('form_review') : stepName(steps[current]) }))}</span><progress max="${count}" value="${current + 1}"></progress></div>`;
   }
   function render() {
     const isReview = stepIndex === steps.length;
     const stepQuestions = isReview ? [] : currentQuestions();
-    app.innerHTML = `${progressMarkup()}<form id="step-form" novalidate>${type === 'satisfaction' ? `<label class="answer-field role-prompt">บทบาทของท่านในการใช้ระบบนี้ <span aria-hidden="true">*</span><select id="satisfaction-role"><option value="">เลือกบทบาท</option>${(optionSets.find((set) => set.id === `roles_${systemId}`)?.options || []).map((o) => `<option value="${escape(o.value)}"${answers.__respondentRole === o.value ? ' selected' : ''}>${escape(o.label)}</option>`).join('')}</select></label>` : ''}${isReview ? reviewMarkup() : `<h2 class="step-heading">${escape(stepNames[steps[stepIndex]] || `ขั้น ${steps[stepIndex]}`)}</h2>${stepQuestions.length ? stepQuestions.map(questionMarkup).join('') : '<p>ไม่มีคำถามที่แสดงในขั้นนี้ตามคำตอบก่อนหน้า</p>'}`}<p id="form-message" role="alert" aria-live="polite"></p><div class="form-actions"><button class="btn btn-secondary" id="back" type="button" ${stepIndex === 0 ? 'disabled' : ''}>ย้อนกลับ</button>${isReview ? `<button class="btn btn-primary" id="submit" type="button" ${sending ? 'disabled' : ''}>${sending ? 'กำลังบันทึก…' : 'ยืนยันและส่ง'}</button>` : `<button class="btn btn-primary" id="next" type="button">ถัดไป</button>`}</div></form>`;
+    app.innerHTML = `${progressMarkup()}<form id="step-form" novalidate>${type === 'satisfaction' ? `<label class="answer-field role-prompt">${escape(tr('form_role_prompt'))} <span aria-hidden="true">*</span><select id="satisfaction-role"><option value="">${escape(tr('form_select_role'))}</option>${(optionSets.find((set) => set.id === `roles_${systemId}`)?.options || []).map((o) => `<option value="${escape(o.value)}"${answers.__respondentRole === o.value ? ' selected' : ''}>${escape(optionText(o))}</option>`).join('')}</select></label>` : ''}${isReview ? reviewMarkup() : `<h2 class="step-heading">${escape(stepName(steps[stepIndex]))}</h2>${stepQuestions.length ? stepQuestions.map(questionMarkup).join('') : `<p>${escape(tr('form_no_questions'))}</p>`}`}<p id="form-message" role="alert" aria-live="polite"></p><div class="form-actions"><button class="btn btn-secondary" id="back" type="button" ${stepIndex === 0 ? 'disabled' : ''}>${escape(tr('form_back'))}</button>${isReview ? `<button class="btn btn-primary" id="submit" type="button" ${sending ? 'disabled' : ''}>${escape(tr(sending ? 'form_saving' : 'form_submit'))}</button>` : `<button class="btn btn-primary" id="next" type="button">${escape(tr('form_next'))}</button>`}</div></form>`;
     bindStep();
   }
   function readQuestion(question) {
@@ -118,10 +126,10 @@
     const activeQuestions = stepIndex === steps.length ? questions : currentQuestions();
     const questionsWithOptions = activeQuestions.map((q) => ({ ...q, options: valuesFor(q) }));
     const result = root.NUAHSConditionalEngine.validateAnswers({ questions: questionsWithOptions, answers, context: context() });
-    if (type === 'satisfaction' && !selectedRole()) result.errors.push({ questionId: 'satisfaction-role', message: 'กรุณาเลือกบทบาท' });
+    if (type === 'satisfaction' && !selectedRole()) result.errors.push({ questionId: 'satisfaction-role', code: 'role', message: tr('form_validation_role') });
     for (const error of result.errors) {
       const node = document.getElementById(`error-${CSS.escape(error.questionId)}`) || (error.questionId === 'satisfaction-role' ? document.getElementById('satisfaction-role') : null);
-      if (node) { if (node.matches('small, p')) node.textContent = error.message; else { node.setAttribute('aria-invalid', 'true'); node.focus(); } }
+      if (node) { if (node.matches('small, p')) node.textContent = tr(`form_validation_${error.code}`) || error.message; else { node.setAttribute('aria-invalid', 'true'); node.focus(); } }
     }
     return result.valid && !(type === 'satisfaction' && !selectedRole());
   }
@@ -134,13 +142,13 @@
     });
     document.getElementById('back')?.addEventListener('click', () => { capture(); stepIndex = Math.max(0, stepIndex - 1); render(); });
     document.getElementById('next')?.addEventListener('click', () => {
-      if (!validateVisible()) { document.getElementById('form-message').textContent = 'โปรดตรวจคำตอบที่จำเป็น'; return; }
+      if (!validateVisible()) { document.getElementById('form-message').textContent = tr('form_required_check'); return; }
       stepIndex = Math.min(steps.length, stepIndex + 1); render(); window.scrollTo({ top: 0, behavior: 'smooth' });
     });
     document.getElementById('submit')?.addEventListener('click', submit);
   }
   async function submit() {
-    if (sending || !validateVisible()) { document.getElementById('form-message').textContent = 'โปรดตรวจคำตอบก่อนส่ง'; return; }
+    if (sending || !validateVisible()) { document.getElementById('form-message').textContent = tr('form_check_before_submit'); return; }
     const validation = root.NUAHSConditionalEngine.validateAnswers({ questions: questions.map((q) => ({ ...q, options: valuesFor(q) })), answers, context: context() });
     if (!validation.valid) { stepIndex = Math.max(0, steps.indexOf(questions.find((q) => q.id === validation.errors[0].questionId)?.step)); render(); return; }
     sending = true; render();
@@ -149,9 +157,9 @@
     try {
       await root.EvaluationAPI.submitAnswers(payload);
       sessionStorage.removeItem(draftKey(user.id));
-      app.innerHTML = `<section class="completion-card" role="status"><h2>ส่งแบบประเมินสำเร็จ</h2><p>ระบบบันทึกคำตอบของท่านแล้ว (${escape(system.name)})</p><a class="btn btn-primary" href="${escape(appUrl('frontend/user/index.html'))}">กลับหน้าหลัก</a></section>`;
+      app.innerHTML = `<section class="completion-card" role="status"><h2>${escape(tr('form_complete_title'))}</h2><p>${escape(tr('form_complete_text', { system: isEnglish() ? system.name_en || system.name : system.name }))}</p><a class="btn btn-primary" href="${escape(appUrl('frontend/user/index.html'))}">${escape(tr('form_return_home'))}</a></section>`;
     } catch (error) {
-      sending = false; render(); document.getElementById('form-message').textContent = `บันทึกไม่สำเร็จ: ${error.message}`;
+      sending = false; render(); document.getElementById('form-message').textContent = tr('form_error_save', { message: error.message });
     }
   }
   async function start() {
@@ -160,7 +168,7 @@
       user = await root.EvaluatorAuth.verify();
       const systems = await root.EvaluationAPI.getSystems();
       if (!systemId) {
-        document.getElementById('assessment-title').textContent = 'เลือกระบบที่ต้องการประเมิน';
+        document.getElementById('assessment-title').textContent = root.t?.('assessment_picker_title') || 'เลือกระบบที่ต้องการประเมิน';
         root.AssessmentSystemPicker.render({
           container: app,
           systems,
@@ -182,7 +190,7 @@
       const saved = JSON.parse(sessionStorage.getItem(draftKey(user.id)) || 'null');
       if (saved?.formVersionId === versionId) { answers = saved.answers || {}; stepIndex = Math.min(Number(saved.stepIndex) || 0, steps.length); }
       const title = document.getElementById('assessment-title');
-      if (title) title.textContent = `${type === 'effectiveness' ? 'ประเมินประสิทธิผล' : 'แบบประเมินความพึงพอใจ'} · ${system.name}`;
+      if (title) title.textContent = `${tr(type === 'effectiveness' ? 'form_title_effectiveness' : 'form_title_satisfaction')} · ${isEnglish() ? system.name_en || system.name : system.name}`;
       render();
     } catch (error) {
       if (error.status === 401) {
@@ -191,8 +199,19 @@
         const returnUrl = new URL(location.href); loginUrl.searchParams.set('returnTo', returnUrl.pathname + returnUrl.search + returnUrl.hash);
         location.assign(loginUrl.href); return;
       }
-      app.innerHTML = `<p class="form-error" role="alert">โหลดแบบประเมินไม่สำเร็จ: ${escape(error.message)}</p>`;
+      app.innerHTML = `<p class="form-error" role="alert">${escape(tr('form_error_load', { message: error.message }))}</p>`;
     }
   }
+  document.addEventListener('langchange', () => {
+    if (systemId && system && steps.length) {
+      capture();
+      render();
+      const title = document.getElementById('assessment-title');
+      if (title) title.textContent = `${tr(type === 'effectiveness' ? 'form_title_effectiveness' : 'form_title_satisfaction')} · ${isEnglish() ? system.name_en || system.name : system.name}`;
+    } else if (!systemId) {
+      const title = document.getElementById('assessment-title');
+      if (title) title.textContent = root.t?.('assessment_picker_title') || 'เลือกระบบที่ต้องการประเมิน';
+    }
+  });
   start();
 })(window);

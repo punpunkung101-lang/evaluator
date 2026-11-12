@@ -56,18 +56,18 @@
     <dialog id="login-dialog" class="dialog login-dialog" aria-labelledby="account-title">
         <button class="dialog-close" type="button" data-close-dialog aria-label="ปิดหน้าต่าง">×</button>
         <p class="eyebrow" data-i18n="login">บัญชีผู้ใช้งาน</p>
-        <h2 id="account-title">เข้าสู่ระบบ</h2>
-        <p class="login-intro">กรอกชื่อผู้ใช้และรหัสผ่านเพื่อเข้าใช้งานระบบประเมิน</p>
+        <h2 id="account-title" data-i18n="loginTitle">เข้าสู่ระบบ</h2>
+        <p class="login-intro" data-i18n="loginIntro">กรอกชื่อผู้ใช้และรหัสผ่านเพื่อเข้าใช้งานระบบประเมิน</p>
         <form id="login-form" autocomplete="on" novalidate>
-            <label for="account-username"><span>ชื่อผู้ใช้หรือ ID 8 หลัก</span><input id="account-username" required maxlength="20" autocomplete="username" type="text" placeholder="กรอกชื่อผู้ใช้หรือ ID"></label>
-            <label id="display-name-wrap" for="account-display-name" hidden><span>ชื่อที่ใช้แสดง (ไม่เกิน 20 ตัวอักษร)</span><input id="account-display-name" maxlength="20" autocomplete="name" type="text" placeholder="กรอกชื่อที่ใช้แสดง"></label>
-            <label id="account-id-wrap" for="account-id" hidden><span>ID ผู้ใช้ 8 หลัก (ระบบกำหนดให้อัตโนมัติ)</span><input id="account-id" value="00000001" readonly></label>
-            <label id="account-role-wrap" for="account-role" hidden><span>ประเภทผู้ใช้งาน</span><select id="account-role"><option value="student">นิสิต</option><option value="teacher">อาจารย์ / นักวิจัย</option><option value="staff">บุคลากรสายสนับสนุน</option></select></label>
-            <label for="account-password"><span>รหัสผ่าน</span></label>
-            <div class="password-field"><input id="account-password" required minlength="8" autocomplete="current-password" type="password" placeholder="กรอกรหัสผ่าน" aria-describedby="login-validation login-note"><button id="password-visibility" type="button" aria-label="แสดงรหัสผ่าน" aria-pressed="false"><span aria-hidden="true">◉</span></button></div>
+            <label for="account-username"><span data-i18n="usernameLabel">ชื่อผู้ใช้หรือ ID 8 หลัก</span><input id="account-username" required maxlength="20" autocomplete="username" type="text" placeholder="กรอกชื่อผู้ใช้หรือ ID" data-i18n-placeholder="usernamePlaceholder"></label>
+            <label id="display-name-wrap" for="account-display-name" hidden><span data-i18n="displayNameLabel">ชื่อที่ใช้แสดง (ไม่เกิน 20 ตัวอักษร)</span><input id="account-display-name" maxlength="20" autocomplete="name" type="text" placeholder="กรอกชื่อที่ใช้แสดง" data-i18n-placeholder="displayNamePlaceholder"></label>
+            <label id="account-id-wrap" for="account-id" hidden><span data-i18n="generatedIdLabel">ID ผู้ใช้ 8 หลัก (ระบบกำหนดให้อัตโนมัติ)</span><input id="account-id" value="00000001" readonly></label>
+            <label id="account-role-wrap" for="account-role" hidden><span data-i18n="roleLabel">ประเภทผู้ใช้งาน</span><select id="account-role"><option value="student" data-i18n="roleStudent">นิสิต</option><option value="teacher" data-i18n="roleTeacher">อาจารย์ / นักวิจัย</option><option value="staff" data-i18n="roleStaff">บุคลากรสายสนับสนุน</option></select></label>
+            <label for="account-password"><span data-i18n="password">รหัสผ่าน</span></label>
+            <div class="password-field"><input id="account-password" required minlength="8" autocomplete="current-password" type="password" placeholder="กรอกรหัสผ่าน" data-i18n-placeholder="passwordPlaceholder" aria-describedby="login-validation login-note"><button id="password-visibility" type="button" aria-label="แสดงรหัสผ่าน" aria-pressed="false"><span aria-hidden="true">◉</span></button></div>
             <p class="login-validation" id="login-validation" aria-live="polite"></p>
-            <button class="submit-button login-submit" id="account-submit" type="submit">เข้าสู่ระบบ</button>
-            <button class="login-mode-toggle" id="account-mode" type="button">สร้างบัญชีใหม่</button>
+            <button class="submit-button login-submit" id="account-submit" type="submit" data-i18n="signIn">เข้าสู่ระบบ</button>
+            <button class="login-mode-toggle" id="account-mode" type="button" data-i18n="newAccount">สร้างบัญชีใหม่</button>
             <p class="form-note" id="login-note" aria-live="polite"></p>
         </form>
     </dialog>

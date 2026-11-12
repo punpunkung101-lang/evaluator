@@ -43,9 +43,9 @@
                 if (score <= 2) low++; else if (score === 3) middle++; else high++;
             }
             const total = low + middle + high;
-            return { id: item.system.id, name: item.system.name, level: item.signal?.level || "insufficient", low: total ? low / total * 100 : 0, middle: total ? middle / total * 100 : 0, high: total ? high / total * 100 : 0, n: item.effectiveness.n };
+            return { id: item.system.id, name: item.system.name, name_en: item.system.name_en || item.system.name, level: item.signal?.level || "insufficient", low: total ? low / total * 100 : 0, middle: total ? middle / total * 100 : 0, high: total ? high / total * 100 : 0, n: item.effectiveness.n };
         });
-        return { threshold, bands, levels: bandCounts, averages: model.systems.map(item => ({ id: item.system.id, name: item.system.name, effectiveness: item.effectivenessAverage, effectivenessN: item.effectiveness.n, satisfaction: item.satisfaction?.average ?? null, satisfactionN: item.satisfaction?.n || 0 })) };
+        return { threshold, bands, levels: bandCounts, averages: model.systems.map(item => ({ id: item.system.id, name: item.system.name, name_en: item.system.name_en || item.system.name, effectiveness: item.effectivenessAverage, effectivenessN: item.effectiveness.n, satisfaction: item.satisfaction?.average ?? null, satisfactionN: item.satisfaction?.n || 0 })) };
     }
     function prepareSystemCharts(effectiveness, records, questions, config = {}) {
         const bank = Array.isArray(questions) ? questions : [];
