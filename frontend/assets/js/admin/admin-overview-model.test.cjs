@@ -28,3 +28,34 @@ test('overview marks snapshot submissions as mock without calling them real', ()
     assert.equal(model.mockCount, 1);
     assert.equal(model.systems[0].mockCount, 1);
 });
+
+test('chart preparation safely handles no answers and empty problem selections', () => {
+    const model = compute(systems, [], questions, scoring);
+    const overview = require('./admin-overview-model.js').prepareOverviewCharts(model, [], questions, scoring.DEFAULT_SCORING_CONFIG.improvement);
+    assert.equal(overview.bands.length, 21);
+    assert.ok(overview.bands.every(row => row.low === 0 && row.middle === 0 && row.high === 0));
+    const system = require('./admin-overview-model.js').prepareSystemCharts({ categoryStats: {} }, [], questions, scoring.DEFAULT_SCORING_CONFIG.improvement);
+    assert.deepEqual(system.problems, []);
+    assert.deepEqual(system.categories, []);
+});
+
+test('system chart preparation separates N/A and excludes it from score shares', () => {
+    const qs = [{ id: 'u1', assessment_type: 'effectiveness', answer_type: 'rating5', is_scored: true, section: 'usability' }, { id: 'issues_found', assessment_type: 'effectiveness', answer_type: 'checkbox', is_scored: false, options: [] }];
+    const records = [{ evaluatorId: 'r1', systemId: 'SYS001', assessmentType: 'effectiveness', answers: [{ questionId: 'u1', value: 1 }, { questionId: 'u1', value: 3 }, { questionId: 'u1', value: 5 }, { questionId: 'u1', value: 'na' }] }];
+    const result = require('./admin-overview-model.js').prepareSystemCharts({ categoryStats: { usability: { section: 'usability', n: 1, average: 3 } } }, records, qs, {});
+    assert.equal(result.low[0], 25);
+    assert.equal(result.middle[0], 25);
+    assert.equal(result.high[0], 25);
+    assert.equal(result.na[0], 25);
+    assert.deepEqual(result.problems, []);
+});
+
+test('all-N/A chart data has no valid-rating share and retains the N/A share', () => {
+    const qs = [{ id: 'u1', assessment_type: 'effectiveness', answer_type: 'rating5', is_scored: true, section: 'usability' }];
+    const records = [{ evaluatorId: 'r1', systemId: 'SYS001', assessmentType: 'effectiveness', answers: [{ questionId: 'u1', value: 'na' }] }];
+    const result = require('./admin-overview-model.js').prepareSystemCharts({ categoryStats: { usability: { section: 'usability', n: 0, average: null } } }, records, qs, {});
+    assert.deepEqual(result.low, [0]);
+    assert.deepEqual(result.middle, [0]);
+    assert.deepEqual(result.high, [0]);
+    assert.deepEqual(result.na, [100]);
+});
