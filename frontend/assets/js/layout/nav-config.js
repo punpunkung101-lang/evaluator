@@ -32,7 +32,7 @@
     const satisfaction = Object.freeze({
         id: "satisfaction",
         labelKey: "nav_satisfaction_survey",
-        href: "user/satisfaction/index.html",
+        href: "user/satisfaction/satisfaction.html",
         activeMatcher: ({ pathname }) => /\/user\/satisfaction\//i.test(String(pathname || ""))
     });
     const guide = Object.freeze({ id: "guide", labelKey: "nav_guide", action: "ev-guide" });

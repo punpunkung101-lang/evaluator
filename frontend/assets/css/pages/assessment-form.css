@@ -31,4 +31,25 @@
 .completion-card { text-align:center; padding:32px 20px; }
 .completion-card a { display:inline-flex; align-items:center; margin-top:12px; text-decoration:none; }
 .role-prompt { padding:18px; border:1px solid var(--border); border-radius:12px; background:var(--bg-surface); }
+.system-picker { margin:20px 0; }
+.picker-heading { display:flex; align-items:end; justify-content:space-between; gap:20px; margin-bottom:18px; }
+.picker-heading h2 { margin:0 0 6px; font-size:1.3rem; }
+.picker-heading p { margin:0; color:var(--text-secondary); }
+.picker-search { display:grid; gap:6px; width:min(360px,100%); font-weight:600; }
+.picker-search input { min-height:46px; padding:10px 12px; border:1px solid var(--border-strong); border-radius:8px; background:var(--bg-surface); color:var(--text-primary); font:inherit; }
+.picker-types { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 10px; }
+.picker-types button { min-height:44px; padding:9px 16px; border:1px solid var(--border-strong); border-radius:999px; background:var(--bg-surface); color:var(--text-primary); font:inherit; cursor:pointer; }
+.picker-types button.is-current { border-color:var(--primary); background:var(--primary); color:var(--text-on-brand); }
+.picker-types button:focus-visible,.system-picker-card:focus-visible { outline:3px solid var(--primary); outline-offset:3px; }
+.picker-count { min-height:1.5em; color:var(--text-secondary); }
+.system-picker-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.system-picker-card { display:flex; flex-direction:column; align-items:flex-start; min-height:142px; padding:16px; border:1px solid var(--border); border-radius:12px; background:var(--bg-surface); color:var(--text-primary); box-shadow:var(--shadow-sm); font:inherit; text-align:left; cursor:pointer; transition:border-color .15s,transform .15s; }
+.system-picker-card:hover { border-color:var(--primary); transform:translateY(-2px); }
+.system-picker-id { color:var(--text-secondary); font-size:.85rem; }
+.system-picker-card strong { margin:7px 0 12px; font-size:1rem; }
+.system-picker-action { margin-top:auto; color:var(--primary); font-weight:600; }
+.picker-empty { grid-column:1/-1; padding:20px; border:1px dashed var(--border-strong); border-radius:10px; color:var(--text-secondary); }
+.picker-error { padding:16px; border:1px solid var(--danger); border-radius:10px; color:var(--danger); background:var(--bg-surface); }
 @media(max-width:600px) { .assessment-page { padding:14px 10px 36px; }.question-card,.review-card { padding:16px; }.form-actions button { flex:1; }.rating-row { gap:5px; }.rating-row label { min-height:48px; flex-direction:column; gap:2px; font-size:.85rem; } }
+@media(max-width:760px) { .picker-heading { align-items:stretch; flex-direction:column; }.system-picker-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:460px) { .system-picker-grid { grid-template-columns:1fr; }.system-picker-card { min-height:112px; } }

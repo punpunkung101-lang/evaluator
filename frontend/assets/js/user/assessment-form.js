@@ -4,7 +4,7 @@
   const appUrl = (path) => root.EvaluatorRuntimeUrl.fromScript(`../../../${String(path).replace(/^frontend\//, '')}`, scriptUrl);
   const app = document.getElementById('assessment-form');
   const type = document.body.dataset.assessmentType || 'effectiveness';
-  const systemId = new URLSearchParams(location.search).get('system');
+  let systemId = new URLSearchParams(location.search).get('system');
   const draftKey = (userId) => `assessmentDraft:v1:${userId}:${systemId}:${type}`;
   const escape = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const textOf = (q) => document.documentElement.lang === 'en' && q.text_en ? q.text_en : q.text;
@@ -155,11 +155,22 @@
     }
   }
   async function start() {
-    if (!systemId) { location.replace(appUrl(type === 'satisfaction' ? 'frontend/user/satisfaction/index.html' : 'frontend/user/index.html')); return; }
     try {
       if (!sessionStorage.getItem('evaluatorToken')) throw Object.assign(new Error('กรุณาเข้าสู่ระบบก่อนประเมิน'), { status: 401 });
       user = await root.EvaluatorAuth.verify();
-      const [systems, fetchedQuestions, fetchedOptions] = await Promise.all([root.EvaluationAPI.getSystems(), root.EvaluationAPI.getQuestions(systemId, type), root.EvaluationAPI.getOptionSets(systemId)]);
+      const systems = await root.EvaluationAPI.getSystems();
+      if (!systemId) {
+        document.getElementById('assessment-title').textContent = 'เลือกระบบที่ต้องการประเมิน';
+        root.AssessmentSystemPicker.render({
+          container: app,
+          systems,
+          type,
+          onTypeChange: (nextType) => location.assign(appUrl(nextType === 'satisfaction' ? 'frontend/user/satisfaction/satisfaction.html' : 'frontend/user/effectiveness/evaluation.html')),
+          onSelect: (selected) => { const url = new URL(location.href); url.searchParams.set('system', selected.id); location.assign(url.href); }
+        });
+        return;
+      }
+      const [fetchedQuestions, fetchedOptions] = await Promise.all([root.EvaluationAPI.getQuestions(systemId, type), root.EvaluationAPI.getOptionSets(systemId)]);
       system = systems.find((item) => item.id === systemId);
       if (!system) throw new Error('ไม่พบระบบที่เลือก');
       questions = fetchedQuestions;
@@ -177,7 +188,7 @@
       if (error.status === 401) {
         const loginUrl = new URL(appUrl('frontend/user/index.html'));
         loginUrl.searchParams.set('login', '1');
-        const returnUrl = new URL(location.href); loginUrl.searchParams.set('returnTo', returnUrl.pathname + returnUrl.search);
+        const returnUrl = new URL(location.href); loginUrl.searchParams.set('returnTo', returnUrl.pathname + returnUrl.search + returnUrl.hash);
         location.assign(loginUrl.href); return;
       }
       app.innerHTML = `<p class="form-error" role="alert">โหลดแบบประเมินไม่สำเร็จ: ${escape(error.message)}</p>`;

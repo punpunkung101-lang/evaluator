@@ -301,7 +301,7 @@
             document.getElementById('q-confirm').onclick=async()=>{
                 if(sending || submitted)return; sending=true; document.getElementById('q-confirm').disabled=true;
                 const ok=await safe(async()=>{const {wizardVersion,...recordDraft}=draft;const record={...recordDraft,evaluatorId:userId,categoryId:systems.find(s=>s.id===draft.systemId)?.categoryId||'all',submittedAt:new Date().toISOString(),kind:'prototype-user-entry'};await Q.submitToBackend(record);Q.submit(record,userId);submitted=true;return true;});
-                if(ok) app.innerHTML=`<section class="q-card"><h2>บันทึกผลประเมินลงฐานข้อมูลแล้ว</h2><p>เปิด Dashboard เพื่อดูผลที่บันทึก</p><a class="q-button" href="${appUrl(`admin/dashboard.html?dataset=${draft.config.isDemo?'demo':'real'}#quantitative-results`)}">ดูผลที่ส่งใน Dashboard</a><a class="q-button" href="${appUrl('user/effectiveness/evaluation.html')}">เริ่มแบบประเมินใหม่</a><a class="q-button" href="${appUrl('user/satisfaction/index.html')}">ประเมินความพึงพอใจ</a></section>`;
+                if(ok) app.innerHTML=`<section class="q-card"><h2>บันทึกผลประเมินลงฐานข้อมูลแล้ว</h2><p>เปิด Dashboard เพื่อดูผลที่บันทึก</p><a class="q-button" href="${appUrl(`admin/dashboard.html?dataset=${draft.config.isDemo?'demo':'real'}#quantitative-results`)}">ดูผลที่ส่งใน Dashboard</a><a class="q-button" href="${appUrl('user/effectiveness/evaluation.html')}">เริ่มแบบประเมินใหม่</a><a class="q-button" href="${appUrl('user/satisfaction/satisfaction.html')}">ประเมินความพึงพอใจ</a></section>`;
                 else {sending=false;document.getElementById('q-confirm').disabled=false;document.getElementById('confirm-dialog').close();}
             };
             if(step===1 && draft.config) {

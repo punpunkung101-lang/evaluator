@@ -12,7 +12,6 @@ const sharedHeaderPages = [
     'frontend/admin/manage/assessment-management.html',
     'frontend/admin/manage/processes.html',
     'frontend/user/effectiveness/evaluation.html',
-    'frontend/user/satisfaction/index.html',
     'frontend/user/satisfaction/satisfaction.html'
 ];
 

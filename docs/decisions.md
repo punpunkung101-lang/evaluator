@@ -46,3 +46,8 @@
 - Satisfaction forms do not contain the effectiveness profile questions, so collect the respondent role from the selected system's role option set and store it in the evaluation's respondent-role fields.
 - Resolve dependent choices from `option_sets` by system and selected role. Preserve the selected option values and the optional free-text detail for “other”.
 - Verify form submissions against a temporary copy of `evaluator.db`; browser QA did not add test submissions or sessions to the committed baseline.
+# Phase 4 hotfix: system selection and legacy cleanup
+
+- Both assessment entry URLs render an authenticated system picker when `system` is absent. The picker reads the active catalog from `EvaluationAPI.getSystems()`, supports search and lets the user switch assessment type; choosing a system adds its ID to the same page URL.
+- Login redirects return to the picker URL so both ordinary users and admins can select a system after authentication.
+- Removed the obsolete satisfaction landing/dropdown and duplicate legacy user pages/styles, plus stale effectiveness prototype notes. Admin data/configuration modules were retained where current Admin pages still depend on them; deleting them would break those pages before their replacement is ready.

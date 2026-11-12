@@ -10,6 +10,7 @@ test('effectiveness and satisfaction pages use the same database-driven form ren
     const html = read(page);
     assert.match(html, /id="assessment-form"/);
     assert.match(html, /assets\/js\/core\/conditional-engine\.js/);
+    assert.match(html, /assets\/js\/user\/system-picker\.js/);
     assert.match(html, /assets\/js\/user\/assessment-form\.js/);
     assert.doesNotMatch(html, /quantitative\.js|evaluation\.js|satisfaction\.js/);
   }
@@ -42,9 +43,15 @@ test('runtime form API reads systems and dependent option sets and posts the pub
   assert.doesNotMatch(api, /beforeAnswers:|afterAnswers:|10 items/);
 });
 
-test('satisfaction landing links to its own evaluation and counts satisfaction questions only', () => {
-  const home = read('frontend/user/satisfaction/index.html');
-  assert.match(home, /satisfactionUrl\(selectedSystem\)/);
-  assert.match(home, /getQuestions\(systemId, "satisfaction"\)/);
-  assert.doesNotMatch(home, /before-after|satisfaction\.js/);
+test('assessment entry pages render an authenticated API-backed system picker when no system is selected', () => {
+  const renderer = read('frontend/assets/js/user/assessment-form.js');
+  assert.match(renderer, /if \(!systemId\)/);
+  assert.match(renderer, /AssessmentSystemPicker\.render/);
+  assert.match(renderer, /getSystems\(\)/);
+  assert.match(renderer, /returnTo/);
+  assert.doesNotMatch(renderer, /location\.replace/);
+  const picker = read('frontend/assets/js/user/system-picker.js');
+  assert.match(picker, /data-assessment-type="effectiveness"/);
+  assert.match(picker, /data-assessment-type="satisfaction"/);
+  assert.match(picker, /system-search/);
 });

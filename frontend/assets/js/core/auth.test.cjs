@@ -90,12 +90,12 @@ test('rendering login and logout dispatches auth changes immediately for shared 
     assert.equal(authEvents[1].detail.user, null);
 });
 
-test('the satisfaction landing page stays browsable before login and verifies only when starting', () => {
+test('both assessment entry pages return authenticated users to the system picker', () => {
     const root = path.resolve(__dirname, '../../../..');
-    const index = fs.readFileSync(path.join(root, 'frontend/user/satisfaction/index.html'), 'utf8');
-    assert.doesNotMatch(index, /core\/login-guard\.js/);
-    assert.match(index, /window\.EvaluatorAuth\.verify\(\)/);
-    assert.match(index, /returnTo/);
+    const form = fs.readFileSync(path.join(root, 'frontend/assets/js/user/assessment-form.js'), 'utf8');
+    assert.match(form, /EvaluatorAuth\.verify\(\)/);
+    assert.match(form, /AssessmentSystemPicker\.render/);
+    assert.match(form, /returnTo/);
 });
 
 test('the effectiveness evaluator identity is read-only and cannot replace the verified profile', () => {

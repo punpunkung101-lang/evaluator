@@ -263,7 +263,7 @@ test('wizard validates, drafts, resumes and submits custom processes and indicat
     assert.equal(record.config.metrics.find(item=>item.id.startsWith('custom-metric-')).unit,'minutes');
 });
 test('local HTML scripts and styles resolve to existing files, and user navigation contains no admin links',()=>{
-    const files=['frontend/user/index.html','frontend/user/effectiveness/evaluation.html','frontend/admin/manage/processes.html','frontend/admin/dashboard.html',...['index','satisfaction'].map(p=>`frontend/user/satisfaction/${p}.html`)];
+    const files=['frontend/user/index.html','frontend/user/effectiveness/evaluation.html','frontend/user/satisfaction/satisfaction.html','frontend/admin/manage/processes.html','frontend/admin/dashboard.html'];
     for(const file of files) {
         const absolute=path.join(root,file),html=fs.readFileSync(absolute,'utf8');
         for(const match of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
@@ -276,7 +276,12 @@ test('local HTML scripts and styles resolve to existing files, and user navigati
         } else if (file === 'frontend/user/effectiveness/evaluation.html') {
             assert.ok(html.includes('assets/js/layout/site-header.js'));
             assert.ok(html.includes('assets/js/user/assessment-form.js'));
+            assert.ok(html.includes('assets/js/user/system-picker.js'));
             assert.ok(html.includes('assets/js/core/conditional-engine.js'));
+        } else if (file === 'frontend/user/satisfaction/satisfaction.html') {
+            assert.ok(html.includes('assets/js/layout/site-header.js'));
+            assert.ok(html.includes('assets/js/user/assessment-form.js'));
+            assert.ok(html.includes('assets/js/user/system-picker.js'));
         } else if (file === 'frontend/admin/dashboard.html') {
             assert.ok(html.includes('id="quantitative-results"'));
             assert.ok(html.includes('id="app-sidebar"'));
