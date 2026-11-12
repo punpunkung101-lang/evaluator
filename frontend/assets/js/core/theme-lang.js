@@ -426,7 +426,7 @@
             confirm_clear_data: "คุณแน่ใจหรือไม่ว่าต้องการล้างชุดข้อมูลผลการประเมินที่นำเข้าทั้งหมด? การกระทำนี้ไม่สามารถย้อนกลับได้",
             alert_clear_success: "ล้างชุดข้อมูลนำเข้าเรียบร้อยแล้ว",
 
-            // Detail Page (admin/evaluation-detail.html)
+            // Legacy Admin detail translations
             detail_page_title: "รายละเอียดผลการประเมินรายระบบ | IT Evaluator Admin",
             detail_system_meta: "หมวดหมู่: {category} | รหัสระบบ: {id}",
             detail_evaluators: "จำนวนผู้ประเมินทั้งหมด",
@@ -931,7 +931,7 @@
             confirm_clear_data: "Are you sure you want to clear all imported evaluation datasets? This action cannot be undone.",
             alert_clear_success: "All imported evaluation datasets have been cleared.",
 
-            // Detail Page (admin/evaluation-detail.html)
+            // Legacy Admin detail translations
             detail_page_title: "System Evaluation Details | IT Evaluator Admin",
             detail_system_meta: "Category: {category} | System ID: {id}",
             detail_evaluators: "Total Evaluators",

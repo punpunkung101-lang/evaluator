@@ -21,13 +21,11 @@ test('active matchers cover portal, assessment, admin dashboard and child pages'
     assert.equal(match('/frontend/user/effectiveness/evaluation.html', '', NAV.header.user), 'effectiveness');
     assert.equal(match('/frontend/user/satisfaction/satisfaction.html', '', NAV.header.user), 'satisfaction');
     assert.equal(match('/frontend/admin/dashboard.html', '#overview', NAV.sidebar.admin), 'overview');
-    assert.equal(match('/admin/dashboard.html', '#systems', NAV.sidebar.admin), 'results');
-    assert.equal(match('/admin/dashboard.html', '#quantitative-results', NAV.sidebar.admin), 'results');
-    assert.equal(match('/admin/dashboard.html', '#satisfaction', NAV.sidebar.admin), 'results');
-    assert.equal(match('/frontend/admin/evaluation-detail.html', '', NAV.sidebar.admin), 'results');
+    assert.equal(match('/admin/dashboard.html', '#systems', NAV.sidebar.admin), 'overview');
+    assert.equal(match('/admin/dashboard.html', '#quantitative-results', NAV.sidebar.admin), 'overview');
     assert.equal(match('/frontend/admin/results.html', '#summary', NAV.sidebar.admin), 'results');
     assert.equal(match('/frontend/admin/manage/assessment-management.html', '', NAV.sidebar.admin), 'results');
-    assert.equal(match('/frontend/admin/manage/processes.html', '', NAV.sidebar.admin), 'results');
+    assert.equal(match('/frontend/admin/manage/retired-management.html', '', NAV.sidebar.admin), null);
 });
 
 test('each role menu and the shared sidebar avoid duplicate destinations', () => {

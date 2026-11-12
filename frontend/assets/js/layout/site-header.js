@@ -13,7 +13,6 @@
 
     function currentLanguage() {
         if (window.ThemeLang?.getLang) return window.ThemeLang.getLang();
-        if (window.EvaluationLocale?.getLanguage) return window.EvaluationLocale.getLanguage();
         try { return localStorage.getItem("it_eval_lang") || document.documentElement.lang || "th"; }
         catch (_) { return document.documentElement.lang || "th"; }
     }
@@ -57,9 +56,6 @@
             element.href = resolveFrontendPath(item.href);
         }
         element.dataset.navId = item.id;
-        if (navConfig.isProcessManagementPage(location.pathname) && element.tagName === "A") {
-            element.id = "q-admin-dashboard-back";
-        }
         element.dataset.i18n = item.labelKey;
         element.textContent = translatedText(item.labelKey);
         return element;
@@ -99,9 +95,6 @@
             link.href = resolveFrontendPath(item.href);
             link.className = "nav-link";
             link.dataset.navId = item.id;
-            if (item.id === "overview" && navConfig.isProcessManagementPage(location.pathname)) {
-                link.id = "q-admin-dashboard-back";
-            }
             const icon = makeIcon(item.icon);
             if (icon) link.append(icon);
             const label = document.createElement("span");
@@ -216,7 +209,6 @@
             window.ThemeLang?.saveTheme?.(next);
             try { localStorage.setItem("it_eval_theme", next); } catch (_) {}
             applyTheme(next);
-            window.EvaluationLocale?.setTheme?.(next);
         });
 
         const languageButton = header.querySelector("#language-toggle");
@@ -243,7 +235,6 @@
             try { localStorage.setItem("it_eval_lang", next); } catch (_) {}
             window.ThemeLang?.saveLang?.(next);
             window.ThemeLang?.applyLang?.(next);
-            window.EvaluationLocale?.setLanguage?.(next);
             applyLanguage(next);
         });
 
