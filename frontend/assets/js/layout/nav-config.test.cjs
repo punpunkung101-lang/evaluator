@@ -19,7 +19,7 @@ test('active matchers cover portal, assessment, admin dashboard and child pages'
     const match = (pathname, hash, items) => NAV.activeItem(items, { pathname, hash })?.id || null;
     assert.equal(match('/frontend/user/index.html', '', NAV.header.guest), 'home');
     assert.equal(match('/frontend/user/effectiveness/evaluation.html', '', NAV.header.user), 'effectiveness');
-    assert.equal(match('/frontend/user/satisfaction/evaluation.html', '', NAV.header.user), 'satisfaction');
+    assert.equal(match('/frontend/user/satisfaction/satisfaction.html', '', NAV.header.user), 'satisfaction');
     assert.equal(match('/frontend/admin/dashboard.html', '#overview', NAV.sidebar.admin), 'overview');
     assert.equal(match('/admin/dashboard.html', '#systems', NAV.sidebar.admin), 'results');
     assert.equal(match('/admin/dashboard.html', '#quantitative-results', NAV.sidebar.admin), 'results');

@@ -12,7 +12,7 @@ git restore database/evaluator.db
 
 The initial administrator account remains `Admin` with ID `00000000`. Account roles remain `student`, `teacher`, `staff`, and `admin`; the respondent's system-specific role is stored separately on each evaluation.
 
-Phase 2 replaces the database contract. The remaining frontend/API migration is handled in later phases, so an old browser form is not compatible with these new typed answers yet.
+The shared user form now reads the published version and dependent option sets from the API. It posts typed answers with `formVersionId`; the backend validates visibility, respondent role, required answers, answer types, allowed choices, and mutually exclusive options before saving. The satisfaction form uses S1–S4 plus the selected system's specific item.
 
 ## Source files
 

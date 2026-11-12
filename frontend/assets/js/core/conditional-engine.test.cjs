@@ -43,3 +43,10 @@ test('choice values outside the question options are rejected', () => {
   const result = engine.validateAnswers({ questions, answers: { prior: 'maybe' }, context: { respondentRole: 'ผู้ใช้' } });
   assert.equal(result.errors.some((e) => e.code === 'invalid_option'), true);
 });
+
+test('exclusive options remain mutually exclusive when no separate rule payload is supplied', () => {
+  const question = { id: 'issues_found', answer_type: 'checkbox', options: [{ value: 'problem_9', exclusive: true }, { value: 'slow' }] };
+  const result = engine.validateAnswers({ questions: [question], answers: { issues_found: ['problem_9', 'slow'] } });
+  assert.equal(result.valid, false);
+  assert.equal(result.errors[0].code, 'mutually_exclusive');
+});

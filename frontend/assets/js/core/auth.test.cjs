@@ -100,10 +100,10 @@ test('the satisfaction landing page stays browsable before login and verifies on
 
 test('the effectiveness evaluator identity is read-only and cannot replace the verified profile', () => {
     const root = path.resolve(__dirname, '../../../..');
-    const html = fs.readFileSync(path.join(root, 'frontend/user/satisfaction/evaluation.html'), 'utf8');
-    const logic = fs.readFileSync(path.join(root, 'frontend/assets/js/user/evaluation.js'), 'utf8');
-    assert.doesNotMatch(html, /id="evaluator-name"|id="user-role"/);
-    assert.match(html, /id="evaluator-account"/);
+    const html = fs.readFileSync(path.join(root, 'frontend/user/effectiveness/evaluation.html'), 'utf8');
+    const logic = fs.readFileSync(path.join(root, 'frontend/assets/js/user/assessment-form.js'), 'utf8');
+    assert.match(html, /assessment-form/);
+    assert.match(logic, /EvaluatorAuth\.verify\(\)/);
     assert.doesNotMatch(logic, /sessionStorage\.setItem\("evaluatorProfile",\s*JSON\.stringify\(/);
 });
 

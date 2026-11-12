@@ -39,3 +39,10 @@
 - Use one pure shared conditional engine in the core assets. Server validation implements the persisted `visible_when` and `answer_rules` contract in C++, and checks required fields, respondent roles, rating values, and choice options before saving.
 - Version Admin question replacements by creating a new published form version and immutable question rows. This keeps already submitted answers tied to their original questions.
 - Return no records for retired quantitative-system-stat endpoints and reject writes with HTTP 410; actual operational statistics are not in the evaluation submission schema and should not be presented as user survey answers.
+
+## Phase 4
+
+- Render effectiveness and satisfaction with the same input renderer. Derive effectiveness steps from `step` values in the published form and keep a separate final review step.
+- Satisfaction forms do not contain the effectiveness profile questions, so collect the respondent role from the selected system's role option set and store it in the evaluation's respondent-role fields.
+- Resolve dependent choices from `option_sets` by system and selected role. Preserve the selected option values and the optional free-text detail for “other”.
+- Verify form submissions against a temporary copy of `evaluator.db`; browser QA did not add test submissions or sessions to the committed baseline.

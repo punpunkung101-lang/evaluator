@@ -7,24 +7,6 @@ if (typeof window !== "undefined") {
     window.EvaluatorAPIBaseUrl = API_CONFIG.backendBaseUrl;
 }
 
-/**
- * Standard Evaluation Record Schema:
- * {
- *   id: string,
- *   systemId: string,
- *   systemName?: string,
- *   evaluatorId: string,
- *   evaluatorName?: string,
- *   userRole: "student" | "teacher" | "staff",
- *   beforeAnswers: (number | null)[], // 10 items, 1-5 or null
- *   afterAnswers: (number | null)[],  // 10 items, 1-5 or null
- *   satisfactionAnswers: number[],   // One score per question, 1-5
- *   satisfactionAverage?: number,
- *   feedback?: string,
- *   submittedAt: string              // ISO date string YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss
- * }
- */
-
 const EvaluationAPI = {
     async request(path, options = {}) {
         const token = typeof sessionStorage !== "undefined" ? sessionStorage.getItem("evaluatorToken") : null;
@@ -59,6 +41,30 @@ const EvaluationAPI = {
         const query = new URLSearchParams({ system_id: systemId, assessment_type: assessmentType });
         const rows = await this.request(`/questions?${query}`);
         return Array.isArray(rows) ? rows : [];
+    },
+
+    async getSystems() {
+        const rows = await this.request('/systems');
+        return Array.isArray(rows) ? rows : [];
+    },
+
+    async getOptionSets(systemId) {
+        const query = new URLSearchParams({ system_id: systemId });
+        const rows = await this.request(`/option-sets?${query}`);
+        return Array.isArray(rows) ? rows : [];
+    },
+
+    async submitAnswers(payload) {
+        if (!payload || !payload.systemId || !payload.assessmentType || !payload.formVersionId || !payload.respondentRole || !Array.isArray(payload.answers)) {
+            throw new Error('ข้อมูลแบบประเมินไม่ครบถ้วน');
+        }
+        const saved = await this.request('/evaluations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (saved.success !== true || saved.id !== payload.id) throw new Error('Backend ไม่ยืนยันการบันทึกผลประเมิน');
+        return saved;
     },
 
     async getEvaluations() {

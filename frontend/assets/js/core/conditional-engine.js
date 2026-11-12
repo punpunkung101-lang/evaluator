@@ -55,7 +55,10 @@
   function isAnswered(value) { return valuesOf(value).length > 0; }
   function validateAnswerRules(rules = [], questions = [], answers = {}) {
     const get = readAnswers(answers), errors = [];
-    for (const rule of rules) {
+    const optionRules = questions.filter((q) => (q.options || []).some((option) => option.exclusive)).map((q) => ({
+      type: 'mutually_exclusive', question_ids: [q.id], exclusive_option_values: q.options.filter((option) => option.exclusive).map((option) => option.value)
+    }));
+    for (const rule of [...rules, ...optionRules]) {
       if (rule.type !== 'mutually_exclusive') continue;
       for (const id of rule.question_ids || []) {
         const q = questions.find((item) => item.id === id);
@@ -77,7 +80,12 @@
         for (const selectedValue of selected) if (!options.some((option) => option.value === selectedValue) && !(q.allow_other && selectedValue === 'other')) errors.push({ questionId: q.id, code: 'invalid_option', message: 'ตัวเลือกไม่ถูกต้อง' });
       }
       if (q.answer_type === 'rating5' && !(value === 'N/A' && q.allow_na) && !(Number(value) >= 1 && Number(value) <= 5)) errors.push({ questionId: q.id, code: 'invalid_rating', message: 'คะแนนต้องอยู่ระหว่าง 1 ถึง 5' });
+      if (q.answer_type === 'number' && !Number.isFinite(Number(value))) errors.push({ questionId: q.id, code: 'invalid_number', message: 'กรุณาระบุตัวเลข' });
+      if (q.answer_type === 'date' && !(typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value))) errors.push({ questionId: q.id, code: 'invalid_date', message: 'กรุณาระบุวันที่ให้ถูกต้อง' });
+      if (q.answer_type === 'yes_no' && !['yes', 'no', true, false].includes(value)) errors.push({ questionId: q.id, code: 'invalid_yes_no', message: 'กรุณาเลือกใช่หรือไม่ใช่' });
       if (q.answer_type === 'checkbox' && q.max_select && selected.length > q.max_select) errors.push({ questionId: q.id, code: 'max_select', message: 'เลือกตัวเลือกเกินจำนวนที่กำหนด' });
+      const selectedOther = selected.some((v) => (q.options || []).some((option) => option.value === v && option.allow_other));
+      if (selectedOther && q.allow_other && !String(value?.otherText || '').trim()) errors.push({ questionId: q.id, code: 'other_required', message: 'กรุณาระบุรายละเอียดของตัวเลือกอื่น ๆ' });
     }
     errors.push(...validateAnswerRules(answerRules, questions, answers));
     return { valid: errors.length === 0, errors };
