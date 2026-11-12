@@ -30,7 +30,7 @@
     if (!root.EvaluatorMockSnapshot && scriptSrc) {
         document.write('<script src="' + new URL("../../data/mock-snapshot.js", scriptSrc).href + '"><\/script>');
     }
-    const getSnapshot = () => root.EvaluatorMockSnapshot || { systems: [], questions: {}, evaluations: [], quantitative: [] };
+    const getSnapshot = () => root.EvaluatorMockSnapshot || { systems: [], questions: {}, evaluations: [], settings: { improvement: {} } };
     window.addEventListener("DOMContentLoaded", () => {
         if (!root.EvaluatorMockSnapshot) console.warn("[Demo] frontend/assets/data/mock-snapshot.js is missing; run: node database/mock/export-mock-snapshot.cjs");
     }, { once: true });
@@ -52,11 +52,15 @@
         if (route === "/auth/me" || route === "/auth/session") return Promise.resolve(json(200, { user: clone(user) }));
         if (route === "/systems") return Promise.resolve(json(200, clone(getSnapshot().systems)));
         if (route === "/evaluations") return Promise.resolve(json(200, clone(getSnapshot().evaluations)));
-        if (route === "/quantitative") return Promise.resolve(json(200, clone(getSnapshot().quantitative)));
+        if (route === "/settings/improvement") return Promise.resolve(json(200, clone(getSnapshot().settings || { improvement: {} })));
+        if (route === "/option-sets") {
+            const systemId = url.searchParams.get("system_id") || "";
+            return Promise.resolve(json(200, clone((getSnapshot().optionSets || []).filter(item => !item.systemId || item.systemId === systemId))));
+        }
         if (route === "/questions") {
             const type = url.searchParams.get("assessment_type") || "";
             const rows = getSnapshot().questions[url.searchParams.get("system_id")] || [];
-            return Promise.resolve(json(200, clone(rows.filter(q => !type || q.assessmentType === type))));
+            return Promise.resolve(json(200, clone(rows.filter(q => !type || (q.assessment_type || q.assessmentType) === type))));
         }
         return realFetch(input, init);
     };

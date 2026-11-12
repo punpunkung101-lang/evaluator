@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="../assets/css/common.css">
     <link rel="stylesheet" href="../assets/css/layouts/admin-layout.css">
     <link rel="stylesheet" href="../assets/css/pages/admin-pages.css">
+    <link rel="stylesheet" href="../assets/css/pages/admin-charts.css">
 </head>
 <body>
     <div class="admin-layout">
@@ -22,7 +23,7 @@
             <header class="admin-page-heading">
                 <div>
                     <h1 id="results-title" data-i18n="admin_summary_title">ผลประเมินรายระบบ</h1>
-                    <p data-i18n="admin_overview_subtitle">สรุปผลประสิทธิผลและความพึงพอใจจากข้อมูลที่บันทึกจริง</p>
+                    <p>สรุปผลประสิทธิผลและความพึงพอใจจากคำตอบที่บันทึก พร้อมระบุข้อมูลตัวอย่างเมื่ออยู่ในโหมด Demo</p>
                 </div>
             </header>
             <div id="admin-tabs"></div>
@@ -32,23 +33,20 @@
             <section id="tab-satisfaction" class="admin-result-tab" hidden></section>
             <section id="tab-settings" class="admin-result-tab" hidden>
                 <h2 data-i18n="admin_tab_settings">ตั้งค่า</h2>
-                <p data-i18n="admin_overview_subtitle">เลือกการจัดการแบบประเมินหรือกระบวนการและตัวชี้วัด</p>
+                <p>จัดการคำถามและชนิดคำตอบจากคลังกลาง</p>
             </section>
         </main>
     </div>
     <script src="../assets/js/core/auth.js"></script>
     <script src="../assets/js/core/api.js"></script>
-    <script src="../assets/js/core/systems-data.js"></script>
     <script src="../assets/js/core/theme-lang.js" data-translation-only="true"></script>
     <script src="../assets/js/layout/nav-config.js"></script>
     <script src="../assets/js/layout/site-header.js"></script>
     <script src="../assets/js/layout/admin-tabs.js"></script>
-    <script src="../assets/js/user/effectiveness-examples.js"></script>
     <script src="../assets/js/admin/effectiveness-scoring.js"></script>
     <script src="../assets/js/admin/admin-data.js"></script>
-    <script src="../assets/js/admin/improvement-priority.js"></script>
-    <script src="../assets/js/admin/chart-model.js"></script>
-    <script src="../assets/js/admin/charts.js"></script>
-    <script src="../assets/js/admin/system-results.js"></script>
+    <script src="../assets/js/admin/admin-overview-model.js"></script>
+    <script src="../assets/js/admin/admin-charts.js"></script>
+    <script src="../assets/js/admin/system-results.js?v=phase5"></script>
 </body>
 </html>

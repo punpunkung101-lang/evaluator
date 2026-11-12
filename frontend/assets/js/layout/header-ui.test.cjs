@@ -8,12 +8,8 @@ const sharedHeaderPages = [
     'frontend/user/index.html',
     'frontend/admin/dashboard.html',
     'frontend/admin/results.html',
-    'frontend/admin/evaluation-detail.html',
     'frontend/admin/manage/assessment-management.html',
-    'frontend/admin/manage/processes.html',
     'frontend/user/effectiveness/evaluation.html',
-    'frontend/user/satisfaction/evaluation.html',
-    'frontend/user/satisfaction/index.html',
     'frontend/user/satisfaction/satisfaction.html'
 ];
 
@@ -41,8 +37,7 @@ test('the shared header has one theme and language control with Thai and English
     for (const key of ['portal_utility', 'portal_faculty', 'portal_faculty_en', 'portal_theme', 'portal_login', 'portal_contact_text', 'portal_guide_note']) {
         assert.equal((translations.match(new RegExp(`\\b${key}:`, 'g')) || []).length, 2, `${key} must exist in Thai and English`);
     }
-    const locale = fs.readFileSync(path.join(root, 'frontend/assets/js/user/evaluation-locale.js'), 'utf8');
-    assert.doesNotMatch(locale, /q-admin-language|ev-theme/, 'page locale must not target the removed header controls');
+    assert.doesNotMatch(header, /EvaluationLocale/, 'the shared header uses the shared theme and language module');
 });
 
 test('the shared header updates admin and guest navigation on auth changes without reload', () => {
@@ -54,7 +49,9 @@ test('the shared header updates admin and guest navigation on auth changes witho
 test('the homepage uses the shared system catalog instead of a duplicate list', () => {
     const html = fs.readFileSync(path.join(root, 'frontend/user/index.html'), 'utf8');
     const app = fs.readFileSync(path.join(root, 'frontend/assets/js/user/app.js'), 'utf8');
-    assert.match(html, /assets\/js\/core\/systems-data\.js/);
-    assert.match(app, /const systemCatalog = window\.systems \|\| \[\]/);
+    assert.match(html, /assets\/js\/core\/api\.js/);
+    assert.doesNotMatch(html, /assets\/js\/core\/systems-data\.js/);
+    assert.match(app, /let systemCatalog = \[\]/);
+    assert.match(app, /EvaluationAPI\?\.getSystems\(\)/);
     assert.doesNotMatch(app, /const systems = \[/);
 });

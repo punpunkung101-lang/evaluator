@@ -94,8 +94,8 @@
                 const control = wrapper.querySelector("[data-auth-control]");
                 if (!control) return;
                 const label = control.querySelector("[data-auth-label]") || control;
-                label.textContent = activeUser?.displayName || activeUser?.name || "เข้าสู่ระบบ";
-                label.removeAttribute("data-i18n");
+                label.textContent = activeUser?.displayName || activeUser?.name || root.t?.("portal_login") || "เข้าสู่ระบบ";
+                if (activeUser) label.removeAttribute("data-i18n");
                 control.title = activeUser
                     ? `${activeUser.displayName || activeUser.name} · ${activeUser.role} · ID ${activeUser.id}`
                     : "เข้าสู่ระบบ";

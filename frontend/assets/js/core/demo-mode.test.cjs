@@ -42,9 +42,15 @@ test('?demo=1 serves mock GET data from the snapshot and loads the snapshot lazi
     vm.runInContext(snapshotSource, vm.createContext(s.window)); // simulate the written <script> executing
     const evaluations = await (await s.window.fetch(api('/evaluations'))).json();
     assert.ok(evaluations.length > 0 && evaluations.every(r => r.id.startsWith('mock-eval-')));
-    const quantitative = await (await s.window.fetch(api('/quantitative'))).json();
-    assert.ok(quantitative.length > 0);
     assert.equal((await (await s.window.fetch(api('/systems'))).json()).length, 21);
+    const questions = await (await s.window.fetch(api('/questions?system_id=SYS001&assessment_type=satisfaction'))).json();
+    assert.ok(questions.some(question => question.id === 'S1'));
+    const settings = await (await s.window.fetch(api('/settings/improvement'))).json();
+    assert.equal(settings.improvement.minimumRespondents, 10);
+    const optionSets = await (await s.window.fetch(api('/option-sets?system_id=SYS018'))).json();
+    assert.ok(optionSets.some(item => item.systemId === null));
+    assert.ok(optionSets.some(item => item.systemId === 'SYS018'));
+    assert.ok(optionSets.every(item => !item.systemId || item.systemId === 'SYS018'));
     const me = await (await s.window.fetch(api('/auth/me'))).json();
     assert.equal(me.user.role, 'admin');
     assert.equal(s.realCalls.length, 0);

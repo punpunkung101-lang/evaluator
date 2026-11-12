@@ -34,8 +34,7 @@ function parseTokens(cssContent) {
     const cleanCss = cssContent.replace(/\/\*[\s\S]*?\*\//g, '');
     const themes = {
         light: {},
-        dark: {},
-        navy: {}
+        dark: {}
     };
 
     let i = 0;
@@ -62,8 +61,6 @@ function parseTokens(cssContent) {
                     targetThemes.push('light');
                 } else if (sel.includes('[data-theme="dark"]') || sel === 'body.dark') {
                     targetThemes.push('dark');
-                } else if (sel.includes('[data-theme="navy"]')) {
-                    targetThemes.push('navy');
                 }
             }
 
@@ -106,7 +103,7 @@ test('tokens.css contains required chart tokens for all three themes and passes 
         '--chart-track'
     ];
 
-    const themeNames = ['light', 'dark', 'navy'];
+    const themeNames = ['light', 'dark'];
     for (const theme of themeNames) {
         assert.ok(themes[theme]['--bg-surface'], `Missing --bg-surface in theme ${theme}`);
         for (const token of requiredTokens) {
@@ -146,11 +143,11 @@ test('tokens.css contains required chart tokens for all three themes and passes 
     assert.equal(failures.length, 0, `Contrast failures:\n${failures.join('\n')}`);
 });
 
-test('adjacent chart levels have contrast >= 1.3:1 and levels have >= 3.0:1 vs --bg-surface across all three themes', () => {
+test('adjacent chart levels have contrast >= 1.3:1 and levels have >= 3.0:1 vs --bg-surface across both themes', () => {
     const cssPath = path.resolve(__dirname, '../../css/tokens.css');
     const cssContent = fs.readFileSync(cssPath, 'utf8');
     const themes = parseTokens(cssContent);
-    const themeNames = ['light', 'dark', 'navy'];
+    const themeNames = ['light', 'dark'];
     const levelTokens = [
         '--chart-level-1',
         '--chart-level-2',
@@ -195,4 +192,12 @@ test('adjacent chart levels have contrast >= 1.3:1 and levels have >= 3.0:1 vs -
     console.table(adjacentReport);
 
     assert.equal(failures.length, 0, `Adjacent level contrast failures:\n${failures.join('\n')}`);
+});
+
+test('--text-on-brand is defined as white in every theme so brand-coloured buttons and icons stay readable', () => {
+    const cssContent = fs.readFileSync(path.resolve(__dirname, '../../css/tokens.css'), 'utf8');
+    const themes = parseTokens(cssContent);
+    for (const theme of ['light', 'dark']) {
+        assert.equal(themes[theme]['--text-on-brand'], '#ffffff', `--text-on-brand missing/not white in ${theme}`);
+    }
 });

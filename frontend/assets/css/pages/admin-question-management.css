@@ -1,0 +1,22 @@
+.question-admin-controls,.question-editor { margin-block:16px; padding:18px; }
+.question-admin-controls { display:flex; flex-wrap:wrap; gap:16px; }
+.question-admin-controls label,.question-editor-grid label { display:grid; gap:6px; min-width:180px; font-weight:600; }
+.question-admin-controls select,.question-editor input:not([type="checkbox"]),.question-editor select,.question-editor textarea { width:100%; min-height:42px; padding:9px 11px; border:1px solid var(--border-strong); border-radius:8px; background:var(--bg-surface); color:var(--text-primary); font:inherit; }
+.question-editor textarea { resize:vertical; }
+.question-editor-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-block:16px; }
+.question-editor-heading,.question-admin-actions { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.question-editor-heading>div { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+.question-scope-tag { color:var(--text-secondary); font-size:.9rem; }
+.question-active,.question-flags label { display:flex; align-items:center; gap:8px; }
+.question-flags { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:14px; }
+.question-editor input[type="checkbox"] { width:20px; height:20px; accent-color:var(--primary); }
+.question-preview-dialog { width:min(640px,calc(100% - 24px)); max-height:85vh; overflow:auto; color:var(--text-primary); }
+.question-preview-dialog::backdrop { background:rgb(0 0 0 / 45%); }
+.preview-question { display:grid; gap:12px; margin-block:16px; }
+.preview-question>div { display:grid; gap:8px; }
+.preview-question input:not([type="radio"]),.preview-question select,.preview-question textarea { min-height:42px; width:100%; padding:9px; border:1px solid var(--border-strong); border-radius:8px; background:var(--bg-surface); color:var(--text-primary); font:inherit; }
+.preview-ratings { display:flex; gap:10px; }
+.preview-ratings label { display:grid; justify-items:center; gap:5px; }
+.preview-ratings span { display:grid; place-items:center; width:42px; height:42px; border:1px solid var(--border-strong); border-radius:50%; }
+.admin-state.error { color:var(--danger); }
+@media(max-width:650px) { .question-editor-grid { grid-template-columns:1fr; }.question-admin-controls label { width:100%; }.question-editor { padding:14px; }.question-flags { display:grid; grid-template-columns:1fr 1fr; } }

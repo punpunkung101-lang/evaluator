@@ -95,21 +95,16 @@ test('a backend error fails closed and replaces the Admin document with an error
     assert.equal(state.document.documentElement.classList.contains('auth-pending'), false);
 });
 
-test('all Admin data loaders wait for the guard, and Admin results do not render cached records on API failure', () => {
-    const pages = [
-        read('frontend/assets/js/admin/dashboard.js'),
-        read('frontend/assets/js/admin/assessment-management.js'),
-        read('frontend/admin/evaluation-detail.html'),
-        read('frontend/assets/js/admin/admin-results.js'),
-        read('frontend/assets/js/user/quantitative.js')
-    ];
-    assert.match(pages[0], /await window\.AdminGuard\.ready/);
-    assert.match(pages[1], /await window\.AdminGuard\.ready/);
-    assert.match(pages[2], /await window\.AdminGuard\.ready/);
-    assert.match(pages[3], /root\.AdminGuard\.ready\.then\(initializeDashboard/);
-    assert.match(pages[3], /if \(!backendReady\)/);
-    assert.match(pages[3], /backendError = error/);
-    assert.match(pages[4], /await window\.AdminGuard\.ready/);
+test('all active Admin pages wait for the backend guard and report API failures', () => {
+    const overview = read('frontend/assets/js/admin/admin-overview.js');
+    const manager = read('frontend/assets/js/admin/question-admin.js');
+    const results = read('frontend/assets/js/admin/system-results.js');
+    assert.match(overview, /await window\.AdminGuard\.ready/);
+    assert.match(manager, /await window\.AdminGuard\.ready/);
+    assert.match(results, /await window\.AdminGuard\.ready/);
+    assert.match(overview, /โหลดภาพรวมไม่ได้/);
+    assert.match(manager, /บันทึกไม่สำเร็จ/);
+    assert.match(results, /โหลดผลประเมินไม่ได้/);
 });
 
 function read(file) { return fs.readFileSync(path.join(root, file), 'utf8'); }

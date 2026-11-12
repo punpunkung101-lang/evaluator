@@ -32,7 +32,7 @@
     const satisfaction = Object.freeze({
         id: "satisfaction",
         labelKey: "nav_satisfaction_survey",
-        href: "user/satisfaction/index.html",
+        href: "user/satisfaction/satisfaction.html",
         activeMatcher: ({ pathname }) => /\/user\/satisfaction\//i.test(String(pathname || ""))
     });
     const guide = Object.freeze({ id: "guide", labelKey: "nav_guide", action: "ev-guide" });
@@ -42,20 +42,16 @@
         labelKey: "nav_overview",
         href: "admin/dashboard.html#overview",
         icon: "overview",
-        activeMatcher: ({ pathname, hash }) =>
-            dashboardPath(pathname) && (!hash || hash === "#overview")
+        activeMatcher: ({ pathname }) => dashboardPath(pathname)
     });
     const results = Object.freeze({
         id: "results",
         labelKey: "nav_systems",
         href: "admin/results.html",
         icon: "results",
-        activeMatcher: ({ pathname, hash }) =>
-            (dashboardPath(pathname) && ["#systems", "#quantitative-results", "#satisfaction"].includes(hash)) ||
+        activeMatcher: ({ pathname }) =>
             matchesPage(pathname, "admin/results.html") ||
-            matchesPage(pathname, "admin/evaluation-detail.html") ||
-            matchesPage(pathname, "admin/manage/assessment-management.html") ||
-            matchesPage(pathname, "admin/manage/processes.html")
+            matchesPage(pathname, "admin/manage/assessment-management.html")
     });
 
     const publicHeader = Object.freeze([home, effectiveness, satisfaction, guide, contact]);
@@ -84,13 +80,8 @@
     }
 
     function showsSidebarFooter(pathname) {
-        return matchesPage(pathname, "admin/dashboard.html") ||
-            matchesPage(pathname, "admin/evaluation-detail.html") || matchesPage(pathname, "admin/results.html");
+        return matchesPage(pathname, "admin/dashboard.html") || matchesPage(pathname, "admin/results.html");
     }
 
-    function isProcessManagementPage(pathname) {
-        return matchesPage(pathname, "admin/manage/processes.html");
-    }
-
-    return Object.freeze({ header, sidebar, labelKeys, activeItem, activeKey, showsSidebarFooter, isProcessManagementPage });
+    return Object.freeze({ header, sidebar, labelKeys, activeItem, activeKey, showsSidebarFooter });
 });

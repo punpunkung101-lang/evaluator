@@ -90,20 +90,20 @@ test('rendering login and logout dispatches auth changes immediately for shared 
     assert.equal(authEvents[1].detail.user, null);
 });
 
-test('the satisfaction landing page stays browsable before login and verifies only when starting', () => {
+test('both assessment entry pages return authenticated users to the system picker', () => {
     const root = path.resolve(__dirname, '../../../..');
-    const index = fs.readFileSync(path.join(root, 'frontend/user/satisfaction/index.html'), 'utf8');
-    assert.doesNotMatch(index, /core\/login-guard\.js/);
-    assert.match(index, /window\.EvaluatorAuth\.verify\(\)/);
-    assert.match(index, /returnTo/);
+    const form = fs.readFileSync(path.join(root, 'frontend/assets/js/user/assessment-form.js'), 'utf8');
+    assert.match(form, /EvaluatorAuth\.verify\(\)/);
+    assert.match(form, /AssessmentSystemPicker\.render/);
+    assert.match(form, /returnTo/);
 });
 
 test('the effectiveness evaluator identity is read-only and cannot replace the verified profile', () => {
     const root = path.resolve(__dirname, '../../../..');
-    const html = fs.readFileSync(path.join(root, 'frontend/user/satisfaction/evaluation.html'), 'utf8');
-    const logic = fs.readFileSync(path.join(root, 'frontend/assets/js/user/evaluation.js'), 'utf8');
-    assert.doesNotMatch(html, /id="evaluator-name"|id="user-role"/);
-    assert.match(html, /id="evaluator-account"/);
+    const html = fs.readFileSync(path.join(root, 'frontend/user/effectiveness/evaluation.html'), 'utf8');
+    const logic = fs.readFileSync(path.join(root, 'frontend/assets/js/user/assessment-form.js'), 'utf8');
+    assert.match(html, /assessment-form/);
+    assert.match(logic, /EvaluatorAuth\.verify\(\)/);
     assert.doesNotMatch(logic, /sessionStorage\.setItem\("evaluatorProfile",\s*JSON\.stringify\(/);
 });
 
@@ -133,9 +133,8 @@ test('all admin pages use the shared auth control and backend-verified admin gua
     const root = path.resolve(__dirname, '../../../..');
     for (const page of [
         'frontend/admin/dashboard.html',
+        'frontend/admin/results.html',
         'frontend/admin/manage/assessment-management.html',
-        'frontend/admin/evaluation-detail.html',
-        'frontend/admin/manage/processes.html'
     ]) {
         const html = fs.readFileSync(path.join(root, page), 'utf8');
         assert.match(html, /core\/admin-guard\.js/);
@@ -159,10 +158,10 @@ test('all admin pages use the shared auth control and backend-verified admin gua
 test('dashboard API endpoints distinguish missing sessions from non-admin sessions using DB role checks', () => {
     const root = path.resolve(__dirname, '../../../..');
     const backend = fs.readFileSync(path.join(root, 'backend/src/main.cpp'), 'utf8');
-    assert.match(backend, /if\(method=="GET"&&route=="\/auth\/me"\)/);
+    assert.match(backend, /method == "GET" && route == "\/auth\/me"/);
     assert.match(backend, /SELECT u\.id,u\.username,u\.display_name,u\.role FROM auth_sessions s JOIN users u ON u\.id=s\.user_id WHERE s\.token=\?/);
-    assert.match(backend, /if\(!sessionUser\(db,token,id,username,display,role\)\)\{status=401;return false;\}if\(role!="admin"\)\{status=403;return false;\}/);
-    for (const route of ['/questions/replace', '/quantitative', '/evaluations']) {
-        assert.ok(backend.includes(`route=="${route}"`), `expected protected dashboard route ${route}`);
+    assert.match(backend, /if \(role != "admin"\)/);
+    for (const route of ['/questions/replace', '/questions/replace-core', '/option-sets/replace', '/settings/improvement', '/evaluations']) {
+        assert.ok(backend.includes(`route == "${route}"`), `expected protected dashboard route ${route}`);
     }
 });

@@ -11,6 +11,7 @@
     --primary-light: #eff6ff;    /* Soft Ice Blue Accent */
     --primary-border: #bfdbfe;   /* Border for Light Blue */
     --primary-focus: rgba(30, 58, 138, 0.25);
+    --text-on-brand: #ffffff;     /* White text/icons on brand-coloured surfaces */
 
     --secondary: #475569;        /* Slate Neutral */
     --secondary-hover: #334155;
