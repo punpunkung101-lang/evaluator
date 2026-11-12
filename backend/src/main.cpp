@@ -866,6 +866,40 @@ static std::string handle(sqlite3 *db, const std::string &method, const std::str
 }
 static bool initialize(sqlite3 *db)
 {
+    sqlite3_stmt *versionQuery = nullptr;
+    int userVersion = 0;
+    if (sqlite3_prepare_v2(db, "PRAGMA user_version", -1, &versionQuery, nullptr) == SQLITE_OK && sqlite3_step(versionQuery) == SQLITE_ROW)
+        userVersion = sqlite3_column_int(versionQuery, 0);
+    if (versionQuery)
+        sqlite3_finalize(versionQuery);
+    sqlite3_stmt *tableQuery = nullptr;
+    bool hasVersionedForms = false;
+    if (sqlite3_prepare_v2(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='assessment_forms'", -1, &tableQuery, nullptr) == SQLITE_OK)
+        hasVersionedForms = sqlite3_step(tableQuery) == SQLITE_ROW;
+    if (tableQuery)
+        sqlite3_finalize(tableQuery);
+    if (userVersion != 2 || !hasVersionedForms)
+    {
+        const char *resetOldSchema = "PRAGMA foreign_keys=OFF; BEGIN IMMEDIATE;"
+                                     "DROP TABLE IF EXISTS evaluation_answers;"
+                                     "DROP TABLE IF EXISTS assessment_answers;"
+                                     "DROP TABLE IF EXISTS evaluations;"
+                                     "DROP TABLE IF EXISTS answer_rules;"
+                                     "DROP TABLE IF EXISTS form_version_questions;"
+                                     "DROP TABLE IF EXISTS form_versions;"
+                                     "DROP TABLE IF EXISTS assessment_forms;"
+                                     "DROP TABLE IF EXISTS assessment_questions;"
+                                     "DROP TABLE IF EXISTS option_sets;"
+                                     "DROP TABLE IF EXISTS quantitative_records;"
+                                     "DROP TABLE IF EXISTS satisfactions;"
+                                     "DROP TABLE IF EXISTS auth_sessions;"
+                                     "DROP TABLE IF EXISTS schema_migrations;"
+                                     "DROP TABLE IF EXISTS systems;"
+                                     "DROP TABLE IF EXISTS users;"
+                                     "PRAGMA user_version=0; COMMIT; PRAGMA foreign_keys=ON;";
+        if (!exec(db, resetOldSchema))
+            return false;
+    }
     std::ifstream f("database/schema.sql");
     if (!f)
     {
@@ -884,40 +918,16 @@ static bool initialize(sqlite3 *db)
         if (!exec(db, data.str()))
             return false;
     }
-    sqlite3_stmt *q = nullptr;
-    sqlite3_prepare_v2(db, "SELECT 1 FROM schema_migrations WHERE name='assessment_questions_csv_v1'", -1, &q, nullptr);
-    bool seeded = sqlite3_step(q) == SQLITE_ROW;
-    sqlite3_finalize(q);
-    if (!seeded)
+    std::ifstream questions("database/questions_seed.sql");
+    if (!questions)
     {
-        std::ifstream questions("database/questions_seed.sql");
-        if (!questions)
-        {
-            std::cerr << "Cannot read database/questions_seed.sql\n";
-            return false;
-        }
-        std::stringstream data;
-        data << questions.rdbuf();
-        if (!exec(db, data.str()))
-            return false;
-        if (!exec(db, "INSERT INTO schema_migrations(name) VALUES('assessment_questions_csv_v1')"))
-            return false;
+        std::cerr << "Cannot read database/questions_seed.sql\n";
+        return false;
     }
-    q = nullptr;
-    sqlite3_prepare_v2(db, "SELECT 1 FROM schema_migrations WHERE name='assessment_questions_dedupe_v2'", -1, &q, nullptr);
-    bool deduped = sqlite3_step(q) == SQLITE_ROW;
-    sqlite3_finalize(q);
-    if (!deduped)
-    {
-        if (!exec(db, "BEGIN IMMEDIATE"))
-            return false;
-        const char *dedupe = "UPDATE assessment_questions SET active=0 WHERE assessment_type='effectiveness' AND system_id IN (SELECT id FROM systems) AND sort_order BETWEEN 11 AND 21 AND id=system_id||'-EFF-'||printf('%02d',sort_order)";
-        if (!exec(db, dedupe) || !exec(db, "INSERT INTO schema_migrations(name) VALUES('assessment_questions_dedupe_v2')") || !exec(db, "COMMIT"))
-        {
-            exec(db, "ROLLBACK");
-            return false;
-        }
-    }
+    std::stringstream questionData;
+    questionData << questions.rdbuf();
+    if (!exec(db, questionData.str()))
+        return false;
     return true;
 }
 static void client(SOCKET sock, sqlite3 *db)

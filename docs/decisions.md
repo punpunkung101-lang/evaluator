@@ -20,3 +20,13 @@
 - Represent the SYS018 work categories, Path A/B/C, and eight work states as system-specific option sets. Tracking Core questions carry a `has_tracking` system visibility predicate.
 - Resolve respondent-role options from the selected system, then resolve the dependent profile option sets through that role. Defaults are stored as editable data rather than UI logic.
 - Treat the source documents as editable source text and `database/question-bank.json` as the structured bank used by later phases. The one-time draft converter used while composing the bank is not part of the committed implementation.
+
+## Phase 2
+
+- Use SQLite `user_version = 2` for the new schema. Backend startup recreates the old evaluation schema when it does not match version 2, then loads the current schema and idempotent system/question/form seeds. This intentionally does not migrate old evaluation data, as authorized by the phase instructions.
+- Keep each shared Core question as one row and map it into each relevant system form through `form_version_questions`. Publish a version 1 form for each system and each assessment type (42 forms total).
+- Store one evaluation per `(system_id, assessment_type)` and typed answers as JSON values with rating-only numeric scores and an N/A flag. Keep account authorization in `users.role`; respondent role is a separate evaluation field and answer.
+- Generate 15 mock respondents per system, paired across effectiveness and satisfaction. Use 4 low-score systems (SYS001–SYS004), 9 middle-score systems (SYS005–SYS013), and 8 higher-score systems (SYS014–SYS021), with deterministic spread and occasional N/A.
+- Mock evaluator credentials are intentionally unusable. The fixed placeholder hash is deterministic and exists only to satisfy the account schema.
+- Use Node 24's built-in `node:sqlite` for building and round-trip checks; this avoids adding a package dependency.
+- Keep snapshot export for the later integration phase because Phase 2 explicitly does not modify frontend files. Its existing exporter/test uses the legacy schema and is deferred with the frontend snapshot regeneration work.

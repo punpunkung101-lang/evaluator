@@ -1,92 +1,78 @@
-# Database และข้อมูลจำลองสำหรับพัฒนา
+# Database setup and mock baseline
 
-`evaluator.db` เป็น SQLite ฐานข้อมูลเดียวที่ Backend เปิดเมื่อเริ่มทำงาน โดยใช้ `schema.sql`, `seed.sql` และ `questions_seed.sql` เพื่อสร้างโครงสร้างและข้อมูลตั้งต้น
+`database/evaluator.db` is the committed SQLite baseline. It contains the shared account/system catalog, 42 published forms (effectiveness and satisfaction for each system), the question bank, and synthetic submissions for local development. Mock rows are marked by `evaluations.is_mock = 1` and `mock-*` / `mock_*` IDs. They are not operational data and must not be reported as actual faculty results.
 
-## ข้อมูลในฐานข้อมูลที่ commit
+## Pull and start
 
-`evaluator.db` ที่อยู่ใน Git เป็นฐานข้อมูลพัฒนาสำหรับตัวอย่างหน้า Admin มีบัญชีที่เข้าสู่ระบบได้เฉพาะบัญชีเริ่มต้น `Admin` / `00000000` (ID `00000000`) ผู้ประเมินตัวอย่างสังเคราะห์มี 40 บัญชี username ขึ้นต้น `mock_evaluator_01` ถึง `mock_evaluator_40`, ID `90000001` ถึง `90000040` บทบาทกระจาย (student/teacher/staff) และไม่มีรหัสผ่านที่ใช้งานได้
-
-submission จำลองใช้ ID ขึ้นต้น `mock-` ครอบคลุม 21 ระบบ โดยแต่ละระบบสุ่ม 10–20 ผู้ประเมิน (แยกกันระหว่างประสิทธิผลและความพึงพอใจ) ยกเว้น SYS019/SYS020 (ไม่มีข้อมูล), SYS017 (ประสิทธิผลอย่างเดียว) และ SYS018 (ความพึงพอใจอย่างเดียว) วันที่กระจายครอบคลุมทุกเดือนพฤษภาคม–พฤศจิกายน 2569 ข้อมูลนี้ใช้พัฒนาและตรวจหน้าจอเท่านั้น ห้ามรายงานว่าเป็นผลจริงของคณะ
-
-ไฟล์สคริปต์และ SQL ที่เกี่ยวข้อง:
-
-- `database/mock/generate-mock-data.cjs` สคริปต์ Node.js แบบ deterministic สำหรับสร้างชุดข้อมูล mock และเขียนไฟล์ SQL
-- `database/mock/mock-data.sql` เพิ่มหรือแทนที่ข้อมูลจำลอง โดยลบเฉพาะแถวที่มี marker mock ก่อนใส่ชุดเดิมกลับ
-- `database/mock/reset-mock-data.sql` ลบข้อมูลจำลองและผู้ใช้ `mock_*` ทั้งหมด โดยคง Admin, ระบบ, คำถาม และข้อมูลจริงไว้
-- `database/mock/baseline-statuses.json` บันทึกสถานะ baseline ของทั้ง 21 ระบบ เพื่อพิสูจน์ว่าการสุ่ม 10–20 คนไม่ทำให้สถานะของระบบใดเปลี่ยน
-
-## การจัดการและรีเซ็ตข้อมูลผลประเมิน
-
-เลือกวิธีการตามลักษณะงานที่ต้องการ:
-
-### (ก) กลับชุดข้อมูล mock ล่าสุด (จาก Git Baseline)
-
-หากทดลองประเมินหรือแก้ไขข้อมูลไปแล้วต้องการคืนค่าฐานข้อมูลพัฒนาที่มี mock 10–20 คนต่อระบบกลับมาตาม baseline ล่าสุด:
+After `git pull`, use the committed `database/evaluator.db` directly. It has 21 systems, 189 questions, 42 published form versions, 315 mock accounts, and 630 mock submissions (15 respondents per system for each assessment type). The baseline has no authentication sessions. Logging in adds a local session row; restore the tracked baseline before committing or when you need to clear local sessions:
 
 ```powershell
 git restore database/evaluator.db
 ```
 
-*(หรือสร้างชุด mock ขึ้นใหม่ด้วยคำสั่ง `node database/mock/generate-mock-data.cjs`)*
+The initial administrator account remains `Admin` with ID `00000000`. Account roles remain `student`, `teacher`, `staff`, and `admin`; the respondent's system-specific role is stored separately on each evaluation.
 
-### (ข) ลบเฉพาะข้อมูลจำลอง (Mock Data) ออกจากฐานข้อมูล
+Phase 2 replaces the database contract. The remaining frontend/API migration is handled in later phases, so an old browser form is not compatible with these new typed answers yet.
 
-ใช้คำสั่งรันสคริปต์ `reset-mock-data.sql` เพื่อลบเฉพาะแถวจำลอง (ที่มี marker `mock-*` / `mock_*`) โดยรักษาบัญชีผู้ดูแลระบบ รายชื่อระบบ และคำถามทั้งหมดไว้:
+## Source files
+
+The reproducible build chain is:
+
+```text
+docs/project_brief_evaluation_platform.md
+docs/system_specific_questions.md
+        ↓ maintain the structured source
+database/question-bank.json
+        ↓ node database/build/generate-questions-seed.cjs
+database/questions_seed.sql
+        ↓ node database/build/build-db.cjs
+database/evaluator.db
+```
+
+The deterministic mock SQL is generated separately from the same question bank:
+
+```powershell
+node database/mock/generate-mock-data.cjs
+```
+
+## Rebuild or reset the full baseline
+
+Run these commands from the repository root with Node.js 24 or later (the build uses the built-in `node:sqlite` module):
+
+```powershell
+node database/build/validate-question-bank.cjs
+node database/build/generate-questions-seed.cjs
+node database/mock/generate-mock-data.cjs
+node database/build/build-db.cjs
+```
+
+The build always creates a clean database from `schema.sql`, `seed.sql`, `questions_seed.sql`, and `mock/mock-data.sql`. It replaces `database/evaluator.db`, so stop the backend first. It then checks SQLite integrity, foreign keys, the empty-session requirement, and expected row counts.
+
+To remove only mock data from a local database while retaining real submissions and accounts, stop the backend and run:
 
 ```powershell
 sqlite3 database/evaluator.db < database/mock/reset-mock-data.sql
 ```
 
-*(หรือเปิด `database/evaluator.db` ใน DB Browser for SQLite แล้ว Execute SQL ไฟล์ `database/mock/reset-mock-data.sql`)*
+To restore all systems, forms, questions, and mock submissions to the committed baseline, run `git restore database/evaluator.db` or rebuild using the commands above.
 
-**ผลการทดสอบจริงกับสำเนาโปรเจกต์ (ก่อน / หลัง รันคำสั่ง):**
-- ตาราง `users`: ก่อน **41** แถว (Admin + 40 mock) $\rightarrow$ หลัง **1** แถว (เหลือเฉพาะ Admin `00000000`)
-- ตาราง `evaluations`: ก่อน **279** แถว $\rightarrow$ หลัง **0** แถว
-- ตาราง `satisfactions`: ก่อน **279** แถว $\rightarrow$ หลัง **0** แถว
-- ตาราง `quantitative_records`: ก่อน **284** แถว $\rightarrow$ หลัง **0** แถว
-- ตาราง `assessment_answers`: ก่อน **6,675** แถว $\rightarrow$ หลัง **0** แถว
-- ตาราง `auth_sessions`: ก่อน **0** แถว $\rightarrow$ หลัง **0** แถว
-- ตาราง `systems`: ก่อน **21** แถว $\rightarrow$ หลัง **21** แถว (คงเดิมทุกระบบ)
-- ตาราง `assessment_questions`: ก่อน **571** แถว $\rightarrow$ หลัง **571** แถว (คงเดิมทุกคำถาม)
+## Data model
 
-### (ค) ล้างฐานข้อมูลเป็นศูนย์อย่างสมบูรณ์ (Clean Zero State)
+- `users` and `auth_sessions` hold the shared identity and login state. `users.role` is the account permission role; it is not the evaluation respondent role.
+- `systems` stores the 21 system records and whether each has tracking workflow.
+- `assessment_forms` and `form_versions` define a versioned form per system and `assessment_type`.
+- `assessment_questions` stores each Core question once (`system_id IS NULL`) and each Specific question against its system. Answer type, options, role visibility, conditional visibility, scoring flags, and N/A/Other metadata are stored as data.
+- `option_sets` holds editable and dependent choice lists.
+- `form_version_questions` maps shared Core and system-specific questions into each published form version.
+- `evaluations` stores one submission per system and assessment type, including the form version and respondent role. `evaluation_answers` stores typed JSON answers plus question/type snapshots and an optional rating score.
 
-เมื่อต้องการเริ่มต้นระบบใหม่จากศูนย์แท้จริง โดยให้ backend สร้างโครงสร้างและข้อมูลเริ่มต้นใหม่ทั้งหมด:
+There is no separate satisfaction or quantitative legacy table in the new schema. Satisfaction uses `assessment_type = 'satisfaction'` and has S1–S4 plus one system-specific question for every system. No operational statistics are fabricated or stored.
 
-1. ปิด Backend process
-2. ลบไฟล์ฐานข้อมูล:
-   ```powershell
-   Remove-Item database/evaluator.db
-   ```
-3. เปิด Backend จาก root ของ repo:
-   ```powershell
-   .\backend\evaluator_backend.exe
-   ```
-Backend จะสร้าง `evaluator.db` ใหม่ พร้อมรัน `schema.sql`, `seed.sql`, `questions_seed.sql` และ migrations โดยอัตโนมัติ
+## Expected baseline checks
 
-**ผลการทดสอบจริงกับสำเนาโปรเจกต์ (หลัง backend สร้าง DB ใหม่):**
-- ตาราง `users`: **1** แถว (เฉพาะ Admin `00000000`)
-- ตาราง `systems`: **21** แถว (ครบ 21 ระบบตาม catalog)
-- ตาราง `assessment_questions`: **315** แถว (210 คำถามประสิทธิผล active + 105 คำถามความพึงพอใจ active)
-- ตาราง `evaluations`: **0** แถว
-- ตาราง `satisfactions`: **0** แถว
-- ตาราง `quantitative_records`: **0** แถว
-- ตาราง `assessment_answers`: **0** แถว
-- ตาราง `auth_sessions`: **0** แถว
-- ตาราง `schema_migrations`: **2** แถว (`assessment_questions_csv_v1`, `assessment_questions_dedupe_v2`)
+```powershell
+node database/build/build-db.cjs
+node --test "tests/**/*.test.cjs"
+```
 
-> [!IMPORTANT]
-> **หมายเหตุเรื่องจำนวนแถว `assessment_questions` (315 vs 571 แถว):**
-> ฐานข้อมูลที่สร้างใหม่จากวิธี (ค) จะได้คำถาม **315** ข้อ (มาจาก `questions_seed.sql` ทั้งหมด 210 ข้อประสิทธิผล + 105 ข้อความพึงพอใจ ซึ่งเป็นชุดคำถาม active ที่ระบบใช้งานจริง) ต่างจาก `evaluator.db` ที่ commit ไว้ใน Git ซึ่งมี **571** แถว เนื่องจากฐานข้อมูลใน Git มีข้อมูลประวัติการพัฒนาเดิมติดอยู่ด้วย ได้แก่ คำถาม generic 25 ข้อที่ `system_id` เป็น NULL และคำถาม duplicate เก่า 231 ข้อที่ถูก de-dupe เป็น inactive (`active = 0`)
-> **ข้อแนะนำ:** หากต้องการคงคำถามทั้งหมด 571 แถวตามฐานข้อมูลที่ commit ไว้ แนะนำให้เลือกใช้ **วิธี (ข)** (`reset-mock-data.sql`) แทนวิธี (ค)
-
-## ข้อควรระวังสำหรับเพื่อนร่วมทีม
-
-DB นี้ถูก track ใน Git แล้ว backend จะแก้ไฟล์เมื่อมีการล็อกอิน (`auth_sessions`) ห้าม `git add` ไฟล์ DB ที่ใช้งานแล้ว ก่อน commit ต้องไม่มีไฟล์ DB ใน stage เว้นแต่ตั้งใจรีเฟรช mock และตรวจ `auth_sessions` ว่าง, ถ้า `git pull` ติดเพราะ DB ในเครื่องเปลี่ยน ให้สำรองไฟล์ก่อนแล้ว `git restore`
-
-- การเข้าสู่ระบบทุกครั้งเพิ่มแถวใน `auth_sessions` ของ `evaluator.db` ฐานข้อมูลใน Git เป็น baseline ที่ไม่มี session ค้างอยู่
-- สำรอง DB ก่อนการลบหรือแก้ข้อมูลจริง และอย่า commit ไฟล์สำรอง `*.bak` หรือฐานข้อมูลส่วนตัว
-- ตรวจสอบความถูกต้องของ DB ด้วยคำสั่ง:
-  ```powershell
-  python -c "import sqlite3; c=sqlite3.connect('database/evaluator.db'); print(c.execute('PRAGMA integrity_check').fetchall()); print(c.execute('PRAGMA foreign_key_check').fetchall())"
-  ```
+The built database contains 316 users (Admin plus 315 mock accounts), 21 systems, 42 forms and versions, 189 question definitions, 630 submissions, and 18,759 typed answers. `auth_sessions` is empty in the committed baseline. There are no `-journal`, `-wal`, or `-shm` files to commit.

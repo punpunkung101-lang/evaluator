@@ -1,142 +1,72 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
+"use strict";
 
-const {
-    generateMockDataset,
-    convertToModels,
-    validateDataset
-} = require('../../database/mock/generate-mock-data.cjs');
-const EffectivenessScoring = require('../../frontend/assets/js/admin/effectiveness-scoring.js');
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const { generateMockDataset, generateMockSql, validateMockDataset, bandForSystem } = require("../../database/mock/generate-mock-data.cjs");
+const bank = require("../../database/question-bank.json");
 
-const baselinePath = path.resolve(__dirname, '../../database/mock/baseline-statuses.json');
-const baselineStatuses = JSON.parse(fs.readFileSync(baselinePath, 'utf8'));
-
-// Systems catalog fixture (all 21 systems)
-const systems = Object.keys(baselineStatuses).map((id, index) => ({
-    id,
-    name: baselineStatuses[id].name,
-    sort_order: baselineStatuses[id].sortOrder ?? index
-}));
-
-test('mock dataset generation is deterministic', () => {
-    const run1 = generateMockDataset(42819);
-    const run2 = generateMockDataset(42819);
-    assert.deepEqual(run1.users, run2.users);
-    assert.deepEqual(run1.evalSeeds, run2.evalSeeds);
-    assert.deepEqual(run1.quantSeeds, run2.quantSeeds);
+test("mock accounts and submissions are deterministic", () => {
+  const first = generateMockDataset();
+  const second = generateMockDataset();
+  assert.deepEqual(first, second);
+  assert.equal(generateMockSql(first), generateMockSql(second));
 });
 
-test('mock accounts are exactly 40 unique synthetic accounts without duplicate IDs', () => {
-    const dataset = generateMockDataset();
-    assert.equal(dataset.users.length, 40);
-    const ids = new Set(dataset.users.map(u => u.id));
-    const usernames = new Set(dataset.users.map(u => u.username));
-    assert.equal(ids.size, 40);
-    assert.equal(usernames.size, 40);
-
-    for (const user of dataset.users) {
-        assert.match(user.id, /^9[0-9]{7}$/);
-        assert.match(user.username, /^mock_evaluator_[0-9]{2}$/);
-        assert.ok(['student', 'teacher', 'staff'].includes(user.role));
+test("all systems have 15 paired effectiveness and satisfaction submissions", () => {
+  const dataset = generateMockDataset();
+  assert.equal(dataset.users.length, 315);
+  assert.equal(dataset.evaluations.length, 630);
+  assert.deepEqual(validateMockDataset(dataset), { valid: true, errors: [] });
+  for (const system of bank.systems) {
+    for (const type of ["effectiveness", "satisfaction"]) {
+      assert.equal(dataset.evaluations.filter((row) => row.systemId === system.id && row.assessmentType === type).length, 15);
     }
+  }
 });
 
-test('mock records contain no isDemo flags and no duplicate submission IDs', () => {
-    const dataset = generateMockDataset();
-    const evalIds = new Set();
-    for (const e of dataset.evalSeeds) {
-        assert.ok(!e.isDemo);
-        assert.ok(!evalIds.has(e.id), `Duplicate evaluation ID: ${e.id}`);
-        evalIds.add(e.id);
+test("satisfaction mock answers include shared S1–S4 and each system's Specific item", () => {
+  const dataset = generateMockDataset();
+  for (const system of bank.systems) {
+    for (const evaluation of dataset.evaluations.filter((row) => row.systemId === system.id && row.assessmentType === "satisfaction")) {
+      const ids = new Set(evaluation.answers.map((answer) => answer.questionId));
+      for (const id of ["S1", "S2", "S3", "S4", `${system.id}-SAT-SPEC-01`]) assert.ok(ids.has(id), `${evaluation.id} missing ${id}`);
     }
-    const quantIds = new Set();
-    for (const q of dataset.quantSeeds) {
-        assert.ok(!q.isDemo);
-        assert.ok(!quantIds.has(q.id), `Duplicate quant ID: ${q.id}`);
-        quantIds.add(q.id);
-    }
+  }
 });
 
-test('evaluator counts per system are 10–20 for active systems and match system constraints', () => {
-    const dataset = generateMockDataset();
-    const converted = convertToModels(dataset, systems);
-
-    for (const sysId of Object.keys(baselineStatuses)) {
-        const comp = converted.computedStatuses[sysId];
-        assert.ok(comp, `System ${sysId} must exist in computed statuses`);
-        const nEff = comp.effectiveness ? comp.effectiveness.n : 0;
-        const nSat = comp.satisfaction ? comp.satisfaction.n : 0;
-
-        if (sysId === 'SYS019' || sysId === 'SYS020') {
-            assert.equal(nEff, 0);
-            assert.equal(nSat, 0);
-        } else if (sysId === 'SYS017') {
-            assert.ok(nEff >= 10 && nEff <= 20, `${sysId} nEff expected 10-20, got ${nEff}`);
-            assert.equal(nSat, 0);
-        } else if (sysId === 'SYS018') {
-            assert.equal(nEff, 0);
-            assert.ok(nSat >= 10 && nSat <= 20, `${sysId} nSat expected 10-20, got ${nSat}`);
-        } else {
-            assert.ok(nEff >= 10 && nEff <= 20, `${sysId} nEff expected 10-20, got ${nEff}`);
-            assert.ok(nSat >= 10 && nSat <= 20, `${sysId} nSat expected 10-20, got ${nSat}`);
-        }
+test("mock responses follow visibility, role, contradiction, and N/A scoring rules", () => {
+  const dataset = generateMockDataset();
+  for (const evaluation of dataset.evaluations.filter((row) => row.assessmentType === "effectiveness")) {
+    const ids = new Set(evaluation.answers.map((answer) => answer.questionId));
+    const experience = evaluation.answers.find((answer) => answer.questionId === "history_experience").value;
+    if (experience !== "used_old_system") {
+      assert.equal([...ids].some((id) => id.startsWith("history_compare_")), false);
     }
+    if (experience === "never_used") {
+      assert.equal(ids.has("history_channels"), false);
+    }
+    const issues = evaluation.answers.find((answer) => answer.questionId === "issues_found").value;
+    if (issues.includes("problem_9")) assert.deepEqual(issues, ["problem_9"]);
+    for (const answer of evaluation.answers) {
+      const question = bank.questions.find((item) => item.id === answer.questionId);
+      if (question.roles.length) assert.ok(question.roles.includes(evaluation.respondentRoleLabel));
+      if (answer.value === "na") assert.equal(answer.scoreValue, null);
+      if (answer.questionId.startsWith("T")) assert.equal(bank.systems.find((item) => item.id === evaluation.systemId).has_tracking, true);
+    }
+  }
 });
 
-test('all 21 systems match baseline status, summary, and preliminary flags', () => {
-    const dataset = generateMockDataset();
-    const converted = convertToModels(dataset, systems);
-    const errors = validateDataset(converted.computedStatuses, baselineStatuses);
-    assert.deepEqual(errors, []);
-});
-
-test('dates span all 7 months from May to November 2026', () => {
-    const dataset = generateMockDataset();
-    const months = new Set();
-    for (const e of dataset.evalSeeds) {
-        months.add(e.submittedAt.slice(0, 7));
-    }
-    const expectedMonths = ['2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10', '2026-11'];
-    for (const m of expectedMonths) {
-        assert.ok(months.has(m), `Expected month ${m} to be present in dataset`);
-    }
-});
-
-test('mock dataset contains repeat submissions and latestPerEvaluator deduplication works', () => {
-    const dataset = generateMockDataset();
-
-    // Check repeat quantitative submission for SYS001 / 90000001
-    const quantSubmissions = dataset.quantSeeds.filter(
-        q => q.systemId === 'SYS001' && q.userId === '90000001'
-    );
-    assert.ok(quantSubmissions.length >= 2, 'Expected at least 2 quantitative submissions for 90000001 on SYS001');
-    const quantOlder = quantSubmissions.find(q => q.id.endsWith('-older'));
-    const quantLatest = quantSubmissions.find(q => q.id.endsWith('-latest'));
-    assert.ok(quantOlder && quantLatest, 'Expected both older and latest quantitative submissions');
-    assert.ok(Date.parse(quantOlder.submittedAt) < Date.parse(quantLatest.submittedAt), 'Older submittedAt must be before latest submittedAt');
-    assert.notDeepEqual(quantOlder.values, quantLatest.values, 'Older and latest quantitative values must differ');
-
-    // Check repeat satisfaction evaluation for SYS001 / 90000001
-    const evalSubmissions = dataset.evalSeeds.filter(
-        e => e.systemId === 'SYS001' && e.userId === '90000001'
-    );
-    assert.ok(evalSubmissions.length >= 2, 'Expected at least 2 satisfaction evaluations for 90000001 on SYS001');
-    const evalOlder = evalSubmissions.find(e => e.id.endsWith('-older'));
-    const evalLatest = evalSubmissions.find(e => e.id.endsWith('-latest'));
-    assert.ok(evalOlder && evalLatest, 'Expected both older and latest satisfaction evaluations');
-    assert.ok(Date.parse(evalOlder.submittedAt) < Date.parse(evalLatest.submittedAt), 'Older submittedAt must be before latest submittedAt');
-    assert.notDeepEqual(evalOlder.satisfactionAnswers, evalLatest.satisfactionAnswers, 'Older and latest satisfaction answers must differ');
-    assert.notEqual(evalOlder.satisfactionAverage, evalLatest.satisfactionAverage, 'Older and latest satisfaction average must differ');
-
-    // Test EffectivenessScoring.latestPerEvaluator deduplication on quantitative submissions
-    const deduplicatedQuant = EffectivenessScoring.latestPerEvaluator(quantSubmissions);
-    assert.equal(deduplicatedQuant.length, 1, 'latestPerEvaluator should reduce repeat quantitative submissions to 1');
-    assert.equal(deduplicatedQuant[0].id, quantLatest.id, 'latestPerEvaluator must choose the latest quantitative submission');
-
-    // Test EffectivenessScoring.latestPerEvaluator deduplication on satisfaction evaluations
-    const deduplicatedEval = EffectivenessScoring.latestPerEvaluator(evalSubmissions);
-    assert.equal(deduplicatedEval.length, 1, 'latestPerEvaluator should reduce repeat evaluations to 1');
-    assert.equal(deduplicatedEval[0].id, evalLatest.id, 'latestPerEvaluator must choose the latest evaluation');
+test("satisfaction ratings cover low, middle, and high system groups", () => {
+  const dataset = generateMockDataset();
+  for (const system of bank.systems) {
+    const scores = dataset.evaluations
+      .filter((row) => row.systemId === system.id && row.assessmentType === "satisfaction")
+      .flatMap((row) => row.answers)
+      .filter((answer) => ["S1", "S2", "S3", "S4", `${system.id}-SAT-SPEC-01`].includes(answer.questionId) && typeof answer.scoreValue === "number")
+      .map((answer) => answer.scoreValue);
+    const mean = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+    if (bandForSystem(system.id) === "low") assert.ok(mean < 3, `${system.id}: ${mean}`);
+    if (bandForSystem(system.id) === "middle") assert.ok(mean >= 3 && mean < 4, `${system.id}: ${mean}`);
+    if (bandForSystem(system.id) === "high") assert.ok(mean >= 4, `${system.id}: ${mean}`);
+  }
 });

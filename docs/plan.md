@@ -60,3 +60,7 @@ This phase changes documentation only. No schema, database, backend, frontend, g
 ## Phase 1 result
 
 The brief and the updated system-specific source were copied into `docs/`. `database/question-bank.json` now contains 189 questions across the four steps, with 58 shared Core entries and 131 Specific entries, plus editable option sets for respondent roles/profile fields and SYS018 work categories, paths, and statuses. A validator and colocated tests verify IDs, answer types, options, question/system references, role lists, visibility dependencies, cycles, satisfaction coverage, and required system coverage.
+
+## Phase 2 result
+
+The versioned schema and deterministic build scripts now create 42 published forms/versions, 189 question definitions, 1,349 form-question links, 315 mock accounts, 630 typed mock submissions, and 18,759 typed answers. The database rebuild reports `integrity_check=ok`, no foreign-key violations, and no sessions. Backend schema bootstrap was updated and compiled; the `/health` smoke check returned `{"status":"ok"}`. Frontend/demo snapshot regeneration remains deferred to the later integration phase.
