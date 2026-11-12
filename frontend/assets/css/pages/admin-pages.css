@@ -899,3 +899,5 @@
         font-size: 0.65rem;
     }
 }
+
+.signal-settings { margin-block: 18px; padding: 18px; }.signal-settings summary { cursor: pointer; font-weight: 700; }.signal-settings-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(190px,1fr)); gap: 12px; margin-block: 14px; }.signal-settings-grid label { display: grid; gap: 5px; }.signal-settings-grid input { min-width: 0; min-height: 40px; padding: 8px 10px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--bg-surface); color: var(--text-primary); font: inherit; }

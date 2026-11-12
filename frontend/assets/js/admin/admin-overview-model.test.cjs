@@ -1,43 +1,30 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { compute } = require('./admin-overview-model.js');
+const scoring = require('./effectiveness-scoring.js');
 
-test('overview counts real submissions and unique evaluators across both systems', () => {
-    const systems = [{ id: 'SYS001' }, { id: 'SYS002' }];
-    const quant = [
-        { id: 'q1', userId: 'u1', systemId: 'SYS001', submittedAt: '2026-01-01' },
-        { id: 'q-demo', userId: 'u2', systemId: 'SYS002', config: { isDemo: true }, submittedAt: '2026-01-03' }
+const systems = Array.from({ length: 21 }, (_, index) => ({ id: `SYS${String(index + 1).padStart(3, '0')}`, name: `System ${index + 1}` }));
+const questions = [
+    { id: 'e-core', system_id: null, assessment_type: 'effectiveness', indicator_group: 'core', answer_type: 'rating5', is_scored: true, section: 'usability', text: 'Ease' },
+    { id: 's-core', system_id: null, assessment_type: 'satisfaction', indicator_group: 'core', answer_type: 'rating5', is_scored: true, text: 'S1' },
+    { id: 's-specific', system_id: 'SYS001', assessment_type: 'satisfaction', indicator_group: 'specific', answer_type: 'rating5', is_scored: true, text: 'Specific' }
+];
+
+test('new overview preserves all 21 systems and derives effectiveness, satisfaction, and status from typed answers', () => {
+    const evaluations = [
+        { id: 'e-1', evaluatorId: 'user-1', systemId: 'SYS001', assessmentType: 'effectiveness', submittedAt: '2026-11-01', answers: [{ questionId: 'e-core', value: 4, scoreValue: 4 }] },
+        { id: 's-1', evaluatorId: 'user-1', systemId: 'SYS001', assessmentType: 'satisfaction', submittedAt: '2026-11-02', answers: [{ questionId: 's-core', value: 5, scoreValue: 5 }, { questionId: 's-specific', value: 3, scoreValue: 3 }] }
     ];
-    const satisfaction = [{ evaluatorId: 'u1', systemId: 'SYS001', submittedAt: '2026-01-02' }];
-    const model = compute(systems, quant, satisfaction);
-    assert.equal(model.realQuant.length, 1);
-    assert.equal(model.evaluations.length, 1);
-    assert.equal(model.evaluators.size, 1);
-    assert.equal(model.excludedDemo, 1);
-    assert.deepEqual(model.systems.map(system => system.id), ['SYS001', 'SYS002']);
-    assert.equal(model.latestDate, '2026-01-02');
+    const model = compute(systems, evaluations, questions, scoring);
+    assert.equal(model.systems.length, 21);
+    assert.equal(model.systems[0].effectivenessAverage, 4);
+    assert.equal(model.systems[0].satisfaction.average, 4);
+    assert.equal(model.systems[0].signal.satisfactionN, 1);
+    assert.equal(model.counts.insufficient, 21);
 });
 
-test('legacy quantitative records use profile.id for unique evaluator counts', () => {
-    const model = compute([{ id: 'SYS001' }], [{ profile: { id: 'u1' }, systemId: 'SYS001' }], [{ evaluatorId: 'u1', systemId: 'SYS001' }]);
-    assert.equal(model.evaluators.size, 1);
-});
-
-test('overview keeps every catalog system visible, including systems without data', () => {
-    const model = compute([{ id: 'SYS001' }, { id: 'SYS002' }], [], [{ systemId: 'SYS002', evaluatorId: 'u1' }]);
-    assert.deepEqual(model.systems.map(system => system.id), ['SYS001', 'SYS002']);
-    assert.equal(model.quantBySystem.has('SYS002'), false);
-    assert.equal(model.satisfactionBySystem.get('SYS002').length, 1);
-    assert.equal(model.satisfactionBySystem.has('SYS001'), false);
-});
-
-test('overview counts marker-based mock submissions for the development banner', () => {
-    const model = compute(
-        [{ id: 'SYS001' }],
-        [{ id: 'mock-quant-SYS001-90000001', userId: '90000001', systemId: 'SYS001' }],
-        [{ id: 'mock-eval-SYS001-90000001', evaluatorId: '90000001', systemId: 'SYS001' }]
-    );
-    assert.equal(model.mockQuant.length, 1);
-    assert.equal(model.mockEvaluations.length, 1);
-    assert.equal(model.mockCount, 2);
+test('overview marks snapshot submissions as mock without calling them real', () => {
+    const model = compute(systems, [{ id: 'mock-SYS001', isMock: true, evaluatorId: 'demo', systemId: 'SYS001', assessmentType: 'satisfaction', answers: [] }], questions, scoring);
+    assert.equal(model.mockCount, 1);
+    assert.equal(model.systems[0].mockCount, 1);
 });

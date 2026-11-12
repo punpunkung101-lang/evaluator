@@ -3,124 +3,70 @@
     const root = document.getElementById("admin-overview");
     if (!root) return;
     const scriptUrl = document.currentScript?.src || "";
-    const t = (key, params = {}) => {
-        const language = document.documentElement.lang === "en" ? "en" : "th";
-        let value = window.ThemeLang?.i18n?.[language]?.[key] || key;
-        for (const [name, replacement] of Object.entries(params)) value = value.replace("{" + name + "}", replacement);
-        return value;
-    };
-    const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
-    const number = value => Number.isFinite(value) ? value.toFixed(1) : "—";
-    const statusKey = Object.freeze({
-        improve: "priority_status_improve",
-        watch: "priority_status_watch",
-        good: "priority_status_good",
-        "no-data": "priority_status_no_data"
-    });
+    const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const mean = (value, n) => Number.isFinite(value) ? `${value.toFixed(2)} / 5 (n=${n})` : "ยังไม่มีข้อมูล";
+    const levels = { urgent: "ควรปรับปรุงเร่งด่วน", review: "ควรตรวจสอบเพิ่มเติม", strength: "จุดแข็งควรรักษา", insufficient: "ข้อมูลยังไม่เพียงพอ" };
+    const order = { urgent: 0, review: 1, strength: 2, insufficient: 3 };
 
-    function statePanel(kind, error) {
-        if (kind === "loading") return '<p class="admin-state" role="status">' + t("admin_loading") + "</p>";
-        if (kind === "error") return '<div class="admin-state error" role="alert"><p>' + t("admin_load_error") + ": " + esc(error) + '</p><button type="button" class="admin-retry">' + t("admin_retry") + "</button></div>";
-        return '<p class="admin-state">' + t("admin_no_records") + "</p>";
+    function statusPanel(message, error = false) {
+        root.innerHTML = `<p class="admin-state${error ? " error" : ""}" role="${error ? "alert" : "status"}">${esc(message)}</p>${error ? '<button class="btn btn-secondary" id="overview-retry" type="button">ลองอีกครั้ง</button>' : ""}`;
+        root.querySelector("#overview-retry")?.addEventListener("click", load);
     }
 
-    function resultUrl(systemId) {
-        const target = new URL(window.EvaluatorRuntimeUrl.fromScript("../../../admin/results.html", scriptUrl));
-        target.searchParams.set("system", systemId);
-        return target.href;
-    }
-
-    function recommendation(row) {
-        if (row.status === "no-data") return t("priority_rec_no_data");
-        if (row.lowSample || row.preliminary) return t("priority_rec_wait");
-        if (row.status === "improve") return t("priority_rec_improve");
-        if (row.status === "watch") return t("priority_rec_watch");
-        return t("priority_rec_good");
-    }
-
-    function renderChart(rows) {
-        const chartModel = window.AdminChartModel
-            ? window.AdminChartModel.computeSystemComparison(rows, window.ImprovementPriority?.CONFIG?.thresholds)
-            : null;
-        const chartHtml = chartModel && window.AdminCharts
-            ? window.AdminCharts.renderSystemComparison(chartModel, { resultUrl: id => resultUrl(id) })
-            : "";
-        return '<section class="admin-panel priority-panel" aria-labelledby="priority-chart-title">' +
-            '<div class="priority-panel-heading"><div>' +
-            '<h2 id="priority-chart-title">' + t("priority_chart_title") + '</h2>' +
-            '<p>' + t("priority_chart_subtitle") + '</p>' +
-            '</div></div>' +
-            chartHtml +
-            '</section>';
-    }
-
-    function renderTable(rows) {
-        const body = rows.map((row, index) => {
-            const warning = (row.lowSample ? '<span class="priority-warning-tag">' + t("priority_low_sample") + '</span>' : "") +
-                (row.preliminary ? '<span class="priority-warning-tag">' + t("priority_preliminary") + '</span>' : "");
-            const sat = row.satisfactionAverage === null ? t("priority_no_data_value") : `${row.satisfactionAverage.toFixed(2)} / 5 (n=${row.satisfaction.n})`;
-            const effect = row.effectivenessScore === null ? t("priority_no_data_value") : `${number(row.effectivenessScore)} / 100 (n=${row.effectiveness.n})`;
-            const ratio = `${row.metricImprovement.improved}/${row.metricImprovement.total}`;
-            return "<tr><td>" + (index + 1) + '</td><th scope="row">' + esc(row.name) + ' <small>' + esc(row.systemId) + '</small></th><td>' + esc(effect) + '</td><td>' + esc(sat) + '</td><td>' + ratio + '</td><td><strong class="priority-status priority-status-' + esc(row.status) + '">' + t(statusKey[row.status]) + "</strong>" + warning + '</td><td>' + esc(recommendation(row)) + "</td></tr>";
-        }).join("");
-        return '<section class="admin-panel priority-table-panel"><h2>' + t("priority_table_title") + '</h2><div class="admin-table-wrap priority-table-wrap"><table><caption class="sr-only">' + t("priority_table_caption") + '</caption><thead><tr><th scope="col">' + t("priority_rank") + '</th><th scope="col">' + t("admin_system_name") + '</th><th scope="col">' + t("priority_effectiveness_n") + '</th><th scope="col">' + t("priority_satisfaction_n") + '</th><th scope="col">' + t("priority_metric_improved") + '</th><th scope="col">' + t("priority_status") + '</th><th scope="col">' + t("priority_recommendation") + '</th></tr></thead><tbody>' + body + "</tbody></table></div></section>";
-    }
-
-    function render(data, statuses) {
-        if (!data) {
-            root.innerHTML = statePanel("loading");
-            return;
-        }
-        const model = window.AdminOverviewModel.compute(data.systems, data.quant, data.evaluations);
-        const effectiveness = new Map();
-        const satisfaction = new Map();
-        for (const system of model.systems) {
-            const quantRows = model.quantBySystem.get(system.id) || [];
-            const evalRows = model.satisfactionBySystem.get(system.id) || [];
-            effectiveness.set(system.id, quantRows.length
-                ? window.EffectivenessScoring.summarizeSystem(quantRows, window.EffectivenessExamples.metrics)
-                : null);
-            satisfaction.set(system.id, evalRows.length
-                ? window.EffectivenessScoring.summarizeSatisfaction(evalRows).find(item => item.systemId === system.id) || null
-                : null);
-        }
-        const rows = window.ImprovementPriority.rankSystems(model.systems, effectiveness, satisfaction);
-        const counts = rows.reduce((all, row) => { all[row.status] += 1; return all; }, { improve: 0, watch: 0, good: 0, "no-data": 0 });
+    function render(data) {
+        const model = window.AdminOverviewModel.compute(data.systems, data.evaluations, data.questions, window.EffectivenessScoring, data.scoringConfig ? { improvement: data.scoringConfig } : undefined);
+        const details = model.systems.slice().sort((a, b) => (order[a.signal.level] ?? 4) - (order[b.signal.level] ?? 4) || a.system.id.localeCompare(b.system.id));
+        const counts = model.counts;
         const cards = [
-            ["improve", "priority_status_improve"], ["watch", "priority_status_watch"],
-            ["good", "priority_status_good"], ["no-data", "priority_status_no_data"]
-        ].map(([key, label]) => '<article class="admin-kpi"><h2>' + t(label) + '</h2><p>' + counts[key] + "</p></article>").join("");
-        const mockBanner = model.mockCount
-            ? '<p class="admin-state notice priority-mock-banner" role="status">' + t("priority_mock_notice", { count: model.mockCount }) + "</p>"
-            : "";
-        const errorBanner = statuses.some(result => result.status === "rejected")
-            ? '<div class="admin-state error" role="alert"><p>' + t("admin_load_error") + ": " + statuses.filter(result => result.status === "rejected").map(result => esc(result.reason?.message || "")).join("; ") + '</p><button type="button" class="admin-retry">' + t("admin_retry") + "</button></div>"
-            : "";
-        root.innerHTML = errorBanner + mockBanner +
-            '<div class="admin-kpi-grid priority-kpi-grid">' + cards + "</div>" +
-            renderChart(rows) + renderTable(rows) +
-            '<p class="admin-state notice priority-statistics-note">' + t("admin_not_tested") + "</p>";
-        root.querySelector(".admin-retry")?.addEventListener("click", load);
+            ["ควรปรับปรุงเร่งด่วน", counts.urgent], ["ควรตรวจสอบเพิ่มเติม", counts.review],
+            ["จุดแข็งควรรักษา", counts.strength], ["ข้อมูลยังไม่เพียงพอ", counts.insufficient]
+        ].map(([title, count]) => `<article class="admin-kpi"><h2>${title}</h2><p>${count}</p></article>`).join("");
+        const rows = details.map(item => {
+            const signal = item.signal;
+            const reasons = signal.reasons.map(reason => esc(reason.message)).join("<br>");
+            const score = item.effectivenessAverage;
+            const sat = item.satisfaction?.average ?? null;
+            const href = new URL(window.EvaluatorRuntimeUrl.fromScript("../../../admin/results.html", scriptUrl));
+            href.searchParams.set("system", item.system.id);
+            return `<tr><th scope="row"><a href="${esc(href.href)}">${esc(item.system.name)} (${esc(item.system.id)})</a></th>
+              <td>${esc(mean(score, item.effectiveness.n))}</td><td>${esc(mean(sat, item.satisfaction?.n || 0))}<small>ความรู้สึกผู้ใช้</small></td>
+              <td><strong class="priority-status priority-status-${esc(signal.level)}">${esc(levels[signal.level] || signal.label)}</strong></td><td>${reasons || "—"}</td></tr>`;
+        }).join("");
+        root.innerHTML = `<header class="admin-page-heading"><div><h1>ภาพรวมระบบ</h1><p>คะแนนประสิทธิผลมาจากคำตอบที่นับคะแนน ส่วนความพึงพอใจสะท้อนความรู้สึกของผู้ตอบ</p></div></header>
+          ${model.mockCount ? '<p class="admin-state notice" role="status">ข้อมูลตัวอย่างจากฐานข้อมูล mock · ไม่ใช่ผลจริง</p>' : ""}
+          <details class="admin-panel signal-settings"><summary>เกณฑ์สัญญาณ “ควรปรับปรุง”</summary><p>แก้เกณฑ์ที่ใช้กับทุกระบบ ค่าในช่องสัดส่วนใช้ช่วง 0–1 (เช่น 0.3 = 30%)</p>
+            <div class="signal-settings-grid">${[
+                ["minimumRespondents", "ผู้ตอบขั้นต่ำ (n)", 1, 100000, "1"], ["categoryLowBelow", "คะแนนหมวดต่ำกว่า", 1, 5, "0.01"],
+                ["satisfactionLowBelow", "ความพึงพอใจต่ำกว่า", 1, 5, "0.01"], ["lowRatingAtOrBelow", "คะแนนต่ำ (≤)", 1, 5, "1"],
+                ["lowRatingShareForReview", "สัดส่วนคะแนนต่ำเพื่อทบทวน", 0, 1, "0.01"], ["lowRatingShareForUrgent", "สัดส่วนคะแนนต่ำระดับเร่งด่วน", 0, 1, "0.01"],
+                ["commonProblemShareForReview", "สัดส่วนปัญหาที่พบบ่อย", 0, 1, "0.01"], ["commonImprovementShareForReview", "สัดส่วนข้อเสนอที่พบบ่อย", 0, 1, "0.01"],
+                ["urgentLowCategoryCount", "จำนวนหมวดต่ำระดับเร่งด่วน", 1, 6, "1"], ["urgentProblemShare", "สัดส่วนปัญหาระดับเร่งด่วน", 0, 1, "0.01"]
+            ].map(([key, label, min, max, step]) => `<label>${label}<input type="number" data-setting="${key}" min="${min}" max="${max}" step="${step}" value="${esc(data.scoringConfig?.[key] ?? window.EffectivenessScoring.DEFAULT_SCORING_CONFIG.improvement[key])}"></label>`).join("")}
+              <label>หมวดตัวชี้วัดที่นับ<input type="text" data-setting="coreCategories" value="${esc((data.scoringConfig?.coreCategories || window.EffectivenessScoring.DEFAULT_SCORING_CONFIG.improvement.coreCategories).join(", "))}"></label>
+            </div><button id="save-signal-settings" class="btn btn-secondary" type="button">บันทึกเกณฑ์</button><span id="signal-settings-status" role="status"></span></details>
+          <div class="admin-kpi-grid priority-kpi-grid">${cards}</div>
+          <section class="admin-panel priority-table-panel"><h2>สัญญาณรายระบบ (${details.length} ระบบ)</h2><div class="admin-table-wrap priority-table-wrap" tabindex="0" role="region" aria-label="ตารางสัญญาณรายระบบ"><table><thead><tr><th>ระบบ</th><th>ประสิทธิผลเฉลี่ยรายหมวด · n</th><th>ความพึงพอใจ S1–S4 และข้อเฉพาะ · n</th><th>ระดับ</th><th>เหตุผลประกอบ</th></tr></thead><tbody>${rows}</tbody></table></div></section>
+          <p class="admin-state notice">ระดับสัญญาณใช้จำนวนผู้ตอบ คะแนนรายหมวด สัดส่วนคะแนนต่ำ ปัญหา และข้อเสนอแนะร่วมกันตามเกณฑ์ในคลังคำถาม</p>`;
+        root.querySelector("#save-signal-settings").addEventListener("click", async () => {
+            const status = root.querySelector("#signal-settings-status");
+            const improvement = {};
+            for (const field of root.querySelectorAll("[data-setting]")) {
+                if (field.dataset.setting === "coreCategories") improvement.coreCategories = field.value.split(",").map(value => value.trim()).filter(Boolean);
+                else improvement[field.dataset.setting] = Number(field.value);
+            }
+            try { await window.EvaluationAPI.saveImprovementSettings(improvement); status.textContent = "บันทึกเกณฑ์แล้ว"; await load(); }
+            catch (error) { status.textContent = `บันทึกไม่ได้: ${error.message}`; }
+        });
     }
 
     async function load() {
-        render(null);
-        const results = await window.AdminData.fromWindow().load();
-        const systemsStatus = results.systems;
-        const systems = systemsStatus.status === "fulfilled"
-            ? systemsStatus.value
-            : window.AssessmentCatalog?.getSystems?.() || window.systems || [];
-        render({
-            systems,
-            quant: results.effectiveness.status === "fulfilled" ? results.effectiveness.value : [],
-            evaluations: results.satisfaction.status === "fulfilled" ? results.satisfaction.value : []
-        }, Object.values(results));
-        if (Object.values(results).every(result => result.status === "rejected")) {
-            root.innerHTML = statePanel("error", Object.values(results).map(result => result.reason.message).join("; "));
-            root.querySelector(".admin-retry")?.addEventListener("click", load);
-        }
+        statusPanel("กำลังโหลดผลประเมินและคำถามจากฐานข้อมูล…");
+        try {
+            await window.AdminGuard.ready;
+            const data = await window.AdminData.fromWindow().load();
+            render(data);
+        } catch (error) { statusPanel(`โหลดภาพรวมไม่ได้: ${error.message}`, true); }
     }
-
     document.addEventListener("langchange", load);
     load();
 })();

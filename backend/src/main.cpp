@@ -3,7 +3,9 @@
 #include <bcrypt.h>
 #include <sqlite3.h>
 #include <algorithm>
+#include <chrono>
 #include <cctype>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
@@ -511,10 +513,10 @@ static void bindNum(sqlite3_stmt *q, int i, const Json &j)
     else
         sqlite3_bind_null(q, i);
 }
-static std::string questionRows(sqlite3 *db, const std::string &system, const std::string &type, int &status)
+static std::string questionRows(sqlite3 *db, const std::string &system, const std::string &type, int &status, bool includeInactive = false)
 {
     sqlite3_stmt *q = nullptr;
-    const char *sql = "SELECT q.id,q.system_id,q.assessment_type,q.section,q.text,q.text_en,q.answer_type,q.options_json,q.required,q.is_scored,q.indicator_group,q.step,q.question_order,q.roles_json,q.visible_when_json,q.allow_na,q.allow_other,q.max_select,v.id,q.option_set_ref,q.metadata_json FROM assessment_forms f JOIN form_versions v ON v.id=f.current_version_id JOIN form_version_questions fq ON fq.form_version_id=v.id JOIN assessment_questions q ON q.id=fq.question_id WHERE f.system_id=? AND (?='' OR f.assessment_type=?) AND f.active=1 AND q.active=1 ORDER BY f.assessment_type,fq.step,fq.sort_order";
+    const char *sql = "SELECT q.id,q.system_id,q.assessment_type,q.section,q.text,q.text_en,q.answer_type,q.options_json,q.required,q.is_scored,q.indicator_group,q.step,q.question_order,q.roles_json,q.visible_when_json,q.allow_na,q.allow_other,q.max_select,v.id,q.option_set_ref,q.metadata_json,q.active FROM assessment_forms f JOIN form_versions v ON v.id=f.current_version_id JOIN form_version_questions fq ON fq.form_version_id=v.id JOIN assessment_questions q ON q.id=fq.question_id WHERE f.system_id=? AND (?='' OR f.assessment_type=?) AND f.active=1 AND (?=1 OR q.active=1) ORDER BY f.assessment_type,fq.step,fq.sort_order";
     if (sqlite3_prepare_v2(db, sql, -1, &q, nullptr) != SQLITE_OK)
     {
         status = 500;
@@ -523,6 +525,7 @@ static std::string questionRows(sqlite3 *db, const std::string &system, const st
     sqlite3_bind_text(q, 1, system.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(q, 2, type.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(q, 3, type.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(q, 4, includeInactive ? 1 : 0);
     std::string o = "[";
     bool first = true;
     while (sqlite3_step(q) == SQLITE_ROW)
@@ -530,7 +533,7 @@ static std::string questionRows(sqlite3 *db, const std::string &system, const st
         if (!first)
             o += ',';
         first = false;
-        o += "{\"id\":" + quote(col(q, 0)) + ",\"systemId\":" + (sqlite3_column_type(q,1)==SQLITE_NULL ? "null" : quote(col(q,1))) + ",\"assessmentType\":" + quote(col(q, 2)) + ",\"section\":" + quote(col(q, 3)) + ",\"text\":" + quote(col(q, 4)) + ",\"text_en\":" + quote(col(q, 5)) + ",\"answer_type\":" + quote(col(q, 6)) + ",\"options\":" + raw(Parser(col(q,7)).parse()) + ",\"required\":" + (sqlite3_column_int(q,8) ? "true" : "false") + ",\"is_scored\":" + (sqlite3_column_int(q,9) ? "true" : "false") + ",\"indicator_group\":" + quote(col(q,10)) + ",\"step\":" + std::to_string(sqlite3_column_int(q,11)) + ",\"order\":" + std::to_string(sqlite3_column_int(q,12)) + ",\"roles\":" + raw(Parser(col(q,13)).parse()) + ",\"visible_when\":" + raw(Parser(col(q,14)).parse()) + ",\"allow_na\":" + (sqlite3_column_int(q,15) ? "true" : "false") + ",\"allow_other\":" + (sqlite3_column_int(q,16) ? "true" : "false") + ",\"max_select\":" + (sqlite3_column_type(q,17)==SQLITE_NULL ? "null" : std::to_string(sqlite3_column_int(q,17))) + ",\"formVersionId\":" + quote(col(q,18)) + ",\"optionSetRef\":" + (sqlite3_column_type(q,19)==SQLITE_NULL?"null":quote(col(q,19))) + ",\"metadata\":" + raw(Parser(col(q,20)).parse()) + "}";
+        o += "{\"id\":" + quote(col(q, 0)) + ",\"systemId\":" + (sqlite3_column_type(q,1)==SQLITE_NULL ? "null" : quote(col(q,1))) + ",\"assessmentType\":" + quote(col(q, 2)) + ",\"section\":" + quote(col(q, 3)) + ",\"text\":" + quote(col(q, 4)) + ",\"text_en\":" + quote(col(q, 5)) + ",\"answer_type\":" + quote(col(q, 6)) + ",\"options\":" + raw(Parser(col(q,7)).parse()) + ",\"required\":" + (sqlite3_column_int(q,8) ? "true" : "false") + ",\"is_scored\":" + (sqlite3_column_int(q,9) ? "true" : "false") + ",\"indicator_group\":" + quote(col(q,10)) + ",\"step\":" + std::to_string(sqlite3_column_int(q,11)) + ",\"order\":" + std::to_string(sqlite3_column_int(q,12)) + ",\"roles\":" + raw(Parser(col(q,13)).parse()) + ",\"visible_when\":" + raw(Parser(col(q,14)).parse()) + ",\"allow_na\":" + (sqlite3_column_int(q,15) ? "true" : "false") + ",\"allow_other\":" + (sqlite3_column_int(q,16) ? "true" : "false") + ",\"max_select\":" + (sqlite3_column_type(q,17)==SQLITE_NULL ? "null" : std::to_string(sqlite3_column_int(q,17))) + ",\"formVersionId\":" + quote(col(q,18)) + ",\"optionSetRef\":" + (sqlite3_column_type(q,19)==SQLITE_NULL?"null":quote(col(q,19))) + ",\"metadata\":" + raw(Parser(col(q,20)).parse()) + ",\"active\":" + (sqlite3_column_int(q,21) ? "true" : "false") + "}";
     }
     sqlite3_finalize(q);
     status = 200;
@@ -574,6 +577,45 @@ static std::string handle(sqlite3 *db, const std::string &method, const std::str
     }
     if (method == "POST" && (route == "/auth/login" || route == "/auth/register" || route == "/auth/session" || route == "/auth/logout"))
         return auth(db, route, body, token, status);
+    if (route == "/settings/improvement" && (method == "GET" || method == "PUT"))
+    {
+        std::string uid, u, d, r;
+        if (!adminSession(db, token, uid, u, d, r, status))
+            return errorJson(status == 401 ? "login required" : "ไม่มีสิทธิ์เข้าถึง Admin");
+        if (method == "GET")
+        {
+            sqlite3_stmt *q = nullptr;
+            if (sqlite3_prepare_v2(db, "SELECT value_json FROM app_settings WHERE setting_key='improvement_scoring'", -1, &q, nullptr) != SQLITE_OK)
+            { status = 500; return errorJson("settings query failed"); }
+            std::string value = sqlite3_step(q) == SQLITE_ROW ? col(q, 0) : "{}";
+            sqlite3_finalize(q); status = 200; return "{\"improvement\":" + value + "}";
+        }
+        Json payload = Parser(body).parse();
+        const Json &settings = payload.get("improvement");
+        const char *numericFields[] = {"minimumRespondents","categoryLowBelow","satisfactionLowBelow","lowRatingAtOrBelow","lowRatingShareForReview","lowRatingShareForUrgent","commonProblemShareForReview","commonImprovementShareForReview","urgentLowCategoryCount","urgentProblemShare"};
+        if (settings.type != Json::Object) { status = 400; return errorJson("improvement settings are required"); }
+        for (const char *field : numericFields)
+        {
+            const Json &value = settings.get(field);
+            if (value.type != Json::Number || !std::isfinite(value.number())) { status = 400; return errorJson(std::string("invalid setting: ") + field); }
+            const double n = value.number();
+            if ((std::string(field) == "minimumRespondents" && (n < 1 || n > 100000 || std::floor(n) != n)) ||
+                (std::string(field) == "urgentLowCategoryCount" && (n < 1 || n > 6 || std::floor(n) != n)) ||
+                ((std::string(field) == "categoryLowBelow" || std::string(field) == "satisfactionLowBelow" || std::string(field) == "lowRatingAtOrBelow") && (n < 1 || n > 5)) ||
+                ((std::string(field) != "minimumRespondents" && std::string(field) != "urgentLowCategoryCount" && std::string(field) != "categoryLowBelow" && std::string(field) != "satisfactionLowBelow" && std::string(field) != "lowRatingAtOrBelow") && (n < 0 || n > 1)))
+            { status = 400; return errorJson(std::string("setting out of range: ") + field); }
+        }
+        const Json &categories = settings.get("coreCategories");
+        if (categories.type != Json::Array || categories.array.empty()) { status = 400; return errorJson("coreCategories must be a non-empty array"); }
+        const std::string value = raw(settings);
+        sqlite3_stmt *save = nullptr;
+        if (sqlite3_prepare_v2(db, "INSERT INTO app_settings(setting_key,value_json,updated_at) VALUES('improvement_scoring',?,strftime('%Y-%m-%dT%H:%M:%fZ','now')) ON CONFLICT(setting_key) DO UPDATE SET value_json=excluded.value_json,updated_at=excluded.updated_at", -1, &save, nullptr) != SQLITE_OK)
+        { status = 500; return errorJson("settings update failed"); }
+        sqlite3_bind_text(save, 1, value.c_str(), -1, SQLITE_TRANSIENT);
+        const bool ok = sqlite3_step(save) == SQLITE_DONE; sqlite3_finalize(save);
+        if (!ok) { status = 500; return errorJson("settings update failed"); }
+        status = 200; return "{\"success\":true}";
+    }
     if (method == "GET" && route == "/systems")
     {
         sqlite3_stmt *q = nullptr;
@@ -600,15 +642,63 @@ static std::string handle(sqlite3 *db, const std::string &method, const std::str
         while(sqlite3_step(q)==SQLITE_ROW){if(!first)o+=',';first=false;o+="{\"id\":"+quote(col(q,0))+",\"systemId\":"+(sqlite3_column_type(q,1)==SQLITE_NULL?"null":quote(col(q,1)))+",\"options\":"+raw(Parser(col(q,2)).parse())+",\"valuesBySystem\":"+raw(Parser(col(q,3)).parse())+",\"valuesByRole\":"+raw(Parser(col(q,4)).parse())+",\"dependsOn\":"+raw(Parser(col(q,5)).parse())+"}";}
         sqlite3_finalize(q);status=200;return o+"]";
     }
+    if (method == "POST" && route == "/option-sets/replace")
+    {
+        std::string uid, u, d, r;
+        if (!adminSession(db, token, uid, u, d, r, status))
+            return errorJson(status == 401 ? "login required" : "ไม่มีสิทธิ์เข้าถึง Admin");
+        Json payload = Parser(body).parse();
+        const std::string system = text(payload.get("systemId"));
+        const Json &items = payload.get("optionSets");
+        if (system.empty() || items.type != Json::Array) { status = 400; return errorJson("systemId and optionSets are required"); }
+        if (!exec(db, "BEGIN IMMEDIATE")) { status = 500; return errorJson("database transaction failed"); }
+        bool ok = true;
+        for (const Json &item : items.array)
+        {
+            const std::string id = text(item.get("id"));
+            const std::string scope = text(item.get("systemId"));
+            const Json &options = item.get("options"), &bySystem = item.get("valuesBySystem"), &byRole = item.get("valuesByRole"), &depends = item.get("dependsOn"), &metadata = item.get("metadata");
+            if (id.empty() || (!scope.empty() && scope != system) || (options.type != Json::Array && options.type != Json::Null) ||
+                (bySystem.type != Json::Object && bySystem.type != Json::Null) || (byRole.type != Json::Object && byRole.type != Json::Null) ||
+                (depends.type != Json::Object && depends.type != Json::Null) || (metadata.type != Json::Object && metadata.type != Json::Null)) { ok = false; break; }
+            const std::string optionsJson = options.type == Json::Null ? "[]" : raw(options);
+            const std::string bySystemJson = bySystem.type == Json::Null ? "{}" : raw(bySystem);
+            const std::string byRoleJson = byRole.type == Json::Null ? "{}" : raw(byRole);
+            const std::string dependsJson = depends.type == Json::Null ? "{}" : raw(depends);
+            const std::string metadataJson = metadata.type == Json::Null ? "{}" : raw(metadata);
+            sqlite3_stmt *save = nullptr;
+            const char *sql = "INSERT INTO option_sets(id,system_id,options_json,values_by_system_json,values_by_role_json,depends_on_json,metadata_json) VALUES(?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET system_id=excluded.system_id,options_json=excluded.options_json,values_by_system_json=excluded.values_by_system_json,values_by_role_json=excluded.values_by_role_json,depends_on_json=excluded.depends_on_json,metadata_json=excluded.metadata_json WHERE option_sets.system_id IS NULL OR option_sets.system_id=excluded.system_id";
+            if (sqlite3_prepare_v2(db, sql, -1, &save, nullptr) != SQLITE_OK) { ok = false; break; }
+            sqlite3_bind_text(save, 1, id.c_str(), -1, SQLITE_TRANSIENT);
+            if (scope.empty()) sqlite3_bind_null(save, 2); else sqlite3_bind_text(save, 2, scope.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(save, 3, optionsJson.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(save, 4, bySystemJson.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(save, 5, byRoleJson.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(save, 6, dependsJson.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(save, 7, metadataJson.c_str(), -1, SQLITE_TRANSIENT);
+            ok = sqlite3_step(save) == SQLITE_DONE && sqlite3_changes(db) == 1;
+            sqlite3_finalize(save);
+            if (!ok) break;
+        }
+        if (!ok || !exec(db, "COMMIT")) { exec(db, "ROLLBACK"); status = 400; return errorJson("option set update failed; check IDs and JSON fields"); }
+        status = 200; return "{\"success\":true}";
+    }
     if (method == "GET" && route == "/questions")
     {
         std::string system = param(path, "system_id");
+        const bool includeInactive = param(path, "include_inactive") == "1";
         if (system.empty())
         {
             status = 400;
             return errorJson("system_id is required");
         }
-        return questionRows(db, system, param(path, "assessment_type"), status);
+        if (includeInactive)
+        {
+            std::string uid, u, d, r;
+            if (!adminSession(db, token, uid, u, d, r, status))
+                return errorJson(status == 401 ? "login required" : "ไม่มีสิทธิ์เข้าถึง Admin");
+        }
+        return questionRows(db, system, param(path, "assessment_type"), status, includeInactive);
     }
     if (method == "POST" && route == "/questions/replace")
     {
@@ -642,10 +732,10 @@ static std::string handle(sqlite3 *db, const std::string &method, const std::str
             if(base.empty()||th.empty()||answerType.empty()){ok=false;break;}
             static const std::set<std::string> types={"rating5","dropdown","radio","checkbox","short_text","long_text","number","date","yes_no","ranking"};if(!types.count(answerType)){ok=false;break;}
             std::string section=text(q.get("section"));if(section.empty())section=kind;std::string group=text(q.get("indicator_group"));if(group.empty())group="specific";if(group!="specific"){ok=false;break;}
-            std::string options=raw(q.get("options"));if(q.get("options").type==Json::Null)options="[]";std::string roles=raw(q.get("roles"));if(q.get("roles").type==Json::Null)roles="[]";std::string visible=raw(q.get("visible_when"));if(q.get("visible_when").type==Json::Null)visible="{\"all\":[]}";
+            std::string options=raw(q.get("options"));if(q.get("options").type==Json::Null)options="[]";std::string roles=raw(q.get("roles"));if(q.get("roles").type==Json::Null)roles="[]";std::string visible=raw(q.get("visible_when"));if(q.get("visible_when").type==Json::Null)visible="{\"all\":[]}";std::string metadata=q.get("metadata").type==Json::Null?"{}":raw(q.get("metadata"));
             int step=(int)q.get("step").number(3),order=(int)q.get("order").number((double)i+1);
-            sqlite3_stmt *ins=nullptr;sqlite3_prepare_v2(db,"INSERT INTO assessment_questions(id,system_id,assessment_type,section,text,text_en,answer_type,options_json,required,is_scored,indicator_group,step,question_order,roles_json,visible_when_json,allow_na,allow_other,max_select,active) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)",-1,&ins,nullptr);
-            sqlite3_bind_text(ins,1,id.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,2,system.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,3,kind.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,4,section.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,5,th.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,6,en.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,7,answerType.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,8,options.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_int(ins,9,q.get("required").type==Json::Bool&&q.get("required").value=="false"?0:1);sqlite3_bind_int(ins,10,q.get("is_scored").type==Json::Bool&&q.get("is_scored").value=="true"?1:0);sqlite3_bind_text(ins,11,group.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_int(ins,12,step);sqlite3_bind_int(ins,13,order);sqlite3_bind_text(ins,14,roles.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,15,visible.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_int(ins,16,q.get("allow_na").type==Json::Bool&&q.get("allow_na").value=="true");sqlite3_bind_int(ins,17,q.get("allow_other").type==Json::Bool&&q.get("allow_other").value=="true");if(q.get("max_select").type==Json::Number)sqlite3_bind_int(ins,18,(int)q.get("max_select").number());else sqlite3_bind_null(ins,18);ok=sqlite3_step(ins)==SQLITE_DONE;sqlite3_finalize(ins);
+            sqlite3_stmt *ins=nullptr;sqlite3_prepare_v2(db,"INSERT INTO assessment_questions(id,system_id,assessment_type,section,text,text_en,answer_type,options_json,required,is_scored,indicator_group,step,question_order,roles_json,visible_when_json,allow_na,allow_other,max_select,option_set_ref,metadata_json,active) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",-1,&ins,nullptr);
+            sqlite3_bind_text(ins,1,id.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,2,system.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,3,kind.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,4,section.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,5,th.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,6,en.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,7,answerType.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,8,options.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_int(ins,9,q.get("required").type==Json::Bool&&q.get("required").value=="false"?0:1);sqlite3_bind_int(ins,10,q.get("is_scored").type==Json::Bool&&q.get("is_scored").value=="true"?1:0);sqlite3_bind_text(ins,11,group.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_int(ins,12,step);sqlite3_bind_int(ins,13,order);sqlite3_bind_text(ins,14,roles.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,15,visible.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_int(ins,16,q.get("allow_na").type==Json::Bool&&q.get("allow_na").value=="true");sqlite3_bind_int(ins,17,q.get("allow_other").type==Json::Bool&&q.get("allow_other").value=="true");if(q.get("max_select").type==Json::Number)sqlite3_bind_int(ins,18,(int)q.get("max_select").number());else sqlite3_bind_null(ins,18);std::string optionSet=text(q.get("optionSetRef"));if(optionSet.empty())sqlite3_bind_null(ins,19);else sqlite3_bind_text(ins,19,optionSet.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(ins,20,metadata.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_int(ins,21,q.get("active").type==Json::Bool&&q.get("active").value=="false"?0:1);ok=sqlite3_step(ins)==SQLITE_DONE;sqlite3_finalize(ins);
             if(ok){sqlite3_stmt *link=nullptr;sqlite3_prepare_v2(db,"INSERT INTO form_version_questions(form_version_id,question_id,step,sort_order) VALUES(?,?,?,?)",-1,&link,nullptr);sqlite3_bind_text(link,1,versionId.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(link,2,id.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_int(link,3,step);sqlite3_bind_int(link,4,10000+order);ok=sqlite3_step(link)==SQLITE_DONE;sqlite3_finalize(link);}
         }
         if(ok){sqlite3_stmt *up=nullptr;sqlite3_prepare_v2(db,"UPDATE assessment_forms SET current_version_id=? WHERE id=?",-1,&up,nullptr);sqlite3_bind_text(up,1,versionId.c_str(),-1,SQLITE_TRANSIENT);sqlite3_bind_text(up,2,formId.c_str(),-1,SQLITE_TRANSIENT);ok=sqlite3_step(up)==SQLITE_DONE;sqlite3_finalize(up);}
@@ -654,6 +744,128 @@ static std::string handle(sqlite3 *db, const std::string &method, const std::str
             exec(db, "ROLLBACK");
             status = 500;
             return errorJson("question update failed");
+        }
+        status = 200;
+        return "{\"success\":true}";
+    }
+    if (method == "POST" && route == "/questions/replace-core")
+    {
+        std::string uid, u, d, r;
+        if (!adminSession(db, token, uid, u, d, r, status))
+            return errorJson(status == 401 ? "login required" : "ไม่มีสิทธิ์เข้าถึง Admin");
+        Json j = Parser(body).parse();
+        const std::string kind = text(j.get("assessmentType"));
+        const Json &items = j.get("questions");
+        if ((kind != "effectiveness" && kind != "satisfaction") || items.type != Json::Array)
+        {
+            status = 400;
+            return errorJson("assessmentType and questions are required");
+        }
+        struct CoreForm { std::string id, current; int next; };
+        std::vector<CoreForm> forms;
+        sqlite3_stmt *formQuery = nullptr;
+        const char *formSql = "SELECT f.id,f.current_version_id,COALESCE(MAX(v.version_number),0)+1 FROM assessment_forms f LEFT JOIN form_versions v ON v.form_id=f.id WHERE f.assessment_type=? AND f.active=1 GROUP BY f.id ORDER BY f.system_id";
+        if (sqlite3_prepare_v2(db, formSql, -1, &formQuery, nullptr) != SQLITE_OK)
+        { status = 500; return errorJson("form query failed"); }
+        sqlite3_bind_text(formQuery, 1, kind.c_str(), -1, SQLITE_TRANSIENT);
+        while (sqlite3_step(formQuery) == SQLITE_ROW) forms.push_back({col(formQuery, 0), col(formQuery, 1), sqlite3_column_int(formQuery, 2)});
+        sqlite3_finalize(formQuery);
+        if (forms.empty()) { status = 404; return errorJson("no active forms for assessment type"); }
+        if (!exec(db, "BEGIN IMMEDIATE")) { status = 500; return errorJson("database transaction failed"); }
+        bool ok = true;
+        const std::string stamp = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
+        std::vector<std::tuple<std::string, int, int>> coreLinks;
+        for (size_t i = 0; ok && i < items.array.size(); ++i)
+        {
+            const Json &q = items.array[i];
+            const std::string base = text(q.get("baseId")).empty() ? text(q.get("id")) : text(q.get("baseId"));
+            const std::string questionId = base + "_core_" + stamp;
+            const std::string th = text(q.get("text")), en = text(q.get("text_en")), answerType = text(q.get("answer_type"));
+            const std::string section = text(q.get("section")), options = q.get("options").type == Json::Null ? "[]" : raw(q.get("options"));
+            const std::string roles = q.get("roles").type == Json::Null ? "[]" : raw(q.get("roles"));
+            const std::string visible = q.get("visible_when").type == Json::Null ? "{\"all\":[]}" : raw(q.get("visible_when"));
+            const std::string metadata = q.get("metadata").type == Json::Null ? "{}" : raw(q.get("metadata"));
+            static const std::set<std::string> types = {"rating5","dropdown","radio","checkbox","short_text","long_text","number","date","yes_no","ranking"};
+            if (base.empty() || th.empty() || !types.count(answerType)) { ok = false; break; }
+            sqlite3_stmt *insert = nullptr;
+            const char *sql = "INSERT INTO assessment_questions(id,system_id,assessment_type,section,text,text_en,answer_type,options_json,required,is_scored,indicator_group,step,question_order,roles_json,visible_when_json,allow_na,allow_other,max_select,option_set_ref,metadata_json,active) VALUES(?,NULL,?,?,?,?,?,?,?,?, 'core',?,?,?,?,?,?,?,?,?,?)";
+            if (sqlite3_prepare_v2(db, sql, -1, &insert, nullptr) != SQLITE_OK) { ok = false; break; }
+            sqlite3_bind_text(insert, 1, questionId.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(insert, 2, kind.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(insert, 3, section.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(insert, 4, th.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(insert, 5, en.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(insert, 6, answerType.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(insert, 7, options.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_int(insert, 8, q.get("required").type == Json::Bool && q.get("required").value == "false" ? 0 : 1);
+            sqlite3_bind_int(insert, 9, q.get("is_scored").type == Json::Bool && q.get("is_scored").value == "true" ? 1 : 0);
+            sqlite3_bind_int(insert, 10, (int)q.get("step").number(3));
+            sqlite3_bind_int(insert, 11, (int)q.get("order").number((double)i + 1));
+            sqlite3_bind_text(insert, 12, roles.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(insert, 13, visible.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_int(insert, 14, q.get("allow_na").type == Json::Bool && q.get("allow_na").value == "true");
+            sqlite3_bind_int(insert, 15, q.get("allow_other").type == Json::Bool && q.get("allow_other").value == "true");
+            if (q.get("max_select").type == Json::Number) sqlite3_bind_int(insert, 16, (int)q.get("max_select").number()); else sqlite3_bind_null(insert, 16);
+            sqlite3_bind_text(insert, 17, text(q.get("optionSetRef")).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(insert, 18, metadata.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_int(insert, 19, q.get("active").type == Json::Bool && q.get("active").value == "false" ? 0 : 1);
+            ok = sqlite3_step(insert) == SQLITE_DONE;
+            sqlite3_finalize(insert);
+            coreLinks.emplace_back(questionId, (int)q.get("step").number(3), (int)q.get("order").number((double)i + 1));
+        }
+        for (const auto &form : forms)
+        {
+            if (!ok) break;
+            const std::string versionId = form.id + "_v" + std::to_string(form.next);
+            sqlite3_stmt *version = nullptr;
+            const char *versionSql = "INSERT INTO form_versions(id,form_id,version_number,status,content_hash,created_at) VALUES(?,?,?,'published','admin-core-update','2026-11-12T00:00:00Z')";
+            sqlite3_prepare_v2(db, versionSql, -1, &version, nullptr);
+            sqlite3_bind_text(version, 1, versionId.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(version, 2, form.id.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_int(version, 3, form.next);
+            ok = sqlite3_step(version) == SQLITE_DONE;
+            sqlite3_finalize(version);
+            if (!ok) break;
+            sqlite3_stmt *copy = nullptr;
+            sqlite3_prepare_v2(db, "INSERT INTO form_version_questions(form_version_id,question_id,step,sort_order) SELECT ?,q.id,fq.step,fq.sort_order FROM form_version_questions fq JOIN assessment_questions q ON q.id=fq.question_id WHERE fq.form_version_id=? AND q.indicator_group='specific'", -1, &copy, nullptr);
+            sqlite3_bind_text(copy, 1, versionId.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(copy, 2, form.current.c_str(), -1, SQLITE_TRANSIENT);
+            ok = sqlite3_step(copy) == SQLITE_DONE;
+            sqlite3_finalize(copy);
+            if (!ok) break;
+            sqlite3_stmt *rules = nullptr;
+            sqlite3_prepare_v2(db, "INSERT INTO answer_rules(form_version_id,id,rule_type,question_ids_json,rule_json) SELECT ?,id,rule_type,question_ids_json,rule_json FROM answer_rules WHERE form_version_id=?", -1, &rules, nullptr);
+            sqlite3_bind_text(rules, 1, versionId.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(rules, 2, form.current.c_str(), -1, SQLITE_TRANSIENT);
+            ok = sqlite3_step(rules) == SQLITE_DONE;
+            sqlite3_finalize(rules);
+            for (size_t i = 0; ok && i < coreLinks.size(); ++i)
+            {
+                const auto &[questionId, step, order] = coreLinks[i];
+                sqlite3_stmt *link = nullptr;
+                sqlite3_prepare_v2(db, "INSERT INTO form_version_questions(form_version_id,question_id,step,sort_order) VALUES(?,?,?,?)", -1, &link, nullptr);
+                sqlite3_bind_text(link, 1, versionId.c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(link, 2, questionId.c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_int(link, 3, step);
+                sqlite3_bind_int(link, 4, 10000 + order);
+                ok = sqlite3_step(link) == SQLITE_DONE;
+                sqlite3_finalize(link);
+            }
+            sqlite3_stmt *update = nullptr;
+            if (ok)
+            {
+                sqlite3_prepare_v2(db, "UPDATE assessment_forms SET current_version_id=? WHERE id=?", -1, &update, nullptr);
+                sqlite3_bind_text(update, 1, versionId.c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(update, 2, form.id.c_str(), -1, SQLITE_TRANSIENT);
+                ok = sqlite3_step(update) == SQLITE_DONE;
+            }
+            if (update) sqlite3_finalize(update);
+        }
+        if (!ok || !exec(db, "COMMIT"))
+        {
+            exec(db, "ROLLBACK");
+            status = 500;
+            return errorJson("core question update failed");
         }
         status = 200;
         return "{\"success\":true}";
@@ -731,19 +943,6 @@ static std::string handle(sqlite3 *db, const std::string &method, const std::str
         }
         status = 201;
         return "{\"id\":" + quote(id) + ",\"success\":true}";
-    }
-    if (method == "POST" && route == "/quantitative")
-    {
-        status = 410;
-        return errorJson("quantitative_records is not part of the versioned assessment model; submit answers through /evaluations");
-    }
-    if (method == "GET" && route == "/quantitative")
-    {
-        std::string uid, u, d, r;
-        if (!adminSession(db, token, uid, u, d, r, status))
-            return errorJson(status == 401 ? "login required" : "ไม่มีสิทธิ์เข้าถึง Admin");
-        status = 200;
-        return "[]";
     }
     if (method == "DELETE" && route == "/evaluations")
     {

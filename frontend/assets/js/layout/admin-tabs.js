@@ -26,7 +26,7 @@
         const mountPoint = document.getElementById(options.mountId || "admin-tabs");
         if (!scriptUrl || !runtimeUrl || !mountPoint) return null;
         const systemId = options.systemId || new URLSearchParams(location.search).get("system") || "";
-        const systems = options.systems || window.AssessmentCatalog?.getSystems?.() || window.systems || [];
+        const systems = options.systems || [];
         const t = key => window.ThemeLang?.i18n?.[document.documentElement.lang === "en" ? "en" : "th"]?.[key] || key;
         const selected = systems.find(item => item.id === systemId);
         const shell = document.createElement("section");
@@ -58,13 +58,11 @@
         nav.setAttribute("aria-label", t("admin_tabs_label"));
         const requestedTab = options.activeTab || "summary";
         const activeTab = tabs.some(tab => tab.id === requestedTab) ? requestedTab : "summary";
-        const processManagement = /\/admin\/manage\/processes\.html$/i.test(location.pathname);
         for (const tab of tabs) {
             const link = document.createElement("a");
             link.href = pageUrl("admin/results.html", scriptUrl, runtimeUrl, systemId, tab.hash);
             link.dataset.i18n = tab.key;
             link.textContent = t(tab.key);
-            if (processManagement) link.id = "q-admin-dashboard-back";
             if (tab.id === activeTab) {
                 link.className = "active";
                 link.setAttribute("aria-current", "page");
@@ -74,15 +72,11 @@
         const settings = document.createElement("div");
         settings.className = "admin-settings-links";
         settings.hidden = activeTab !== "settings";
-        for (const [key, path] of [
-            ["admin_assessment_settings", "admin/manage/assessment-management.html"],
-            ["admin_process_settings", "admin/manage/processes.html"]
-        ]) {
+        for (const [key, path] of [["admin_assessment_settings", "admin/manage/assessment-management.html"]]) {
             const link = document.createElement("a");
             link.href = pageUrl(path, scriptUrl, runtimeUrl, systemId);
             link.dataset.i18n = key;
             link.textContent = t(key);
-            if (processManagement) link.id = "q-admin-dashboard-back";
             settings.append(link);
         }
         shell.append(context, nav, settings);

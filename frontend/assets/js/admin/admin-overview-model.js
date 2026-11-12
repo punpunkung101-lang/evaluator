@@ -5,53 +5,36 @@
     else root.AdminOverviewModel = api;
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
     "use strict";
-    function isMock(record) {
-        return typeof record?.id === "string" && record.id.startsWith("mock-");
-    }
-    function compute(systems, quantRecords, evaluations) {
-        const allQuant = Array.isArray(quantRecords) ? quantRecords : [];
-        const allEvaluations = Array.isArray(evaluations) ? evaluations : [];
-        const realQuant = allQuant.filter(record => record?.config?.isDemo !== true);
-        const mockQuant = allQuant.filter(isMock);
-        const mockEvaluations = allEvaluations.filter(isMock);
-        const evaluators = new Set();
-        for (const record of realQuant) {
-            const id = record.userId || record.user_id || record.profile?.id;
-            if (id) evaluators.add(String(id));
-        }
-        for (const record of allEvaluations) if (record.evaluatorId || record.evaluator_id) evaluators.add(String(record.evaluatorId || record.evaluator_id));
-        const quantBySystem = new Map();
-        for (const record of realQuant) {
-            const id = record.systemId || record.system_id;
-            if (!id) continue;
-            if (!quantBySystem.has(id)) quantBySystem.set(id, []);
-            quantBySystem.get(id).push(record);
-        }
-        const satisfactionBySystem = new Map();
-        for (const record of allEvaluations) {
-            if (!record.systemId) continue;
-            if (!satisfactionBySystem.has(record.systemId)) satisfactionBySystem.set(record.systemId, []);
-            satisfactionBySystem.get(record.systemId).push(record);
-        }
-        const latest = [
-            ...realQuant.map(record => ({ ...record, dataType: "effectiveness" })),
-            ...allEvaluations.map(record => ({ ...record, dataType: "satisfaction" }))
-        ].sort((a, b) => Date.parse(b.submittedAt || b.submitted_at || "") - Date.parse(a.submittedAt || a.submitted_at || ""));
+
+    function isMock(row) { return row?.isMock === true || String(row?.id || "").startsWith("mock-"); }
+    function compute(systems, evaluations, questions, scoring, config) {
+        const rows = Array.isArray(evaluations) ? evaluations : [];
+        const catalog = Array.isArray(systems) ? systems : [];
+        const bank = (Array.isArray(questions) ? questions : []).map(question => ({
+            ...question,
+            assessmentType: question.assessmentType || question.assessment_type,
+            assessment_type: question.assessment_type || question.assessmentType,
+            systemId: question.systemId ?? question.system_id ?? null,
+            system_id: question.system_id ?? question.systemId ?? null
+        }));
+        const signals = scoring.buildImprovementSignals(rows, bank, catalog, config);
+        const byId = new Map(signals.map(signal => [signal.systemId, signal]));
+        const detail = catalog.map(system => {
+            const systemRows = rows.filter(row => row.systemId === system.id);
+            const effectRows = systemRows.filter(row => row.assessmentType === "effectiveness");
+            const satisfactionRows = systemRows.filter(row => row.assessmentType === "satisfaction");
+            const effectQuestions = bank.filter(question => question.assessmentType === "effectiveness" && (question.systemId === system.id || question.indicator_group === "core"));
+            const satisfactionQuestions = bank.filter(question => question.assessmentType === "satisfaction" && (question.systemId === system.id || question.indicator_group === "core"));
+            const effectiveness = scoring.summarizeEffectiveness(effectRows, effectQuestions);
+            const satisfaction = scoring.summarizeSatisfactionAssessment(satisfactionRows, satisfactionQuestions).find(item => item.systemId === system.id) || null;
+            const categoryAverages = Object.values(effectiveness.categoryStats).map(item => item.average).filter(Number.isFinite);
+            const effectivenessAverage = categoryAverages.length ? categoryAverages.reduce((sum, value) => sum + value, 0) / categoryAverages.length : null;
+            return { system, effectiveness, satisfaction, effectivenessAverage, signal: byId.get(system.id), mockCount: systemRows.filter(isMock).length };
+        });
         return {
-            realQuant,
-            evaluations: allEvaluations,
-            evaluators,
-            systems: [...(Array.isArray(systems) ? systems : [])].sort((a, b) =>
-                Number(a.sort_order || 0) - Number(b.sort_order || 0) || String(a.id).localeCompare(String(b.id))
-            ),
-            quantBySystem,
-            satisfactionBySystem,
-            latest,
-            excludedDemo: allQuant.filter(record => record?.config?.isDemo === true).length,
-            mockQuant,
-            mockEvaluations,
-            mockCount: mockQuant.length + mockEvaluations.length,
-            latestDate: latest[0]?.submittedAt || latest[0]?.submitted_at || ""
+            systems: detail,
+            mockCount: rows.filter(isMock).length,
+            counts: detail.reduce((counts, item) => { counts[item.signal?.level || "insufficient"] += 1; return counts; }, { urgent: 0, review: 0, strength: 0, insufficient: 0 })
         };
     }
     return Object.freeze({ compute });

@@ -2,177 +2,84 @@
     "use strict";
     const main = document.getElementById("system-results");
     if (!main) return;
-    const t = key => window.ThemeLang?.i18n?.[document.documentElement.lang === "en" ? "en" : "th"]?.[key] || key;
-    const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-    }[c]));
+    const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     const fmt = value => Number.isFinite(value) ? value.toFixed(2) : "—";
-    const tabIds = ["summary", "effectiveness", "satisfaction", "settings"];
+    const signalLabels = { urgent: "ควรปรับปรุงเร่งด่วน", review: "ควรตรวจสอบเพิ่มเติม", strength: "จุดแข็งควรรักษา", insufficient: "ข้อมูลยังไม่เพียงพอ" };
 
-    function showTab() {
-        const tab = tabIds.includes(location.hash.slice(1)) ? location.hash.slice(1) : "summary";
-        tabIds.forEach(id => {
-            const el = document.getElementById("tab-" + id);
-            if (el) el.hidden = id !== tab;
-        });
-        document.querySelectorAll(".admin-tabs a").forEach(a => {
-            const active = a.hash === "#" + tab;
-            a.classList.toggle("active", active);
-            if (active) a.setAttribute("aria-current", "page");
-            else a.removeAttribute("aria-current");
-        });
-        document.querySelector(".admin-settings-links")?.toggleAttribute("hidden", tab !== "settings");
+    function table(headers, rows, empty) {
+        return `<div class="admin-table-wrap"><table><thead><tr>${headers.map(x => `<th>${x}</th>`).join("")}</tr></thead><tbody>${rows || `<tr><td colspan="${headers.length}">${empty}</td></tr>`}</tbody></table></div>`;
     }
-
-    function metricRows(result) {
-        if (!result.metrics.length) return '<tr><td colspan="7">' + t("admin_no_records") + "</td></tr>";
-        return result.metrics.map(metric => {
-            const definition = metric.definition;
-            const lang = document.documentElement.lang === "en" ? "en" : "th";
-            const name = definition?.name?.[lang] || definition?.name || metric.id;
-            const unit = definition?.unit?.[lang] || "";
-            const before = fmt(metric.before), after = fmt(metric.after);
-            const change = metric.before !== null && metric.before !== 0 ? ((metric.after - metric.before) / Math.abs(metric.before) * 100).toFixed(1) + "%" : "—";
-            const direction = definition?.direction === "increase" ? (lang === "en" ? "Higher is better" : "เพิ่มขึ้นยิ่งดี") : (lang === "en" ? "Lower is better" : "ลดลงยิ่งดี");
-            const max = Math.max(metric.before || 0, metric.after || 0, 1);
-            const beforeWidth = Math.max(0, Math.min(100, (metric.before || 0) / max * 100));
-            const afterWidth = Math.max(0, Math.min(100, (metric.after || 0) / max * 100));
-            const tag = metric.outsideCriteria ? t("admin_outside_criteria") : metric.scored ? "" : t("admin_no_records");
-            return '<tr><th scope="row">' + esc(name) + ' <small>' + esc(metric.id) + '</small><div class="admin-compare-bars" aria-label="' + esc(t("admin_before") + " " + before + " " + t("admin_after") + " " + after) + '"><span class="before" style="width:' + beforeWidth + '%"></span><span class="after" style="width:' + afterWidth + '%"></span></div></th><td>' + before + " " + esc(unit) + '</td><td>' + after + " " + esc(unit) + '</td><td>' + change + '</td><td>' + esc(direction) + '</td><td>' + (metric.weight == null ? "—" : metric.weight) + '</td><td>' + (metric.scored ? fmt(metric.scoreAfter) : esc(tag)) + "</td></tr>";
-        }).join("");
-    }
-
     function render(data, systemId) {
         const system = data.systems.find(item => item.id === systemId);
-        document.getElementById("results-title").textContent = (system?.name || systemId || t("admin_system_all")) + (systemId ? " (" + systemId + ")" : "");
-        const quant = data.quant.filter(r => (r.systemId || r.system_id) === systemId);
-        const evals = data.evaluations.filter(r => (r.systemId || r.system_id) === systemId);
-        const score = window.EffectivenessScoring.summarizeSystem(quant, window.EffectivenessExamples.metrics);
-        const sat = window.EffectivenessScoring.summarizeSatisfaction(evals).find(item => (item.systemId || item.system_id) === systemId);
-        const sentence = score.summary === "no-data" ? t("admin_no_records") : score.summary === "preliminary" ? t("admin_preliminary") : score.summary === "after-better" ? t("admin_after_better") : score.summary === "before-better" ? t("admin_before_better") : t("admin_similar");
-
-        // Tab 1: Summary with Chart Type 1 (System Comparison for selected system)
-        const summarizedSystem = window.ImprovementPriority?.summarizeSystem
-            ? window.ImprovementPriority.summarizeSystem(system, score, sat)
-            : {
-                systemId,
-                name: system?.name || systemId,
-                effectivenessScore: score.afterScore,
-                beforeScore: score.beforeScore,
-                satisfactionAverage: sat?.average ?? null,
-                satisfactionScore: sat?.score ?? (sat?.average ? (sat.average - 1) / 4 * 100 : null),
-                effectiveness: score,
-                satisfaction: sat,
-                status: "good"
-            };
-        const summaryChartModel = window.AdminChartModel?.computeSystemComparison([summarizedSystem], window.ImprovementPriority?.CONFIG?.thresholds);
-        const summaryChartHtml = summaryChartModel && window.AdminCharts
-            ? '<section class="admin-panel"><h2>' + t("priority_chart_title") + '</h2>' +
-              window.AdminCharts.renderSystemComparison(summaryChartModel, { resultUrl: id => `?system=${encodeURIComponent(id)}` }) +
-              '</section>'
-            : '';
-
-        document.getElementById("tab-summary").innerHTML =
-            '<p class="admin-result-summary">' + sentence + ' · ' + t("admin_score_sentence").replace("{before}", fmt(score.beforeScore)).replace("{after}", fmt(score.afterScore)) + '</p>' +
-            '<div class="admin-result-grid">' +
-                '<article><h3>' + t("admin_before_score") + '</h3><p>' + fmt(score.beforeScore) + '</p></article>' +
-                '<article><h3>' + t("admin_after_score") + '</h3><p>' + fmt(score.afterScore) + '</p></article>' +
-                '<article><h3>' + t("admin_coverage") + '</h3><p>' + score.coverage.toFixed(0) + '%</p></article>' +
-                '<article><h3>' + t("admin_evaluator_n") + '</h3><p>' + score.n + '</p></article>' +
-            '</div>' +
-            summaryChartHtml +
-            '<p class="admin-state notice">' + t("admin_not_tested") + '</p>' +
-            (score.lowSample ? '<p class="admin-state notice">' + t("admin_low_n_warning") + '</p>' : "") +
-            '<p class="admin-state">' + t("admin_excluded_demo") + ': ' + score.excludedDemo + '</p>' +
-            (score.warnings.length ? '<p class="admin-state notice">' + t("admin_invalid_metric_warning") + ': ' + score.warnings.map(esc).join(", ") + '</p>' : "") +
-            '<section class="admin-panel"><h2>' + t("admin_limitations_title") + '</h2><ul class="admin-limitations">' + ["admin_limit_aggregated", "admin_limit_small_n", "admin_limit_learning", "admin_limit_recall", "admin_limit_context"].map(k => "<li>" + t(k) + "</li>").join("") + "</ul></section>";
-
-        // Tab 2: Effectiveness with Chart Type 2 (Paired Metrics before-after)
-        const metricModel = window.AdminChartModel?.computeMetricComparison(score.metrics);
-        const metricChartHtml = metricModel && window.AdminCharts
-            ? '<section class="admin-panel"><h2>' + t("chart_metric_scored_title") + '</h2>' +
-              window.AdminCharts.renderMetricComparison(metricModel) +
-              '</section>'
-            : '';
-
-        document.getElementById("tab-effectiveness").innerHTML =
-            metricChartHtml +
-            '<section class="admin-panel"><h2>' + t("admin_effectiveness_table") + '</h2>' +
-            '<p class="admin-state notice">' + t("admin_evaluator_n") + ': ' + score.n + ' · ' + t("admin_coverage") + ': ' + score.coverage.toFixed(0) + '%</p>' +
-            '<div class="admin-table-wrap"><table><thead><tr>' +
-                '<th>' + t("admin_metric") + '</th><th>' + t("admin_before") + '</th><th>' + t("admin_after") + '</th>' +
-                '<th>' + t("admin_change") + '</th><th>' + t("admin_direction") + '</th><th>' + t("admin_weight") + '</th><th>' + t("admin_relative_score") + '</th>' +
-            '</tr></thead><tbody>' + metricRows(score) + "</tbody></table></div></section>";
-
-        // Tab 3: Satisfaction with Chart Type 3 (100% Stacked Bar) & Monthly Trend Bars
-        let satContent = '<p class="admin-state">' + t("admin_no_records") + '</p>';
-        if (sat) {
-            const distModel = window.AdminChartModel?.computeSatisfactionDistribution(sat.records);
-            const distHtml = distModel && window.AdminCharts
-                ? window.AdminCharts.renderSatisfactionDistribution(distModel)
-                : '<p class="admin-state">' + t("admin_no_records") + '</p>';
-
-            const trendModel = window.AdminChartModel?.computeMonthlySatisfactionTrend(evals);
-            const trendHtml = trendModel && window.AdminCharts
-                ? window.AdminCharts.renderMonthlySatisfactionTrend(trendModel)
-                : '<p class="admin-state">' + t("admin_no_records") + '</p>';
-
-            const warningHtml = sat.lowSample ? '<p class="admin-state notice">' + t("admin_low_n_warning") + '</p>' : "";
-            const kpiGridHtml = '<div class="admin-result-grid">' +
-                '<article><h3>' + t("admin_satisfaction_avg") + '</h3><p>' + fmt(sat.average) + ' / 5</p></article>' +
-                '<article><h3>' + t("admin_satisfaction_level") + '</h3><p>' + t("admin_level_" + sat.level.replace("-", "_")) + '</p></article>' +
-                '<article><h3>' + t("admin_evaluator_n") + '</h3><p>' + sat.n + '</p></article>' +
-            '</div>';
-
-            const chartsGridHtml = '<div class="admin-chart-grid">' +
-                '<section class="admin-panel"><h2>' + t("chart_sat_rating_label") + '</h2><div class="admin-chart">' + distHtml + '</div></section>' +
-                '<section class="admin-panel"><h2>' + t("chart_sat_monthly_title") + '</h2><div class="admin-chart">' + trendHtml + '</div></section>' +
-            '</div>';
-
-            const tableHtml = '<section class="admin-panel"><h2>' + t("admin_recent_title") + '</h2><div class="admin-table-wrap"><table><thead><tr>' +
-                '<th>' + t("admin_evaluator_n") + '</th><th>' + t("admin_satisfaction_avg") + '</th><th>' + t("admin_satisfaction_level") + '</th>' +
-            '</tr></thead><tbody>' + sat.records.map(row => '<tr><td>' + esc(row.evaluatorId) + '</td><td>' + fmt(row.average) + ' / 5</td><td>' + t("admin_level_" + window.EffectivenessScoring.satisfactionLevel(row.average).replace("-", "_")) + '</td></tr>').join("") + "</tbody></table></div></section>";
-
-            const feedbackHtml = sat.records.some(row => row.feedback)
-                ? '<section class="admin-panel"><h2>' + t("admin_feedback") + '</h2><ul class="admin-limitations">' + sat.records.filter(row => row.feedback).map(row => "<li>" + esc(row.feedback) + "</li>").join("") + "</ul></section>"
-                : "";
-
-            satContent = warningHtml + kpiGridHtml + chartsGridHtml + tableHtml + feedbackHtml;
-        }
-        document.getElementById("tab-satisfaction").innerHTML = satContent;
+        const title = document.getElementById("results-title");
+        title.textContent = system ? `${system.name} (${system.id})` : "ผลประเมินรายระบบ";
+        const evaluations = data.evaluations.filter(row => row.systemId === systemId);
+        const effectivenessRows = evaluations.filter(row => row.assessmentType === "effectiveness");
+        const satisfactionRows = evaluations.filter(row => row.assessmentType === "satisfaction");
+        const questions = [...new Map(data.questions.filter(question => question.systemId === systemId || question.system_id === systemId || question.indicator_group === "core").map(question => [`${question.assessmentType || question.assessment_type}|${question.indicator_group === "core" ? "core" : systemId}|${question.id}`, question])).values()];
+        const dedupeQuestionVersions = rows => [...new Map(rows.map(question => [`${question.indicator_group === "core" ? "core" : systemId}|${question.assessmentType || question.assessment_type}|${String(question.id).replace(/_v\d+$/, "")}`, question])).values()];
+        const effectQuestions = dedupeQuestionVersions(questions.filter(question => (question.assessmentType || question.assessment_type) === "effectiveness"));
+        const satisfactionQuestions = dedupeQuestionVersions(questions.filter(question => (question.assessmentType || question.assessment_type) === "satisfaction"));
+        const effectiveness = window.EffectivenessScoring.summarizeEffectiveness(effectivenessRows, effectQuestions);
+        const satisfaction = window.EffectivenessScoring.summarizeSatisfactionAssessment(satisfactionRows, satisfactionQuestions).find(row => row.systemId === systemId);
+        const signals = window.EffectivenessScoring.buildImprovementSignals(data.evaluations, data.questions, data.systems);
+        const signal = signals.find(row => row.systemId === systemId);
+        const categories = Object.values(effectiveness.categoryStats);
+        const categoryRows = categories.map(group => `<tr><th scope="row">${esc(group.section)}</th><td>${fmt(group.average)} / 5</td><td>${group.n}</td><td>${group.naCount}</td><td>${esc(group.levelLabel || "—")}</td></tr>`).join("");
+        const questionRows = Object.values(effectiveness.questionStats).map(question => `<tr><th scope="row">${esc(question.text)} <small>${esc(question.id)}</small></th><td>${fmt(question.average)} / 5</td><td>${question.n}</td><td>${question.naCount}</td><td>${esc(question.levelLabel || "—")}</td></tr>`).join("");
+        const sharedSatisfaction = satisfactionQuestions.filter(question => question.indicator_group === "core");
+        const specificRows = (satisfaction?.specific || []).map(item => `<tr><th scope="row">${esc(item.text || satisfactionQuestions.find(q => q.id === item.id)?.text || item.id)}</th><td>${fmt(item.average)} / 5</td><td>${item.n}</td></tr>`).join("");
+        const roleRows = Object.values(satisfaction?.byRole || {}).map(role => `<tr><th scope="row">${esc(role.roleLabel || role.role)}</th><td>${fmt(role.coreAverage)} / 5</td><td>${fmt(role.average)} / 5</td><td>${role.n}</td></tr>`).join("");
+        const effectRoleRows = Object.values(effectiveness.byRole || {}).map(role => `<tr><th scope="row">${esc(role.roleLabel || role.role)}</th><td>${fmt(role.average)} / 5</td><td>${role.n}</td></tr>`).join("");
+        const priorRows = Object.values(effectiveness.byPriorUse || {}).map(group => `<tr><th scope="row">${esc(group.priorUse)}</th><td>${fmt(group.average)} / 5</td><td>${group.n}</td></tr>`).join("");
+        const openQuestions = effectQuestions.filter(q => ["issue_impact", "other_suggestions"].includes(q.id));
+        const openRows = effectivenessRows.flatMap(record => (record.answers || []).filter(answer => openQuestions.some(q => q.id === (answer.questionId || answer.question_id))).map(answer => {
+            const questionId = answer.questionId || answer.question_id;
+            const question = openQuestions.find(q => q.id === questionId);
+            const value = answer.value ?? answer.answer ?? answer.answer_value;
+            return value == null || value === "" ? "" : `<tr><th scope="row">${esc(question?.text || questionId)}</th><td>${esc(Array.isArray(value) ? value.join(", ") : typeof value === "object" ? JSON.stringify(value) : value)}</td><td>${esc(record.respondentRoleLabel || record.respondentRole || "ไม่ระบุ")}</td></tr>`;
+        })).filter(Boolean).join("");
+        const factorRows = [["ปัญหาที่เลือกบ่อย", signal?.commonProblem], ["สิ่งที่ต้องการปรับปรุง", signal?.commonImprovement]].map(([label, item]) => `<tr><th scope="row">${label}</th><td>${item ? esc(item.label) : "ยังไม่มีข้อมูล"}</td><td>${item ? `${(item.share * 100).toFixed(0)}% · ${item.count} คำตอบ` : "—"}</td></tr>`).join("");
+        const reasons = signal?.reasons?.map(item => `<li>${esc(item.message)}</li>`).join("") || "<li>ไม่มีข้อมูลประกอบ</li>";
+        const mockCount = evaluations.filter(row => row.isMock || String(row.id).startsWith("mock-")).length;
+        document.getElementById("results-status").innerHTML = mockCount ? '<p class="admin-state notice" role="status">ข้อมูล mock สำหรับตัวอย่างการแสดงผล ไม่ใช่ผลจริง</p>' : "";
+        document.getElementById("tab-summary").innerHTML = `<section class="admin-panel"><h2>สรุประบบ</h2><p>คำตอบประสิทธิผล ${effectiveness.records} รายการ · ผู้ตอบ n=${effectiveness.n}</p><p>ความพึงพอใจ ${satisfaction?.n || 0} รายการ · ค่าเฉลี่ย ${fmt(satisfaction?.average)} / 5</p><p>ความพึงพอใจเป็นการรับรู้ของผู้ใช้ ไม่ใช่สถิติระบบต้นทาง</p></section>
+          <section class="admin-panel"><h2>สัญญาณการปรับปรุง</h2><p><strong>${esc(signalLabels[signal?.level] || "ข้อมูลยังไม่เพียงพอ")}</strong></p><ul>${reasons}</ul></section>
+          <section class="admin-panel"><h2>ค่าเฉลี่ยประสิทธิผลรายหมวด · n กำกับทุกค่า</h2>${table(["หมวด", "ค่าเฉลี่ย", "n", "N/A", "ระดับ"], categoryRows, "ยังไม่มีคำตอบที่นับคะแนน")}</section>
+          <section class="admin-panel"><h2>ปัจจัยที่มีผลต่อสัญญาณ</h2>${table(["ปัจจัย", "ผลที่พบ", "สัดส่วน"], factorRows, "ยังไม่มีข้อมูล")}</section>
+          <section class="admin-panel"><h2>ความต่างระหว่างคะแนนเฉลี่ยกับสถิติระบบต้นทาง</h2><p>ผลในหน้านี้เป็นการรับรู้และคำตอบของผู้ใช้ ยังไม่มีข้อมูลจากระบบต้นทาง</p></section>`;
+        document.getElementById("tab-effectiveness").innerHTML = `<section class="admin-panel"><h2>ผลประสิทธิผลตามคำถามที่นับคะแนน</h2><p>คะแนน 1–5 เท่านั้น; N/A ไม่นำมาคิดคะแนน</p>${table(["คำถาม", "เฉลี่ย", "n", "N/A", "ระดับ"], questionRows, "ยังไม่มีคำตอบประสิทธิผลที่นับคะแนน")}</section>
+          <section class="admin-panel"><h2>แยกตามบทบาทผู้ตอบ</h2>${table(["บทบาท", "ค่าเฉลี่ย", "n"], effectRoleRows, "ยังไม่มีข้อมูลแยกบทบาท")}</section>
+          <section class="admin-panel"><h2>เปรียบเทียบผู้เคยใช้ระบบเดิม</h2>${table(["ประสบการณ์เดิม", "ค่าเฉลี่ย", "n"], priorRows, "ยังไม่มีข้อมูลเปรียบเทียบ")}</section>
+          <section class="admin-panel"><h2>ความคิดเห็นปลายเปิด</h2>${table(["คำถาม", "คำตอบ", "บทบาท"], openRows, "ยังไม่มีความคิดเห็นปลายเปิด")}</section>`;
+        document.getElementById("tab-satisfaction").innerHTML = `<section class="admin-panel"><h2>ความพึงพอใจ Core S1–S4 · ความรู้สึกผู้ใช้</h2>${table(["คำถาม", "ค่าเฉลี่ย", "n"], sharedSatisfaction.map(q => { const stat = satisfaction?.questionStats?.[q.id]; return `<tr><th scope="row">${esc(q.text)}</th><td>${fmt(stat?.average)} / 5</td><td>${stat?.n || 0}</td></tr>`; }).join(""), "ยังไม่มีคำถาม Core")}</section>
+          <section class="admin-panel"><h2>ข้อเฉพาะระบบ</h2>${table(["คำถาม", "ค่าเฉลี่ย", "n"], specificRows, "ยังไม่มีคำตอบข้อเฉพาะ")}</section>
+          <section class="admin-panel"><h2>แยกตามบทบาทผู้ตอบ</h2>${table(["บทบาท", "Core S1–S4", "รวมข้อเฉพาะ", "n"], roleRows, "ยังไม่มีข้อมูลแยกบทบาท")}</section>`;
+        window.AdminTabs.mount({ activeTab: location.hash.slice(1) || "summary", systemId, systems: data.systems });
         showTab();
     }
-
+    function showTab() {
+        const tab = ["summary", "effectiveness", "satisfaction", "settings"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "summary";
+        for (const name of ["summary", "effectiveness", "satisfaction", "settings"]) {
+            const panel = document.getElementById(`tab-${name}`); if (panel) panel.hidden = name !== tab;
+        }
+        document.querySelector(".admin-settings-links")?.toggleAttribute("hidden", tab !== "settings");
+    }
     async function load() {
         const status = document.getElementById("results-status");
-        status.innerHTML = '<p class="admin-state" role="status">' + t("admin_loading") + "</p>";
-        const results = await window.AdminData.fromWindow().load();
-        const resultsList = [results.systems, results.effectiveness, results.satisfaction];
-        const errors = resultsList.filter(result => result.status === "rejected");
-        if (errors.length) {
-            status.innerHTML = '<div class="admin-state error" role="alert"><p>' + t("admin_load_error") + ': ' + errors.map(result => esc(result.reason.message)).join("; ") + '</p><button id="results-retry" class="admin-retry" type="button">' + t("admin_retry") + "</button></div>";
-            document.getElementById("results-retry").addEventListener("click", load);
-            if (errors.length === 3) return;
-        } else {
-            status.textContent = "";
+        status.textContent = "กำลังโหลดผลและคลังคำถาม…";
+        try {
+            await window.AdminGuard.ready;
+            const data = await window.AdminData.fromWindow().load();
+            const requested = new URLSearchParams(location.search).get("system");
+            const systemId = data.systems.some(item => item.id === requested) ? requested : data.systems[0]?.id;
+            if (!systemId) throw new Error("ไม่พบระบบที่เปิดใช้งาน");
+            render(data, systemId);
+        } catch (error) {
+            status.innerHTML = `<p class="admin-state error" role="alert">โหลดผลประเมินไม่ได้: ${esc(error.message)}</p><button class="btn btn-secondary" id="results-retry" type="button">ลองอีกครั้ง</button>`;
+            document.getElementById("results-retry")?.addEventListener("click", load);
         }
-        const systems = results.systems.status === "fulfilled" ? results.systems.value : window.AssessmentCatalog?.getSystems?.() || window.systems || [];
-        const quant = results.effectiveness.status === "fulfilled" ? results.effectiveness.value : [];
-        const evals = results.satisfaction.status === "fulfilled" ? results.satisfaction.value : [];
-        const requested = new URLSearchParams(location.search).get("system");
-        const systemId = requested || systems[0]?.id || "";
-        window.AdminTabs.mount({
-            activeTab: location.hash.slice(1) || "summary",
-            systemId,
-            systems
-        });
-        render({
-            systems,
-            quant,
-            evaluations: evals
-        }, systemId);
     }
-
     window.addEventListener("hashchange", showTab);
     document.addEventListener("langchange", load);
     load();

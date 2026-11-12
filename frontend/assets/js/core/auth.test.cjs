@@ -133,9 +133,8 @@ test('all admin pages use the shared auth control and backend-verified admin gua
     const root = path.resolve(__dirname, '../../../..');
     for (const page of [
         'frontend/admin/dashboard.html',
+        'frontend/admin/results.html',
         'frontend/admin/manage/assessment-management.html',
-        'frontend/admin/evaluation-detail.html',
-        'frontend/admin/manage/processes.html'
     ]) {
         const html = fs.readFileSync(path.join(root, page), 'utf8');
         assert.match(html, /core\/admin-guard\.js/);
@@ -162,7 +161,7 @@ test('dashboard API endpoints distinguish missing sessions from non-admin sessio
     assert.match(backend, /method == "GET" && route == "\/auth\/me"/);
     assert.match(backend, /SELECT u\.id,u\.username,u\.display_name,u\.role FROM auth_sessions s JOIN users u ON u\.id=s\.user_id WHERE s\.token=\?/);
     assert.match(backend, /if \(role != "admin"\)/);
-    for (const route of ['/questions/replace', '/quantitative', '/evaluations']) {
+    for (const route of ['/questions/replace', '/questions/replace-core', '/option-sets/replace', '/settings/improvement', '/evaluations']) {
         assert.ok(backend.includes(`route == "${route}"`), `expected protected dashboard route ${route}`);
     }
 });
