@@ -4,7 +4,7 @@
 
 The requested work is the evaluation-form replacement described by the supplied `AGENTS.md` and `AGENT_PROMPTS.md`. The repository is currently on branch `change-question`; it is not `main` or `master`, so this phase keeps that branch. The working tree already contains a user-provided modification to root `AGENTS.md`; preserve it and exclude it from the Phase 0 commit.
 
-The repository does not currently contain `docs/` or `docs/project_brief_evaluation_platform.md`. The supplied archive contains `system_specific_questions.md`, but no project brief. The brief therefore cannot be placed or inspected during this phase. Phase 1 question content must wait for the source brief, unless the owner supplies it or directs use of another source.
+At Phase 0 inspection, neither source document was in the repository and the brief was not in the supplied archives. For Phase 1, both files were located in Downloads and copied into `docs/`; question content below is derived from those files.
 
 ## Proposed data model for later phases
 
@@ -56,3 +56,7 @@ Likely legacy areas to replace after their callers are checked: `assessment_ques
 ## Phase 0 boundaries
 
 This phase changes documentation only. No schema, database, backend, frontend, generated data, or test files are changed here. Commit only the Phase 0 documentation plus the provided system-specific question source. Keep the dirty root `AGENTS.md` out of the commit.
+
+## Phase 1 result
+
+The brief and the updated system-specific source were copied into `docs/`. `database/question-bank.json` now contains 189 questions across the four steps, with 58 shared Core entries and 131 Specific entries, plus editable option sets for respondent roles/profile fields and SYS018 work categories, paths, and statuses. A validator and colocated tests verify IDs, answer types, options, question/system references, role lists, visibility dependencies, cycles, satisfaction coverage, and required system coverage.
