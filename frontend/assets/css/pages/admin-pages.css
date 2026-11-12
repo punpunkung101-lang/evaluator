@@ -766,8 +766,7 @@
 .chart-stack-segment.level-4 { background: var(--chart-level-4); color: #ffffff; }
 .chart-stack-segment.level-5 { background: var(--chart-level-5); color: #ffffff; }
 
-[data-theme="dark"] .chart-stack-segment,
-[data-theme="navy"] .chart-stack-segment {
+[data-theme="dark"] .chart-stack-segment {
     color: #0f172a;
 }
 

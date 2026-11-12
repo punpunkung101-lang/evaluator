@@ -181,13 +181,13 @@
             if (window.ThemeLang?.getTheme) return window.ThemeLang.getTheme();
             try {
                 const value = localStorage.getItem("it_eval_theme");
-                return value === "dark" || value === "navy" ? value : "light";
+                return value === "dark" || value === "navy" ? "dark" : "light";
             }
             catch (_) { return "light"; }
         };
         const syncThemeControl = theme => {
-            const nextTheme = theme === "light" ? "dark" : theme === "dark" ? "navy" : "light";
-            const key = nextTheme === "dark" ? "theme_switch_to_dark" : nextTheme === "navy" ? "theme_switch_to_navy" : "theme_switch_to_light";
+            const nextTheme = theme === "light" ? "dark" : "light";
+            const key = nextTheme === "dark" ? "theme_switch_to_dark" : "theme_switch_to_light";
             const label = translatedText(key);
             const labelNode = themeButton?.querySelector("[data-theme-label]");
             if (labelNode) {
@@ -198,10 +198,10 @@
             themeButton?.setAttribute("title", label);
             themeButton?.removeAttribute("aria-pressed");
             const icon = themeButton?.querySelector("[data-theme-icon]");
-            if (icon) icon.textContent = theme === "dark" ? "☀" : theme === "navy" ? "◈" : "☾";
+            if (icon) icon.textContent = theme === "dark" ? "☀" : "☾";
         };
         const applyTheme = theme => {
-            const normalized = window.ThemeLang?.normalizeTheme?.(theme) || (theme === "dark" || theme === "navy" ? theme : "light");
+            const normalized = window.ThemeLang?.normalizeTheme?.(theme) || (theme === "dark" ? "dark" : "light");
             if (window.ThemeLang?.applyTheme) window.ThemeLang.applyTheme(normalized);
             else {
                 document.documentElement.dataset.theme = normalized;
@@ -212,7 +212,7 @@
         applyTheme(savedTheme());
         themeButton?.addEventListener("click", () => {
             const current = savedTheme();
-            const next = current === "light" ? "dark" : current === "dark" ? "navy" : "light";
+            const next = current === "light" ? "dark" : "light";
             window.ThemeLang?.saveTheme?.(next);
             try { localStorage.setItem("it_eval_theme", next); } catch (_) {}
             applyTheme(next);

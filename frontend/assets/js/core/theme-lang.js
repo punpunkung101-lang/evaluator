@@ -35,7 +35,6 @@
             darkMode: "โหมดมืด",
             lightMode: "โหมดสว่าง",
             theme_switch_to_dark: "เปลี่ยนเป็นธีมมืด",
-            theme_switch_to_navy: "เปลี่ยนเป็นธีมน้ำเงินเข้ม",
             theme_switch_to_light: "เปลี่ยนเป็นธีมสว่าง",
             langLabel: "EN",
             lang_toggle: "EN",
@@ -541,7 +540,6 @@
             darkMode: "Dark mode",
             lightMode: "Light mode",
             theme_switch_to_dark: "Switch to dark theme",
-            theme_switch_to_navy: "Switch to navy theme",
             theme_switch_to_light: "Switch to light theme",
             langLabel: "ไทย",
             lang_toggle: "ไทย",
@@ -1037,11 +1035,13 @@
     /* =====================================================================
        PREFERENCE STORAGE HELPERS
        ===================================================================== */
-    const THEME_KEY = "it_eval_theme";   // "light" | "dark" | "navy"
+    const THEME_KEY = "it_eval_theme";   // "light" | "dark"
     const LANG_KEY  = "it_eval_lang";    // "th"   | "en"
 
     function normalizeTheme(value) {
-        return value === "light" || value === "dark" || value === "navy" ? value : "light";
+        // "navy" was removed; anyone who had it saved falls back to the dark theme.
+        if (value === "navy") return "dark";
+        return value === "light" || value === "dark" ? value : "light";
     }
 
     function getTheme() {
@@ -1198,8 +1198,8 @@
         const theme = getTheme();
         const tObj  = i18n[lang];
         const isDark = theme === "dark";
-        const nextTheme = theme === "light" ? "dark" : theme === "dark" ? "navy" : "light";
-        const themeLabel = tObj[nextTheme === "dark" ? "theme_switch_to_dark" : nextTheme === "navy" ? "theme_switch_to_navy" : "theme_switch_to_light"];
+        const nextTheme = theme === "light" ? "dark" : "light";
+        const themeLabel = tObj[nextTheme === "dark" ? "theme_switch_to_dark" : "theme_switch_to_light"];
 
         // Moon / Sun SVG icons
         const moonSvg = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>`;
@@ -1256,7 +1256,7 @@
         if (themeBtn) {
             themeBtn.addEventListener("click", () => {
                 const current = getTheme();
-                const next = current === "light" ? "dark" : current === "dark" ? "navy" : "light";
+                const next = current === "light" ? "dark" : "light";
                 saveTheme(next);
                 applyTheme(next);
                 injectToolbar();
@@ -1299,6 +1299,7 @@
     window.ThemeLang = {
         getTheme,
         normalizeTheme,
+        applyTheme,
         getLang,
         saveLang,
         applyLang,
