@@ -40,7 +40,11 @@
             return value == null || value === "" ? "" : `<tr><th scope="row">${esc(question?.text || questionId)}</th><td>${esc(Array.isArray(value) ? value.join(", ") : typeof value === "object" ? JSON.stringify(value) : value)}</td><td>${esc(record.respondentRoleLabel || record.respondentRole || "ไม่ระบุ")}</td></tr>`;
         })).filter(Boolean).join("");
         const factorRows = [["ปัญหาที่เลือกบ่อย", signal?.commonProblem], ["สิ่งที่ต้องการปรับปรุง", signal?.commonImprovement]].map(([label, item]) => `<tr><th scope="row">${label}</th><td>${item ? esc(item.label) : "ยังไม่มีข้อมูล"}</td><td>${item ? `${(item.share * 100).toFixed(0)}% · ${item.count} คำตอบ` : "—"}</td></tr>`).join("");
-        const reasons = signal?.reasons?.map(item => `<li>${esc(item.message)}</li>`).join("") || "<li>ไม่มีข้อมูลประกอบ</li>";
+        const reasons = signal?.reasons?.map(item => {
+            let message = item.message;
+            for (const key of ["usability", "efficiency", "effectiveness", "data_quality", "tracking_transparency", "reliability"]) message = message.replaceAll(key, window.AdminCharts.categoryLabel(key));
+            return `<li>${esc(message)}</li>`;
+        }).join("") || "<li>ไม่มีข้อมูลประกอบ</li>";
         const mockCount = evaluations.filter(row => row.isMock || String(row.id).startsWith("mock-")).length;
         document.getElementById("results-status").innerHTML = mockCount ? '<p class="admin-state notice" role="status">ข้อมูล mock สำหรับตัวอย่างการแสดงผล ไม่ใช่ผลจริง</p>' : "";
         const chartData = window.AdminOverviewModel.prepareSystemCharts(effectiveness, effectivenessRows, effectQuestions, data.scoringConfig || window.EffectivenessScoring.DEFAULT_SCORING_CONFIG.improvement);

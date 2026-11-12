@@ -7,6 +7,8 @@
     const mean = (value, n) => Number.isFinite(value) ? `${value.toFixed(2)} / 5 (n=${n})` : "ยังไม่มีข้อมูล";
     const levels = { urgent: "ควรปรับปรุงเร่งด่วน", review: "ควรตรวจสอบเพิ่มเติม", strength: "จุดแข็งควรรักษา", insufficient: "ข้อมูลยังไม่เพียงพอ" };
     const order = { urgent: 0, review: 1, strength: 2, insufficient: 3 };
+    const categoryNames = { usability: "ความง่ายในการใช้งาน", efficiency: "ประสิทธิภาพ", effectiveness: "ประสิทธิผล", data_quality: "คุณภาพข้อมูล", tracking_transparency: "การติดตามและความโปร่งใส", reliability: "ความน่าเชื่อถือ" };
+    const localizeReason = message => esc(Object.entries(categoryNames).reduce((text, [key, label]) => text.replaceAll(key, label), String(message ?? "")));
 
     function statusPanel(message, error = false) {
         root.innerHTML = `<p class="admin-state${error ? " error" : ""}" role="${error ? "alert" : "status"}">${esc(message)}</p>${error ? '<button class="btn btn-secondary" id="overview-retry" type="button">ลองอีกครั้ง</button>' : ""}`;
@@ -23,7 +25,7 @@
         ].map(([title, count]) => `<article class="admin-kpi"><h2>${title}</h2><p>${count}</p></article>`).join("");
         const rows = details.map(item => {
             const signal = item.signal;
-            const reasons = signal.reasons.map(reason => esc(reason.message)).join("<br>");
+            const reasons = signal.reasons.map(reason => localizeReason(reason.message)).join("<br>");
             const score = item.effectivenessAverage;
             const sat = item.satisfaction?.average ?? null;
             const href = new URL(window.EvaluatorRuntimeUrl.fromScript("../../../admin/results.html", scriptUrl));
