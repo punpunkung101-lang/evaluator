@@ -30,3 +30,12 @@
 - Mock evaluator credentials are intentionally unusable. The fixed placeholder hash is deterministic and exists only to satisfy the account schema.
 - Use Node 24's built-in `node:sqlite` for building and round-trip checks; this avoids adding a package dependency.
 - Keep snapshot export for the later integration phase because Phase 2 explicitly does not modify frontend files. Its existing exporter/test uses the legacy schema and is deferred with the frontend snapshot regeneration work.
+
+## Phase 3
+
+- Use the brief's five interpretation bands: 4.51, 3.51, 2.51, and 1.51. Only scored `rating5` answers contribute; N/A is counted separately and excluded from averages.
+- Default the improvement signal to a minimum n of 10, category/satisfaction concern below 2.61, and 30% low ratings for review or 50% for urgent review. Keep all thresholds in the scoring configuration so Admin can tune them later.
+- Treat a low sample as “ข้อมูลไม่เพียงพอ” before interpreting other indicators. Otherwise combine low indicator categories, satisfaction, low ratings, frequent problems, and selected improvements; include reasons in every signal.
+- Use one pure shared conditional engine in the core assets. Server validation implements the persisted `visible_when` and `answer_rules` contract in C++, and checks required fields, respondent roles, rating values, and choice options before saving.
+- Version Admin question replacements by creating a new published form version and immutable question rows. This keeps already submitted answers tied to their original questions.
+- Return no records for retired quantitative-system-stat endpoints and reject writes with HTTP 410; actual operational statistics are not in the evaluation submission schema and should not be presented as user survey answers.
