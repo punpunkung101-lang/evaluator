@@ -51,3 +51,11 @@
 - Both assessment entry URLs render an authenticated system picker when `system` is absent. The picker reads the active catalog from `EvaluationAPI.getSystems()`, supports search and lets the user switch assessment type; choosing a system adds its ID to the same page URL.
 - Login redirects return to the picker URL so both ordinary users and admins can select a system after authentication.
 - Removed the obsolete satisfaction landing/dropdown and duplicate legacy user pages/styles, plus stale effectiveness prototype notes. Admin data/configuration modules were retained where current Admin pages still depend on them; deleting them would break those pages before their replacement is ready.
+
+## Phase 5–6: Admin migration and clean baseline
+
+- Rebuild the Admin overview around `/systems`, `/evaluations`, published typed questions, and versioned question replacement. Keep Core questions shared in storage and attach them to each system form; Admin edits Core in one operation across all active forms and edits Specific questions per system. Preserve published history and deactivate a question instead of deleting old response context.
+- Remove duplicate legacy Admin and user modules after confirming active pages no longer reference them. Keep the active two-destination Admin navigation and link system results directly from the 21-row overview.
+- Store improvement signal thresholds as one JSON setting in SQLite so Admin can change them. Start with n=10, low category/satisfaction 2.61, low rating ≤2, review share 0.30, urgent share 0.50, frequent problem 0.25, frequent improvement 0.35, urgent category count 2, urgent problem share 0.40, and all six Core categories.
+- Export Demo data from the same clean SQLite baseline as typed `systems`, per-system published `questions`, and `evaluations` with typed `answers`. Duplicate shared Core questions into each system's response payload to match `GET /questions?system_id=...`; do not export a separate quantitative channel.
+- Commit Admin, cleanup, and regenerated database/snapshot as distinct checkpoints. Keep the backend build artifact outside the repository and stop the local server before replacing the SQLite file.

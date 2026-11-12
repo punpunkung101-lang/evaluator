@@ -38,6 +38,7 @@ test("database build is deterministic and round-trips all sources with healthy c
     assert.equal(db.prepare("SELECT COUNT(*) AS n FROM assessment_questions").get().n, 189);
     assert.equal(db.prepare("SELECT COUNT(*) AS n FROM form_version_questions").get().n, 1349);
     assert.equal(db.prepare("SELECT COUNT(*) AS n FROM option_sets").get().n, 37);
+    assert.equal(db.prepare("SELECT COUNT(*) AS n FROM app_settings WHERE setting_key='improvement_scoring'").get().n, 1);
     assert.equal(db.prepare("SELECT COUNT(*) AS n FROM users WHERE substr(username,1,5)='mock_'").get().n, 315);
     assert.equal(db.prepare("SELECT COUNT(*) AS n FROM evaluations WHERE is_mock=1").get().n, 630);
     assert.equal(db.prepare("SELECT COUNT(*) AS n FROM evaluation_answers").get().n, 18759);

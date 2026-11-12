@@ -24,3 +24,6 @@ INSERT OR IGNORE INTO systems(id, name, name_en, sort_order, has_tracking) VALUE
 -- Bootstrap administrator account requested for initial access.
 INSERT OR IGNORE INTO users(id, username, display_name, role, password_hash, password_salt, password_iterations, created_at)
 VALUES ('00000000', 'Admin', 'Admin', 'admin', 'cc3de12561d96c61e93402757182d018495425e492dd7f6934fd79158aa23cdd', '00000000000000000000000000000000', 120000, '2026-11-12T00:00:00Z');
+
+INSERT OR IGNORE INTO app_settings(setting_key, value_json, updated_at) VALUES
+('improvement_scoring', '{"minimumRespondents":10,"categoryLowBelow":2.61,"satisfactionLowBelow":2.61,"lowRatingAtOrBelow":2,"lowRatingShareForReview":0.3,"lowRatingShareForUrgent":0.5,"commonProblemShareForReview":0.25,"commonImprovementShareForReview":0.35,"urgentLowCategoryCount":2,"urgentProblemShare":0.4,"coreCategories":["usability","efficiency","effectiveness","data_quality","tracking_transparency","reliability"]}', '2026-11-12T00:00:00Z');

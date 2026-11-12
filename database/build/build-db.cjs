@@ -33,7 +33,7 @@ function inspectDatabase(db) {
   const foreignKeys = db.prepare("PRAGMA foreign_key_check").all();
   const sessions = db.prepare("SELECT COUNT(*) AS count FROM auth_sessions").get().count;
   const counts = {};
-  for (const table of ["users", "systems", "assessment_forms", "form_versions", "assessment_questions", "form_version_questions", "option_sets", "evaluations", "evaluation_answers", "auth_sessions"]) {
+  for (const table of ["users", "systems", "assessment_forms", "form_versions", "assessment_questions", "form_version_questions", "option_sets", "evaluations", "evaluation_answers", "auth_sessions", "app_settings"]) {
     counts[table] = db.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get().count;
   }
   return { integrity, foreignKeys, sessions, counts };
@@ -49,6 +49,7 @@ function assertDatabaseHealth(result) {
   if (result.counts.evaluations !== 630) throw new Error(`Expected 630 mock submissions, found ${result.counts.evaluations}`);
   if (result.counts.form_version_questions !== 1349) throw new Error(`Expected 1,349 form-question links, found ${result.counts.form_version_questions}`);
   if (result.counts.option_sets !== 37) throw new Error(`Expected 37 question-bank option sets, found ${result.counts.option_sets}`);
+  if (result.counts.app_settings !== 1) throw new Error(`Expected one default improvement-scoring setting, found ${result.counts.app_settings}`);
   if (result.counts.evaluation_answers !== 18759) throw new Error(`Expected 18,759 typed answers, found ${result.counts.evaluation_answers}`);
 }
 

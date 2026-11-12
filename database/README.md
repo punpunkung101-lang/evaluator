@@ -4,7 +4,7 @@
 
 ## Pull and start
 
-After `git pull`, use the committed `database/evaluator.db` directly. It has 21 systems, 189 questions, 42 published form versions, 315 mock accounts, and 630 mock submissions (15 respondents per system for each assessment type). The baseline has no authentication sessions. Logging in adds a local session row; restore the tracked baseline before committing or when you need to clear local sessions:
+After `git pull`, use the committed `database/evaluator.db` directly. It has 21 systems, 189 question definitions (1,349 published form links including shared Core questions), 42 published form versions, 315 mock accounts, 630 mock submissions (15 respondents per system for each assessment type), and the default Admin-adjustable improvement criteria. The baseline has no authentication sessions. Logging in adds a local session row; restore the tracked baseline before committing or when you need to clear local sessions:
 
 ```powershell
 git restore database/evaluator.db
@@ -44,6 +44,7 @@ node database/build/validate-question-bank.cjs
 node database/build/generate-questions-seed.cjs
 node database/mock/generate-mock-data.cjs
 node database/build/build-db.cjs
+node database/mock/export-mock-snapshot.cjs
 ```
 
 The build always creates a clean database from `schema.sql`, `seed.sql`, `questions_seed.sql`, and `mock/mock-data.sql`. It replaces `database/evaluator.db`, so stop the backend first. It then checks SQLite integrity, foreign keys, the empty-session requirement, and expected row counts.
@@ -75,4 +76,4 @@ node database/build/build-db.cjs
 node --test "tests/**/*.test.cjs"
 ```
 
-The built database contains 316 users (Admin plus 315 mock accounts), 21 systems, 42 forms and versions, 189 question definitions, 630 submissions, and 18,759 typed answers. `auth_sessions` is empty in the committed baseline. There are no `-journal`, `-wal`, or `-shm` files to commit.
+The built database contains 316 users (Admin plus 315 mock accounts), 21 systems, 42 forms and versions, 189 question definitions, 1,349 form-question links, 630 submissions, and 18,759 typed answers. It also has one `improvement_scoring` setting row. `auth_sessions` is empty in the committed baseline. There are no `-journal`, `-wal`, or `-shm` files to commit. The exported Demo snapshot contains the same mock evaluations and system-specific published question payloads as the backend API.

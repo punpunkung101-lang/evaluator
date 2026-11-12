@@ -18,6 +18,12 @@ CREATE TABLE IF NOT EXISTS auth_sessions (
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 
+CREATE TABLE IF NOT EXISTS app_settings (
+    setting_key TEXT PRIMARY KEY,
+    value_json TEXT NOT NULL CHECK (json_valid(value_json)),
+    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
 CREATE TABLE IF NOT EXISTS systems (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,

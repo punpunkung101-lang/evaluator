@@ -1,66 +1,36 @@
-// Export the mock rows of database/evaluator.db to frontend/assets/data/mock-snapshot.js
-// so the Admin pages can show demo data without the C++ backend (read-only demo mode).
-// Usage (from project root):  node database/mock/export-mock-snapshot.cjs
-// Needs Node 22+ (built-in node:sqlite).
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
-
 const root = path.resolve(__dirname, '../..');
 const dbPath = path.join(root, 'database/evaluator.db');
 const outPath = path.join(root, 'frontend/assets/data/mock-snapshot.js');
-
-const parse = (text, fallback) => { try { return JSON.parse(text); } catch (_) { return fallback; } };
-
-// Same JSON shapes the backend returns from GET /systems, /questions, /evaluations, /quantitative.
 function buildSnapshot(db) {
-    const systems = db.prepare('SELECT id,name,name_en FROM systems WHERE active=1 ORDER BY sort_order,id').all()
-        .map(r => ({ id: r.id, name: r.name, name_en: r.name_en }));
-
-    const questions = {};
-    for (const s of systems) questions[s.id] = [];
-    const qRows = db.prepare(`SELECT id,system_id,assessment_type,sort_order,text,text_en FROM assessment_questions
-        WHERE active=1 AND system_id IS NOT NULL ORDER BY sort_order,id`).all();
-    for (const q of qRows) {
-        if (!questions[q.system_id]) continue;
-        questions[q.system_id].push({ id: q.id, assessmentType: q.assessment_type, order: q.sort_order, text: q.text, text_en: q.text_en, active: true });
+    const systems = db.prepare('SELECT id,name,name_en,has_tracking FROM systems WHERE active=1 ORDER BY sort_order,id').all().map(row => ({ ...row, hasTracking: Boolean(row.has_tracking) }));
+    const questions = Object.fromEntries(systems.map(system => [system.id, []]));
+    const qRows = db.prepare(`SELECT f.system_id AS form_system_id,q.id,q.system_id,q.assessment_type,q.section,q.text,q.text_en,q.answer_type,q.options_json,q.required,q.is_scored,q.indicator_group,q.step,q.question_order,q.roles_json,q.visible_when_json,q.allow_na,q.allow_other,q.max_select,q.option_set_ref,q.metadata_json,q.active
+        FROM assessment_questions q JOIN form_version_questions fvq ON fvq.question_id=q.id JOIN form_versions fv ON fv.id=fvq.form_version_id JOIN assessment_forms f ON f.current_version_id=fv.id
+        WHERE q.active=1 AND fv.status='published' ORDER BY f.system_id,f.assessment_type,fvq.step,fvq.sort_order`).all();
+    for (const row of qRows) {
+        if (!questions[row.form_system_id]) continue;
+        questions[row.form_system_id].push({ id: row.id, system_id: row.system_id, assessment_type: row.assessment_type, section: row.section, text: row.text, text_en: row.text_en, answer_type: row.answer_type, options: JSON.parse(row.options_json), required: Boolean(row.required), is_scored: Boolean(row.is_scored), indicator_group: row.indicator_group, step: row.step, order: row.question_order, roles: JSON.parse(row.roles_json), visible_when: JSON.parse(row.visible_when_json), allow_na: Boolean(row.allow_na), allow_other: Boolean(row.allow_other), max_select: row.max_select, option_set_ref: row.option_set_ref, metadata: JSON.parse(row.metadata_json), active: Boolean(row.active) });
     }
-
-    const evaluations = db.prepare(`SELECT e.id,e.system_id,e.system_name,e.evaluator_id,e.evaluator_name,e.user_role,
-        e.before_answers,e.after_answers,e.before_average,e.after_average,e.comparable_count,
-        COALESCE(s.answers,'[]') AS sat_answers,s.average AS sat_average,e.feedback,e.submitted_at
-        FROM evaluations e LEFT JOIN satisfactions s ON s.evaluation_id=e.id
-        WHERE e.id LIKE 'mock-eval-%' ORDER BY e.submitted_at DESC, e.id`).all()
-        .map(r => ({
-            id: r.id, systemId: r.system_id, systemName: r.system_name,
-            evaluatorId: r.evaluator_id, evaluatorName: r.evaluator_name, userRole: r.user_role,
-            beforeAnswers: parse(r.before_answers, []), afterAnswers: parse(r.after_answers, []),
-            beforeAverage: r.before_average, afterAverage: r.after_average, comparableCount: r.comparable_count,
-            satisfactionAnswers: parse(r.sat_answers, []), satisfactionAverage: r.sat_average,
-            feedback: r.feedback, submittedAt: r.submitted_at
-        }));
-
-    const quantitative = db.prepare(`SELECT record_json FROM quantitative_records
-        WHERE id LIKE 'mock-quant-%' ORDER BY submitted_at DESC, id`).all()
-        .map(r => parse(r.record_json, null)).filter(Boolean);
-
-    return { systems, questions, evaluations, quantitative };
+    const evaluations = db.prepare(`SELECT e.id,e.system_id,e.system_name,e.assessment_type,e.form_version_id,e.evaluator_id,u.display_name AS evaluator_name,e.respondent_role,e.respondent_role_label,e.profile_json,e.is_mock,e.submitted_at FROM evaluations e JOIN users u ON u.id=e.evaluator_id WHERE e.is_mock=1 ORDER BY e.submitted_at DESC,e.id`).all().map(row => {
+        const answers = db.prepare('SELECT question_id,question_text,answer_type,answer_json,score_value,is_na FROM evaluation_answers WHERE evaluation_id=? ORDER BY id').all(row.id).map(answer => ({ questionId: answer.question_id, questionText: answer.question_text, answerType: answer.answer_type, value: JSON.parse(answer.answer_json), scoreValue: answer.score_value, isNa: Boolean(answer.is_na) }));
+        return { id: row.id, systemId: row.system_id, systemName: row.system_name, assessmentType: row.assessment_type, formVersionId: row.form_version_id, evaluatorId: row.evaluator_id, evaluatorName: row.evaluator_name, respondentRole: row.respondent_role, respondentRoleLabel: row.respondent_role_label, profile: JSON.parse(row.profile_json), isMock: Boolean(row.is_mock), submittedAt: row.submitted_at, answers };
+    });
+    const improvement = db.prepare("SELECT value_json FROM app_settings WHERE setting_key='improvement_scoring'").get();
+    const optionSets = db.prepare('SELECT id,system_id AS systemId,options_json,values_by_system_json,values_by_role_json,depends_on_json FROM option_sets ORDER BY id').all().map(row => ({ id: row.id, systemId: row.systemId, options: JSON.parse(row.options_json), valuesBySystem: JSON.parse(row.values_by_system_json), valuesByRole: JSON.parse(row.values_by_role_json), dependsOn: JSON.parse(row.depends_on_json) }));
+    return { systems, questions, evaluations, optionSets, settings: { improvement: improvement ? JSON.parse(improvement.value_json) : {} } };
 }
-
-function render(snapshot) {
-    return '/* AUTO-GENERATED by database/mock/export-mock-snapshot.cjs - do not edit by hand.\n' +
-        '   Development mock data only (ids start with mock-). Not real faculty results. */\n' +
-        'window.EvaluatorMockSnapshot = ' + JSON.stringify(snapshot) + ';\n';
-}
-
+function render(snapshot) { return '/* AUTO-GENERATED by database/mock/export-mock-snapshot.cjs. Mock data only; not real faculty results. */\nwindow.EvaluatorMockSnapshot = ' + JSON.stringify(snapshot) + ';\n'; }
 if (require.main === module) {
     const { DatabaseSync } = require('node:sqlite');
     const db = new DatabaseSync(dbPath, { readOnly: true });
-    const snapshot = buildSnapshot(db);
-    fs.mkdirSync(path.dirname(outPath), { recursive: true });
-    fs.writeFileSync(outPath, render(snapshot));
-    console.log(`Wrote ${path.relative(root, outPath)}: ${snapshot.systems.length} systems, ` +
-        `${snapshot.evaluations.length} evaluations, ${snapshot.quantitative.length} quantitative records`);
+    try {
+        const snapshot = buildSnapshot(db);
+        fs.mkdirSync(path.dirname(outPath), { recursive: true });
+        fs.writeFileSync(outPath, render(snapshot));
+        console.log(`Wrote ${path.relative(root, outPath)}: ${snapshot.systems.length} systems, ${Object.values(snapshot.questions).flat().length} published questions, ${snapshot.evaluations.length} mock evaluations`);
+    } finally { db.close(); }
 }
-
 module.exports = { buildSnapshot, render };
