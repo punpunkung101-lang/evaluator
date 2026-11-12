@@ -1178,6 +1178,7 @@
         const normalized = normalizeTheme(theme);
         document.documentElement.setAttribute("data-theme", normalized);
         document.body?.classList.toggle("dark", normalized === "dark");
+        document.dispatchEvent(new CustomEvent("themechange", { detail: { theme: normalized } }));
     }
 
     /* =====================================================================

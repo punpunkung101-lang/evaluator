@@ -86,5 +86,6 @@
         } catch (error) { statusPanel(`โหลดภาพรวมไม่ได้: ${error.message}`, true); }
     }
     document.addEventListener("langchange", load);
+    document.addEventListener("themechange", load);
     load();
 })();
