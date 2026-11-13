@@ -53,6 +53,7 @@ database/*.db-shm
 database/*.db-wal
 *.db
 
+
 .exe
 .vscode/settings.json
 .git/index.lock

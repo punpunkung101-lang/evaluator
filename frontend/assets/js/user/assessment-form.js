@@ -114,6 +114,10 @@
       const other = valuesFor(question).find((o) => o.allow_other && o.value === value);
       return other ? { value, otherText: app.querySelector(`[data-other-for="${CSS.escape(question.id)}"]`)?.value?.trim() || '' } : value;
     }
+    if (question.answer_type === 'number') {
+      const value = field?.value ?? '';
+      return value === '' ? '' : Number(value);
+    }
     return field?.value ?? null;
   }
   function capture() {
@@ -121,17 +125,35 @@
     const role = document.getElementById('satisfaction-role'); if (role) answers.__respondentRole = role.value;
     sessionStorage.setItem(draftKey(user.id), JSON.stringify({ answers, stepIndex, formVersionId: versionId }));
   }
-  function validateVisible() {
+  function showValidationErrors(errors) {
+    for (const error of errors) {
+      const node = document.getElementById(`error-${CSS.escape(error.questionId)}`) || (error.questionId === 'satisfaction-role' ? document.getElementById('satisfaction-role') : null);
+      if (node) {
+        if (node.matches('small, p')) node.textContent = tr(`form_validation_${error.code}`) || error.message;
+        else { node.setAttribute('aria-invalid', 'true'); node.focus(); }
+      }
+    }
+  }
+  function validateVisible(allQuestions = false) {
     capture();
-    const activeQuestions = stepIndex === steps.length ? questions : currentQuestions();
+    const activeQuestions = allQuestions || stepIndex === steps.length ? questions : currentQuestions();
     const questionsWithOptions = activeQuestions.map((q) => ({ ...q, options: valuesFor(q) }));
     const result = root.NUAHSConditionalEngine.validateAnswers({ questions: questionsWithOptions, answers, context: context() });
     if (type === 'satisfaction' && !selectedRole()) result.errors.push({ questionId: 'satisfaction-role', code: 'role', message: tr('form_validation_role') });
-    for (const error of result.errors) {
-      const node = document.getElementById(`error-${CSS.escape(error.questionId)}`) || (error.questionId === 'satisfaction-role' ? document.getElementById('satisfaction-role') : null);
-      if (node) { if (node.matches('small, p')) node.textContent = tr(`form_validation_${error.code}`) || error.message; else { node.setAttribute('aria-invalid', 'true'); node.focus(); } }
-    }
+    showValidationErrors(result.errors);
     return result.valid && !(type === 'satisfaction' && !selectedRole());
+  }
+  function returnToInvalidQuestion() {
+    const validation = root.NUAHSConditionalEngine.validateAnswers({ questions: questions.map((q) => ({ ...q, options: valuesFor(q) })), answers, context: context() });
+    if (type === 'satisfaction' && !selectedRole()) validation.errors.push({ questionId: 'satisfaction-role', code: 'role', message: tr('form_validation_role') });
+    if (validation.valid && !(type === 'satisfaction' && !selectedRole())) return false;
+    const question = questions.find((q) => q.id === validation.errors[0]?.questionId);
+    const invalidStep = question ? steps.indexOf(Number(question.step)) : 0;
+    stepIndex = Math.max(0, invalidStep);
+    render();
+    showValidationErrors(validation.errors);
+    document.getElementById('form-message').textContent = tr('form_required_check');
+    return true;
   }
   function bindStep() {
     const form = document.getElementById('step-form');
@@ -143,14 +165,15 @@
     document.getElementById('back')?.addEventListener('click', () => { capture(); stepIndex = Math.max(0, stepIndex - 1); render(); });
     document.getElementById('next')?.addEventListener('click', () => {
       if (!validateVisible()) { document.getElementById('form-message').textContent = tr('form_required_check'); return; }
+      if (stepIndex === steps.length - 1 && returnToInvalidQuestion()) return;
       stepIndex = Math.min(steps.length, stepIndex + 1); render(); window.scrollTo({ top: 0, behavior: 'smooth' });
     });
     document.getElementById('submit')?.addEventListener('click', submit);
   }
   async function submit() {
-    if (sending || !validateVisible()) { document.getElementById('form-message').textContent = tr('form_check_before_submit'); return; }
-    const validation = root.NUAHSConditionalEngine.validateAnswers({ questions: questions.map((q) => ({ ...q, options: valuesFor(q) })), answers, context: context() });
-    if (!validation.valid) { stepIndex = Math.max(0, steps.indexOf(questions.find((q) => q.id === validation.errors[0].questionId)?.step)); render(); return; }
+    if (sending) return;
+    capture();
+    if (returnToInvalidQuestion()) return;
     sending = true; render();
     const roleLabel = type === 'satisfaction' ? selectedRole() : selectedRole();
     const payload = { id: `eval_${crypto.randomUUID()}`, systemId, assessmentType: type, formVersionId: versionId, evaluatorId: user.id, respondentRole: roleLabel || 'ผู้ใช้ระบบ', respondentRoleLabel: roleLabel || 'ผู้ใช้ระบบ', profile: {}, answers: visible().filter((q) => answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '').map((q) => ({ questionId: q.id, value: q.answer_type === 'rating5' && answers[q.id] !== 'N/A' ? Number(answers[q.id]) : answers[q.id] })), submittedAt: new Date().toISOString() };
