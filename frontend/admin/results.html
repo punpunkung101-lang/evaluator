@@ -15,6 +15,16 @@
     <link rel="stylesheet" href="../assets/css/layouts/admin-layout.css">
     <link rel="stylesheet" href="../assets/css/pages/admin-pages.css">
     <link rel="stylesheet" href="../assets/css/pages/admin-charts.css">
+    <style>
+        button, input, select, textarea {
+            font-family: var(--font-sans);
+        }
+
+        /* ApexCharts sets font families inline on chart labels and tooltips. */
+        #system-results .apexcharts-canvas * {
+            font-family: var(--font-sans) !important;
+        }
+    </style>
 </head>
 <body>
     <div class="admin-layout">
